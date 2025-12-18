@@ -633,10 +633,10 @@ pub mod alacritty {
                 //     text: Some(theme.background.index(1).into()),
                 //     cursor: Some(theme.foreground.index(3).into()),
                 // }),
-                // selection: Some(SelectionColors {
-                //     text: Some(theme.foreground.index(1).into()),
-                //     background: Some(theme.selection.index(0).into()),
-                // }),
+                selection: Some(SelectionColors {
+                    text: Some(theme.foreground.index(1).into()),
+                    background: Some(theme.selection.index(0).into()),
+                }),
                 normal: Some(AnsiColors::from(&theme.base)),
                 bright: theme.bright.as_ref().map(AnsiColors::from),
                 dim: theme.dim.as_ref().map(AnsiColors::from),
