@@ -235,7 +235,6 @@ local function themeSyncExe()
         WinBar       = { fg = P.fg3, bg = trans and "NONE" or P.bg1, style = "bold" },                       -- Window bar of current window.
         WinBarNC     = { fg = P.fg3, bg = trans and "NONE" or inactive and P.bg0 or P.bg1, style = "bold" }, --Window bar of not-current windows.
 
-
         Comment        = { fg = syn.comment, style = stl.comments },         -- any comment
         Constant       = { fg = syn.const, style = stl.constants },          -- (preferred) any constant
         String         = { fg = syn.string, style = stl.strings },           -- a string constant: "this is a string"
@@ -283,7 +282,6 @@ local function themeSyncExe()
         diffLine       = { fg = syn.builtin2 }, -- Line information ("@@ -169,6 +169,9 @@")
         diffIndexLine  = { fg = syn.preproc },  -- Index line of diff ("index bf3763d..94f0f62 100644")
 
-
         DiagnosticError          = { fg = spec.diag.error },
         DiagnosticWarn           = { fg = spec.diag.warn },
         DiagnosticInfo           = { fg = spec.diag.info },
@@ -299,7 +297,6 @@ local function themeSyncExe()
         DiagnosticUnderlineInfo  = { style = "undercurl", sp = spec.diag.info },
         DiagnosticUnderlineHint  = { style = "undercurl", sp = spec.diag.hint },
         DiagnosticUnderlineOk    = { style = "undercurl", sp = spec.diag.ok },
-
 
         ["@variable"] = { fg = syn.variable, style = stl.variables },             -- various variable names
         ["@variable.builtin"] = { fg = syn.builtin0, style = stl.variables },     -- built-in variable names (e.g. `this`)
@@ -373,7 +370,6 @@ local function themeSyncExe()
         ["@constructor.lua"] = { fg = P.fg2 },                                    -- Lua's constructor is { }
         ["@field.rust"] = { fg = P.fg2 },
         ["@variable.member.yaml"] = { fg = syn.func },                            -- For fields.
-
 
         ["@lsp.type.boolean"] = { link = "@boolean" },
         ["@lsp.type.builtinType"] = { link = "@type.builtin" },
