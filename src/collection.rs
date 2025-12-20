@@ -2852,7 +2852,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#b0b0b0".into(),
                     "#6f6f6f".into(),
                 ]),
-                selection: Selection::Colors(["#1f1f1f".into(), "#2a2a2a".into()]),
+                selection: Selection::Colors(["#242424".into(), "#333333".into()]),
                 diff: None,
             }),
             config: None,
