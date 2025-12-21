@@ -171,40 +171,43 @@ pub fn search(query: &str) -> Theme {
     }
 }
 
-fn new_term_colors(
-    black: &str,
-    red: &str,
-    green: &str,
-    yellow: &str,
-    blue: &str,
-    magenta: &str,
-    cyan: &str,
-    white: &str,
-    orange: &str,
-    pink: &str,
-) -> TermColors {
-    let orange = if orange.is_empty() {
-        None
-    } else {
-        Some(orange.into())
+macro_rules! term_colors {
+    (
+        $black:expr, $red:expr, $green:expr, $yellow:expr,
+        $blue:expr, $magenta:expr, $cyan:expr, $white:expr,
+        $orange:expr, $pink:expr $(,)?
+    ) => {{
+        TermColors {
+            black: $black.into(),
+            red: $red.into(),
+            green: $green.into(),
+            yellow: $yellow.into(),
+            blue: $blue.into(),
+            magenta: $magenta.into(),
+            cyan: $cyan.into(),
+            white: $white.into(),
+            orange: if $orange.is_empty() { None } else { Some($orange.into()) },
+            pink: if $pink.is_empty() { None } else { Some($pink.into()) },
+        }
+    }};
+}
+
+macro_rules! bg_colors {
+    ( [ $($color:expr),* $(,)? ] ) => {
+        Background::Colors([ $( $color.into() ),* ])
     };
-    let pink = if pink.is_empty() {
-        None
-    } else {
-        Some(pink.into())
+}
+
+macro_rules! fg_colors {
+    ( [ $($color:expr),* $(,)? ] ) => {
+        Foreground::Colors([ $( $color.into() ),* ])
     };
-    TermColors {
-        black: black.into(),
-        red: red.into(),
-        green: green.into(),
-        yellow: yellow.into(),
-        blue: blue.into(),
-        magenta: magenta.into(),
-        cyan: cyan.into(),
-        white: white.into(),
-        orange: orange,
-        pink: pink,
-    }
+}
+
+macro_rules! sel_colors {
+    ( [ $($color:expr),* $(,)? ] ) => {
+        Selection::Colors([ $( $color.into() ),* ])
+    };
 }
 
 pub fn by_name(name: &str) -> Theme {
@@ -231,20 +234,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#738091".into()),
                 variable: Some("#dfdfe0".into()),
                 status_line: None,
-                background: Background::Colors([
-                    "#131a24".into(),
-                    "#192330".into(),
-                    "#212e3f".into(),
-                    "#29394f".into(),
-                    "#39506d".into(),
+                background: bg_colors!([
+                    "#131a24", // bg0
+                    "#192330", // bg1
+                    "#212e3f", // bg2
+                    "#29394f", // bg3
+                    "#39506d", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#d6d6d7".into(),
-                    "#cdcecf".into(),
-                    "#aeafb0".into(),
-                    "#71839b".into(),
+                foreground: fg_colors!([
+                    "#d6d6d7", // fg0
+                    "#cdcecf", // fg1
+                    "#aeafb0", // fg2
+                    "#71839b", // fg3
                 ]),
-                selection: Selection::Colors(["#2b3b51".into(), "#3c5372".into()]),
+                selection: sel_colors!(["#2b3b51", "#3c5372"]),
                 diff: None,
             }),
             config: Some(ThemeConfig {
@@ -263,7 +266,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("nordfox".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#3b4252", // black
                     "#bf616a", // red
                     "#a3be8c", // green
@@ -275,7 +278,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#c9826b", // orange
                     "#bf88bc", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#465780", // black
                     "#d06f79", // red
                     "#b1d196", // green
@@ -287,7 +290,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d89079", // orange
                     "#d092ce", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#353a45", // black
                     "#a54e56", // red
                     "#8aa872", // green
@@ -302,20 +305,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#60728a".into()),
                 variable: Some("#e5e9f0".into()),
                 status_line: None,
-                background: Background::Colors([
-                    "#232831".into(),
-                    "#2e3440".into(),
-                    "#39404f".into(),
-                    "#444c5e".into(),
-                    "#5a657d".into(),
+                background: bg_colors!([
+                    "#232831", // bg0
+                    "#2e3440", // bg1
+                    "#39404f", // bg2
+                    "#444c5e", // bg3
+                    "#5a657d", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#c7cdd9".into(),
-                    "#cdcecf".into(),
-                    "#abb1bb".into(),
-                    "#7e8188".into(),
+                foreground: fg_colors!([
+                    "#c7cdd9", // fg0
+                    "#cdcecf", // fg1
+                    "#abb1bb", // fg2
+                    "#7e8188", // fg3
                 ]),
-                selection: Selection::Colors(["#3e4a5b".into(), "#4f6074".into()]),
+                selection: sel_colors!(["#3e4a5b", "#4f6074"]),
                 diff: None,
             }),
             config: Some(ThemeConfig {
@@ -333,7 +336,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("terafox".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#2f3239", // black
                     "#e85c51", // red
                     "#7aa4a1", // green
@@ -345,7 +348,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ff8349", // orange
                     "#cb7985", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#4e5157", // black
                     "#eb746b", // red
                     "#8eb2af", // green
@@ -357,7 +360,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ff9664", // orange
                     "#d38d97", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#282a30", // black
                     "#c54e45", // red
                     "#688b89", // green
@@ -372,20 +375,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#6d7f8b".into()),
                 variable: Some("#ebebeb".into()),
                 status_line: None,
-                background: Background::Colors([
-                    "#0f1c1e".into(),
-                    "#152528".into(),
-                    "#1d3337".into(),
-                    "#254147".into(),
-                    "#2d4f56".into(),
+                background: bg_colors!([
+                    "#0f1c1e", // bg0
+                    "#152528", // bg1
+                    "#1d3337", // bg2
+                    "#254147", // bg3
+                    "#2d4f56", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#eaeeee".into(),
-                    "#e6eaea".into(),
-                    "#cbd9d8".into(),
-                    "#587b7b".into(),
+                foreground: fg_colors!([
+                    "#eaeeee", // fg0
+                    "#e6eaea", // fg1
+                    "#cbd9d8", // fg2
+                    "#587b7b", // fg3
                 ]),
-                selection: Selection::Colors(["#293e40".into(), "#425e5e".into()]),
+                selection: sel_colors!(["#293e40", "#425e5e"]),
                 diff: None,
             }),
             config: Some(ThemeConfig {
@@ -420,20 +423,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#837a72".into()),
                 variable: Some("#352c24".into()),
                 status_line: None,
-                background: Background::Colors([
-                    "#e4dcd4".into(),
-                    "#f6f2ee".into(),
-                    "#dbd1dd".into(),
-                    "#d3c7bb".into(),
-                    "#aab0ad".into(),
+                background: bg_colors!([
+                    "#e4dcd4", // bg0
+                    "#f6f2ee", // bg1
+                    "#dbd1dd", // bg2
+                    "#d3c7bb", // bg3
+                    "#aab0ad", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#302b5d".into(),
-                    "#3d2b5a".into(),
-                    "#643f61".into(),
-                    "#824d5b".into(),
+                foreground: fg_colors!([
+                    "#302b5d", // fg0
+                    "#3d2b5a", // fg1
+                    "#643f61", // fg2
+                    "#824d5b", // fg3
                 ]),
-                selection: Selection::Colors(["#e7d2be".into(), "#a4c1c2".into()]),
+                selection: sel_colors!(["#e7d2be", "#a4c1c2"]),
                 diff: None,
             }),
             config: Some(ThemeConfig {
@@ -452,7 +455,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("duskfox".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#393552", // black
                     "#eb6f92", // red
                     "#a3be8c", // green
@@ -464,7 +467,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ea9a97", // orange
                     "#eb98c3", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#47407d", // black
                     "#f083a2", // red
                     "#b1d196", // green
@@ -476,7 +479,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#f0a4a2", // orange
                     "#f0a6cc", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#322e42", // black
                     "#d84f76", // red
                     "#8aa872", // green
@@ -491,20 +494,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#817c9c".into()),
                 variable: Some("#e0def4".into()),
                 status_line: None,
-                background: Background::Colors([
-                    "#191726".into(),
-                    "#232136".into(),
-                    "#2d2a45".into(),
-                    "#373354".into(),
-                    "#4b4673".into(),
+                background: bg_colors!([
+                    "#191726", // bg0
+                    "#232136", // bg1
+                    "#2d2a45", // bg2
+                    "#373354", // bg3
+                    "#4b4673", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#eae8ff".into(),
-                    "#e0def4".into(),
-                    "#cdcbe0".into(),
-                    "#6e6a86".into(),
+                foreground: fg_colors!([
+                    "#eae8ff", // fg0
+                    "#e0def4", // fg1
+                    "#cdcbe0", // fg2
+                    "#6e6a86", // fg3
                 ]),
-                selection: Selection::Colors(["#433c59".into(), "#63577d".into()]),
+                selection: sel_colors!(["#433c59", "#63577d"]),
                 diff: None,
             }),
             config: Some(ThemeConfig {
@@ -522,7 +525,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("paper".into()),
             light: Some(true),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#000000", // black
                     "#cc3e28", // red
                     "#216609", // green
@@ -534,7 +537,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d17c15", // orange
                     "#b84a8a", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#3a3a3a", // black
                     "#e2553f", // red
                     "#3a7d22", // green
@@ -550,20 +553,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#6f6f6f".into()),
                 variable: None,
                 status_line: Some("#e6e1cf".into()),
-                background: Background::Colors([
-                    "#e3decf".into(),
-                    "#f2eede".into(),
-                    "#f8f5ea".into(),
-                    "#e4dfce".into(),
-                    "#c6c1b0".into(),
+                background: bg_colors!([
+                    "#e3decf", // bg0
+                    "#f2eede", // bg1
+                    "#f8f5ea", // bg2
+                    "#e4dfce", // bg3
+                    "#c6c1b0", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#3a3a3a".into(),
-                    "#000000".into(),
-                    "#5a5a5a".into(),
-                    "#7a7a7a".into(),
+                foreground: fg_colors!([
+                    "#3a3a3a", // fg0
+                    "#000000", // fg1
+                    "#5a5a5a", // fg2
+                    "#7a7a7a", // fg3
                 ]),
-                selection: Selection::Colors(["#e1dbc6".into(), "#f0cf7a".into()]),
+                selection: sel_colors!(["#e1dbc6", "#f0cf7a"]),
                 diff: None,
             }),
             config: None,
@@ -573,7 +576,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("night_owl".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#011627", // black
                     "#EF5350", // red
                     "#22DA6E", // green
@@ -585,7 +588,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#F78C6C", // orange
                     "#FF6FB1", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#575656", // black
                     "#EF5350", // red
                     "#22DA6E", // green
@@ -597,7 +600,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#FF9E80", // orange
                     "#FF85C2", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#010E1A", // black
                     "#C94644", // red
                     "#1BB45A", // green
@@ -612,20 +615,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#637777".into()),
                 variable: None,
                 status_line: Some("#1D3B53".into()),
-                background: Background::Colors([
-                    "#1D3B53".into(),
-                    "#011627".into(),
-                    "#0B253A".into(),
-                    "#0D486E".into(),
-                    "#2A4F6E".into(),
+                background: bg_colors!([
+                    "#1D3B53", // bg0
+                    "#011627", // bg1
+                    "#0B253A", // bg2
+                    "#0D486E", // bg3
+                    "#2A4F6E", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#E4EBF7".into(),
-                    "#D6DEEB".into(),
-                    "#AEB7C6".into(),
-                    "#8FA2B7".into(),
+                foreground: fg_colors!([
+                    "#E4EBF7", // fg0
+                    "#D6DEEB", // fg1
+                    "#AEB7C6", // fg2
+                    "#8FA2B7", // fg3
                 ]),
-                selection: Selection::Colors(["#0D486E".into(), "#1AA38A".into()]),
+                selection: sel_colors!(["#0D486E", "#1AA38A"]),
                 diff: None,
             }),
             config: None,
@@ -635,7 +638,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("moonfly".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#323437", // black
                     "#ff5454", // red
                     "#8cc85f", // green
@@ -647,7 +650,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#f0a36f", // orange
                     "#ff79c6", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#949494", // black
                     "#ff5189", // red
                     "#36c692", // green
@@ -659,7 +662,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffb070", // orange
                     "#ff92d0", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#1f2022", // black
                     "#cc3f3f", // red
                     "#6fa34c", // green
@@ -674,20 +677,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#6b6b6b".into()),
                 variable: None,
                 status_line: Some("#121212".into()),
-                background: Background::Colors([
-                    "#000000".into(),
-                    "#080808".into(),
-                    "#121212".into(),
-                    "#1a1a1a".into(),
-                    "#2a2a2a".into(),
+                background: bg_colors!([
+                    "#000000", // bg0
+                    "#080808", // bg1
+                    "#121212", // bg2
+                    "#1a1a1a", // bg3
+                    "#2a2a2a", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#b0b0b0".into(),
-                    "#bdbdbd".into(),
-                    "#eeeeee".into(),
-                    "#8a8a8a".into(),
+                foreground: fg_colors!([
+                    "#b0b0b0", // fg0
+                    "#bdbdbd", // fg1
+                    "#eeeeee", // fg2
+                    "#8a8a8a", // fg3
                 ]),
-                selection: Selection::Colors(["#303A46".into(), "#5D71AE".into()]),
+                selection: sel_colors!(["#303A46", "#5D71AE"]),
                 diff: None,
             }),
             config: None,
@@ -696,7 +699,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("monokai_pro".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#2c2525", // black
                     "#fd6883", // red
                     "#adda78", // green
@@ -708,7 +711,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#f9a66c", // orange
                     "#fd83a2", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#72696a", // black
                     "#ff8fa3", // red
                     "#c0d899", // green
@@ -720,7 +723,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffb07c", // orange
                     "#ff91b4", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#1f1a1b", // black
                     "#d14d6f", // red
                     "#8fb06a", // green
@@ -735,20 +738,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#807a7c".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#1f1b1e".into(),
-                    "#2D2A2E".into(),
-                    "#3f3a3f".into(),
-                    "#343036".into(),
-                    "#191517".into(),
+                background: bg_colors!([
+                    "#1f1b1e", // bg0
+                    "#2D2A2E", // bg1
+                    "#3f3a3f", // bg2
+                    "#343036", // bg3
+                    "#191517", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#e8e0e2".into(),
-                    "#fff1f3".into(),
-                    "#d6cfd2".into(),
-                    "#c9a0ab".into(),
+                foreground: fg_colors!([
+                    "#e8e0e2", // fg0
+                    "#fff1f3", // fg1
+                    "#d6cfd2", // fg2
+                    "#c9a0ab", // fg3
                 ]),
-                selection: Selection::Colors(["#5A4E50".into(), "#BD7763".into()]),
+                selection: sel_colors!(["#5A4E50", "#BD7763"]),
                 diff: None,
             }),
             config: None,
@@ -757,7 +760,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("monokai_charcoal".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#1a1a1a", // black
                     "#f4005f", // red
                     "#98e024", // green
@@ -769,7 +772,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#fa8c42", // orange
                     "#f45fa0", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#625e4c", // black
                     "#ff6a80", // red
                     "#b0eb46", // green
@@ -781,7 +784,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffaf73", // orange
                     "#ff7db3", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#0f0f0f", // black
                     "#c30050", // red
                     "#7cb616", // green
@@ -796,20 +799,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7f7f7f".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#141414".into(),
-                    "#000000".into(),
-                    "#222222".into(),
-                    "#1a1a1a".into(),
-                    "#0d0d0d".into(),
+                background: bg_colors!([
+                    "#141414", // bg0
+                    "#000000", // bg1
+                    "#222222", // bg2
+                    "#1a1a1a", // bg3
+                    "#0d0d0d", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#b8b8b8".into(),
-                    "#FFFFFF".into(),
-                    "#e0e0e0".into(),
-                    "#9a9a9a".into(),
+                foreground: fg_colors!([
+                    "#b8b8b8", // fg0
+                    "#FFFFFF", // fg1
+                    "#e0e0e0", // fg2
+                    "#9a9a9a", // fg3
                 ]),
-                selection: Selection::Colors(["#2a2a2a".into(), "#fa8419".into()]),
+                selection: sel_colors!(["#2a2a2a", "#fa8419"]),
                 diff: None,
             }),
             config: None,
@@ -819,7 +822,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("monokai".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#272822", // black
                     "#f92672", // red
                     "#a6e22e", // green
@@ -831,7 +834,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#fd971f", // orange
                     "#f92672", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#75715e", // black
                     "#f92672", // red
                     "#a6e22e", // green
@@ -843,7 +846,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#fd971f", // orange
                     "#f92672", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#49483e", // black
                     "#f92672", // red
                     "#a6e22e", // green
@@ -858,20 +861,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#75715e".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#1e1e1c".into(),
-                    "#272822".into(),
-                    "#3e3d32".into(),
-                    "#49483e".into(),
-                    "#272822".into(),
+                background: bg_colors!([
+                    "#1e1e1c", // bg0
+                    "#272822", // bg1
+                    "#3e3d32", // bg2
+                    "#49483e", // bg3
+                    "#272822", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#f8f8f2".into(),
-                    "#f8f8f2".into(),
-                    "#f5f4f1".into(),
-                    "#75715e".into(),
+                foreground: fg_colors!([
+                    "#f8f8f2", // fg0
+                    "#f8f8f2", // fg1
+                    "#f5f4f1", // fg2
+                    "#75715e", // fg3
                 ]),
-                selection: Selection::Colors(["#49483e".into(), "#5E5C50".into()]),
+                selection: sel_colors!(["#49483e", "#5E5C50"]),
                 diff: None,
             }),
             config: None,
@@ -881,7 +884,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("midnight_haze".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#2c2c3d", // black
                     "#ff6e6e", // red
                     "#9ec875", // green
@@ -893,7 +896,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffb380", // orange
                     "#ff92d0", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#414166", // black
                     "#ff8d8d", // red
                     "#b3d987", // green
@@ -905,7 +908,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffd1a0", // orange
                     "#ffb3ff", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#1f1f2b", // black
                     "#cc5c5c", // red
                     "#7fae61", // green
@@ -920,20 +923,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7a7c92".into()),
                 variable: None,
                 status_line: Some("#1f1f2b".into()),
-                background: Background::Colors([
-                    "#0c0c16".into(),
-                    "#121224".into(),
-                    "#1a1a30".into(),
-                    "#202038".into(),
-                    "#2c2c3d".into(),
+                background: bg_colors!([
+                    "#0c0c16", // bg0
+                    "#121224", // bg1
+                    "#1a1a30", // bg2
+                    "#202038", // bg3
+                    "#2c2c3d", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#b6bcc8".into(),
-                    "#d8dee9".into(),
-                    "#aab0bb".into(),
-                    "#7f8596".into(),
+                foreground: fg_colors!([
+                    "#b6bcc8", // fg0
+                    "#d8dee9", // fg1
+                    "#aab0bb", // fg2
+                    "#7f8596", // fg3
                 ]),
-                selection: Selection::Colors(["#363653".into(), "#4D85B3".into()]),
+                selection: sel_colors!(["#363653", "#4D85B3"]),
                 diff: None,
             }),
             config: None,
@@ -943,7 +946,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("miasma".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#222222", // black
                     "#685742", // red
                     "#5f875f", // green
@@ -955,7 +958,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#c9974a", // orange
                     "#bb6677", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#666666", // black
                     "#8c6f5a", // red
                     "#7ea77e", // green
@@ -967,7 +970,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e0ad6e", // orange
                     "#d88888", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#1a1a1a", // black
                     "#584732", // red
                     "#4b6b4b", // green
@@ -982,20 +985,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7a7368".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#1b1b1b".into(),
-                    "#222222".into(),
-                    "#2a2a24".into(),
-                    "#3a3a32".into(),
-                    "#3c3a33".into(),
+                background: bg_colors!([
+                    "#1b1b1b", // bg0
+                    "#222222", // bg1
+                    "#2a2a24", // bg2
+                    "#3a3a32", // bg3
+                    "#3c3a33", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#d0ccb8".into(),
-                    "#c2c2b0".into(),
-                    "#a89f7a".into(),
-                    "#8e876a".into(),
+                foreground: fg_colors!([
+                    "#d0ccb8", // fg0
+                    "#c2c2b0", // fg1
+                    "#a89f7a", // fg2
+                    "#8e876a", // fg3
                 ]),
-                selection: Selection::Colors(["#4a4a3d".into(), "#6b6a55".into()]),
+                selection: sel_colors!(["#4a4a3d", "#6b6a55"]),
                 diff: None,
             }),
             config: None,
@@ -1005,7 +1008,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("meliora".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#2a2421", // black
                     "#d49191", // red
                     "#b6b696", // green
@@ -1017,7 +1020,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#c8ab7e", // orange
                     "#d69bb1", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#2e2622", // black
                     "#d89393", // red
                     "#b9b99b", // green
@@ -1029,7 +1032,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d0ba8c", // orange
                     "#e0a5c2", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#2a2421", // black
                     "#d18989", // red
                     "#727246", // green
@@ -1044,20 +1047,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#8c857d".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#1e1a18".into(),
-                    "#1c1917".into(),
-                    "#24201e".into(),
-                    "#2f2a27".into(),
-                    "#302b28".into(),
+                background: bg_colors!([
+                    "#1e1a18", // bg0
+                    "#1c1917", // bg1
+                    "#24201e", // bg2
+                    "#2f2a27", // bg3
+                    "#302b28", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#dcd6d3".into(),
-                    "#d6d0cd".into(),
-                    "#bfb7b2".into(),
-                    "#a79f9a".into(),
+                foreground: fg_colors!([
+                    "#dcd6d3", // fg0
+                    "#d6d0cd", // fg1
+                    "#bfb7b2", // fg2
+                    "#a79f9a", // fg3
                 ]),
-                selection: Selection::Colors(["#4a433f".into(), "#5a524d".into()]),
+                selection: sel_colors!(["#4a433f", "#5a524d"]),
                 diff: None,
             }),
             config: None,
@@ -1067,7 +1070,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("marine_dark".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#002221", // black
                     "#ea3431", // red
                     "#00b6b6", // green
@@ -1079,7 +1082,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#f0a035", // orange
                     "#e370d0", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#006562", // black
                     "#ff5c5b", // red
                     "#1ce6e6", // green
@@ -1091,7 +1094,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffb347", // orange
                     "#f09ce6", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#001b1b", // black
                     "#c6312e", // red
                     "#009999", // green
@@ -1106,20 +1109,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#5a7d7d".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#001a1a".into(),
-                    "#002221".into(),
-                    "#00303a".into(),
-                    "#003b46".into(),
-                    "#00414d".into(),
+                background: bg_colors!([
+                    "#001a1a", // bg0
+                    "#002221", // bg1
+                    "#00303a", // bg2
+                    "#003b46", // bg3
+                    "#00414d", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#bdeeee".into(),
-                    "#e6f8f8".into(),
-                    "#99dddb".into(),
-                    "#80cfcf".into(),
+                foreground: fg_colors!([
+                    "#bdeeee", // fg0
+                    "#e6f8f8", // fg1
+                    "#99dddb", // fg2
+                    "#80cfcf", // fg3
                 ]),
-                selection: Selection::Colors(["#003b46".into(), "#1ab2ad".into()]),
+                selection: sel_colors!(["#003b46", "#1ab2ad"]),
                 diff: None,
             }),
             config: None,
@@ -1129,7 +1132,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("low_contrast".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#000000", // black
                     "#bb0000", // red
                     "#00bb00", // green
@@ -1141,7 +1144,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ff8800", // orange
                     "#ff55ff", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#000000", // black
                     "#ff5555", // red
                     "#55ff55", // green
@@ -1153,7 +1156,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffaa00", // orange
                     "#ff77ff", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#555555", // black
                     "#770000", // red
                     "#007700", // green
@@ -1168,20 +1171,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#888888".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#222222".into(),
-                    "#333333".into(),
-                    "#3a3a3a".into(),
-                    "#444444".into(),
-                    "#555555".into(),
+                background: bg_colors!([
+                    "#222222", // bg0
+                    "#333333", // bg1
+                    "#3a3a3a", // bg2
+                    "#444444", // bg3
+                    "#555555", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#eeeeee".into(),
-                    "#dddddd".into(),
-                    "#bbbbbb".into(),
-                    "#999999".into(),
+                foreground: fg_colors!([
+                    "#eeeeee", // fg0
+                    "#dddddd", // fg1
+                    "#bbbbbb", // fg2
+                    "#999999", // fg3
                 ]),
-                selection: Selection::Colors(["#555555".into(), "#666666".into()]),
+                selection: sel_colors!(["#555555", "#666666"]),
                 diff: None,
             }),
             config: None,
@@ -1191,7 +1194,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("konsole_port".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#000000", // black
                     "#b21818", // red
                     "#18b218", // green
@@ -1203,7 +1206,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#b26818", // orange
                     "#b218b2", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#686868", // black
                     "#ff5454", // red
                     "#54ff54", // green
@@ -1215,7 +1218,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffa654", // orange
                     "#ff54ff", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#000000", // black
                     "#b21818", // red
                     "#18b218", // green
@@ -1230,20 +1233,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7a7a7a".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#151515".into(),
-                    "#1f1f1f".into(),
-                    "#2a2a2a".into(),
-                    "#333333".into(),
-                    "#444444".into(),
+                background: bg_colors!([
+                    "#151515", // bg0
+                    "#1f1f1f", // bg1
+                    "#2a2a2a", // bg2
+                    "#333333", // bg3
+                    "#444444", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#ffffff".into(),
-                    "#e3e3e3".into(),
-                    "#b2b2b2".into(),
-                    "#888888".into(),
+                foreground: fg_colors!([
+                    "#ffffff", // fg0
+                    "#e3e3e3", // fg1
+                    "#b2b2b2", // fg2
+                    "#888888", // fg3
                 ]),
-                selection: Selection::Colors(["#292947".into(), "#b26818".into()]),
+                selection: sel_colors!(["#292947", "#b26818"]),
                 diff: None,
             }),
             config: None,
@@ -1253,7 +1256,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("kitty".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#000000", // black
                     "#cc0403", // red
                     "#19cb00", // green
@@ -1265,7 +1268,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ff7700", // orange
                     "#ff33aa", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#767676", // black
                     "#f2201f", // red
                     "#23fd00", // green
@@ -1277,7 +1280,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffaa33", // orange
                     "#ff55ff", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#000000", // black
                     "#990303", // red
                     "#149900", // green
@@ -1292,20 +1295,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#888888".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#111111".into(),
-                    "#000000".into(),
-                    "#222222".into(),
-                    "#333333".into(),
-                    "#444444".into(),
+                background: bg_colors!([
+                    "#111111", // bg0
+                    "#000000", // bg1
+                    "#222222", // bg2
+                    "#333333", // bg3
+                    "#444444", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#dddddd".into(),
-                    "#cccccc".into(),
-                    "#ffffff".into(),
-                    "#aaaaaa".into(),
+                foreground: fg_colors!([
+                    "#dddddd", // fg0
+                    "#cccccc", // fg1
+                    "#ffffff", // fg2
+                    "#aaaaaa", // fg3
                 ]),
-                selection: Selection::Colors(["#272727".into(), "#555555".into()]),
+                selection: sel_colors!(["#272727", "#555555"]),
                 diff: None,
             }),
             config: None,
@@ -1315,7 +1318,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("kimbie_light".into()),
             light: Some(true),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#fbebd4", // black
                     "#d43552", // red
                     "#b8bb26", // green
@@ -1327,7 +1330,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e78a4f", // orange
                     "#d96fa5", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#f7e4c6", // black
                     "#e04b68", // red
                     "#c0c838", // green
@@ -1339,7 +1342,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#f0a573", // orange
                     "#e38cbf", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#e6d6bc", // black
                     "#b82f49", // red
                     "#a0a726", // green
@@ -1354,20 +1357,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#99897A".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#f0d8b6".into(),
-                    "#fbebd4".into(),
-                    "#f5e1c2".into(),
-                    "#f0d8b0".into(),
-                    "#e5cba0".into(),
+                background: bg_colors!([
+                    "#f0d8b6", // bg0
+                    "#fbebd4", // bg1
+                    "#f5e1c2", // bg2
+                    "#f0d8b0", // bg3
+                    "#e5cba0", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#8b6b5a".into(),
-                    "#6e5346".into(),
-                    "#5c463a".into(),
-                    "#4a3631".into(),
+                foreground: fg_colors!([
+                    "#8b6b5a", // fg0
+                    "#6e5346", // fg1
+                    "#5c463a", // fg2
+                    "#4a3631", // fg3
                 ]),
-                selection: Selection::Colors(["#E8DBCE".into(), "#d4b89c".into()]),
+                selection: sel_colors!(["#E8DBCE", "#d4b89c"]),
                 diff: None,
             }),
             config: None,
@@ -1377,7 +1380,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("kimbie_dark".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#221a0f", // black
                     "#c87e5a", // red
                     "#879a6b", // green
@@ -1389,7 +1392,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e4b581", // orange
                     "#c792ea", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#7d6f48", // black
                     "#c87e5a", // red
                     "#879a6b", // green
@@ -1401,7 +1404,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e4b581", // orange
                     "#c792ea", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#3b3020", // black
                     "#b76b48", // red
                     "#79845a", // green
@@ -1416,20 +1419,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7d6f48".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#1b140a".into(),
-                    "#221a0f".into(),
-                    "#2d2115".into(),
-                    "#342918".into(),
-                    "#7d6f48".into(),
+                background: bg_colors!([
+                    "#1b140a", // bg0
+                    "#221a0f", // bg1
+                    "#2d2115", // bg2
+                    "#342918", // bg3
+                    "#7d6f48", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#e4cca8".into(),
-                    "#d3af86".into(),
-                    "#b08f65".into(),
-                    "#a18b6a".into(),
+                foreground: fg_colors!([
+                    "#e4cca8", // fg0
+                    "#d3af86", // fg1
+                    "#b08f65", // fg2
+                    "#a18b6a", // fg3
                 ]),
-                selection: Selection::Colors(["#342918".into(), "#e4cca8".into()]),
+                selection: sel_colors!(["#342918", "#e4cca8"]),
                 diff: None,
             }),
             config: None,
@@ -1439,7 +1442,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("kanagawa_wave".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#090618", // black
                     "#c34043", // red
                     "#76946a", // green
@@ -1451,7 +1454,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffa066", // orange
                     "#ff5d62", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#727169", // black
                     "#e82424", // red
                     "#98bb6c", // green
@@ -1463,7 +1466,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffa066", // orange
                     "#ff5d62", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#1f1f28", // black
                     "#c34043", // red
                     "#76946a", // green
@@ -1478,20 +1481,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#727169".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#0B0B0F".into(),
-                    "#1f1f28".into(),
-                    "#2a2a37".into(),
-                    "#292936".into(),
-                    "#44415a".into(),
+                background: bg_colors!([
+                    "#0B0B0F", // bg0
+                    "#1f1f28", // bg1
+                    "#2a2a37", // bg2
+                    "#292936", // bg3
+                    "#44415a", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#E4E2D2".into(),
-                    "#dcd7ba".into(),
-                    "#c8c093".into(),
-                    "#b2af9e".into(),
+                foreground: fg_colors!([
+                    "#E4E2D2", // fg0
+                    "#dcd7ba", // fg1
+                    "#c8c093", // fg2
+                    "#b2af9e", // fg3
                 ]),
-                selection: Selection::Colors(["#2d4f67".into(), "#3A6A8D".into()]),
+                selection: sel_colors!(["#2d4f67", "#3A6A8D"]),
                 diff: None,
             }),
             config: None,
@@ -1501,7 +1504,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("kanagawa_dragon".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#0d0c0c", // black
                     "#c4746e", // red
                     "#8a9a7b", // green
@@ -1513,7 +1516,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffa066", // orange
                     "#ff5d62", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#a6a69c", // black
                     "#E46876", // red
                     "#87a987", // green
@@ -1525,7 +1528,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffa066", // orange
                     "#ff5d62", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#0d0c0c", // black
                     "#c4746e", // red
                     "#8a9a7b", // green
@@ -1540,20 +1543,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7c7c72".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#000000".into(),
-                    "#181616".into(),
-                    "#2a2a28".into(),
-                    "#292724".into(),
-                    "#3a3a36".into(),
+                background: bg_colors!([
+                    "#000000", // bg0
+                    "#181616", // bg1
+                    "#2a2a28", // bg2
+                    "#292724", // bg3
+                    "#3a3a36", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#D5D7D5".into(),
-                    "#c5c9c5".into(),
-                    "#a6a69c".into(),
-                    "#8f908c".into(),
+                foreground: fg_colors!([
+                    "#D5D7D5", // fg0
+                    "#c5c9c5", // fg1
+                    "#a6a69c", // fg2
+                    "#8f908c", // fg3
                 ]),
-                selection: Selection::Colors(["#2d4f67".into(), "#3A6A8D".into()]),
+                selection: sel_colors!(["#2d4f67", "#3A6A8D"]),
                 diff: None,
             }),
             config: None,
@@ -1563,7 +1566,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("iterm2".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#2e2e2e", // black
                     "#eb4129", // red
                     "#abe047", // green
@@ -1575,7 +1578,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#f28c42", // orange
                     "#ec77d0", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#565656", // black
                     "#ec5357", // red
                     "#c0e17d", // green
@@ -1587,7 +1590,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#f5a35b", // orange
                     "#b583ff", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#1f1f1f", // black
                     "#c13a26", // red
                     "#93be3d", // green
@@ -1602,20 +1605,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7a7a7a".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#0c101b".into(),
-                    "#101421".into(),
-                    "#181c2a".into(),
-                    "#212535".into(),
-                    "#34384a".into(),
+                background: bg_colors!([
+                    "#0c101b", // bg0
+                    "#101421", // bg1
+                    "#181c2a", // bg2
+                    "#212535", // bg3
+                    "#34384a", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#f0ece6".into(),
-                    "#fffbf6".into(),
-                    "#b7b3ad".into(),
-                    "#7a7a7a".into(),
+                foreground: fg_colors!([
+                    "#f0ece6", // fg0
+                    "#fffbf6", // fg1
+                    "#b7b3ad", // fg2
+                    "#7a7a7a", // fg3
                 ]),
-                selection: Selection::Colors(["#2a3f5f".into(), "#3b5d8a".into()]),
+                selection: sel_colors!(["#2a3f5f", "#3b5d8a"]),
                 diff: None,
             }),
             config: None,
@@ -1625,7 +1628,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("iris".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#111133", // black
                     "#d61d52", // red
                     "#48a842", // green
@@ -1637,7 +1640,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d67a1c", // orange
                     "#e15877", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#484867", // black
                     "#e15877", // red
                     "#71ab3a", // green
@@ -1649,7 +1652,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#f0b25f", // orange
                     "#f58fc5", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#18162a", // black
                     "#b31544", // red
                     "#3c8e32", // green
@@ -1664,20 +1667,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7a798e".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#1f1d2e".into(),
-                    "#272537".into(),
-                    "#2d2b42".into(),
-                    "#3a3858".into(),
-                    "#4a4970".into(),
+                background: bg_colors!([
+                    "#1f1d2e", // bg0
+                    "#272537", // bg1
+                    "#2d2b42", // bg2
+                    "#3a3858", // bg3
+                    "#4a4970", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#f0eff1".into(),
-                    "#d1cfd7".into(),
-                    "#b9b5c0".into(),
-                    "#888495".into(),
+                foreground: fg_colors!([
+                    "#f0eff1", // fg0
+                    "#d1cfd7", // fg1
+                    "#b9b5c0", // fg2
+                    "#888495", // fg3
                 ]),
-                selection: Selection::Colors(["#434168".into(), "#5556d3".into()]),
+                selection: sel_colors!(["#434168", "#5556d3"]),
                 diff: None,
             }),
             config: None,
@@ -1687,7 +1690,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("iceberg".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#1e2132", // black
                     "#e27878", // red
                     "#b4be82", // green
@@ -1699,7 +1702,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d4a17a", // orange
                     "#c78ecf", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#6b7089", // black
                     "#e98989", // red
                     "#c0ca8e", // green
@@ -1711,7 +1714,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e0b78f", // orange
                     "#bfa0e0", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#161821", // black
                     "#bf6b6b", // red
                     "#9aa168", // green
@@ -1726,20 +1729,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#788097".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#161821".into(),
-                    "#1e2132".into(),
-                    "#272c42".into(),
-                    "#2f3350".into(),
-                    "#3b3f5c".into(),
+                background: bg_colors!([
+                    "#161821", // bg0
+                    "#1e2132", // bg1
+                    "#272c42", // bg2
+                    "#2f3350", // bg3
+                    "#3b3f5c", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#aeb0ba".into(),
-                    "#c6c8d1".into(),
-                    "#d2d4de".into(),
-                    "#e0e2eb".into(),
+                foreground: fg_colors!([
+                    "#aeb0ba", // fg0
+                    "#c6c8d1", // fg1
+                    "#d2d4de", // fg2
+                    "#e0e2eb", // fg3
                 ]),
-                selection: Selection::Colors(["#272c42".into(), "#84a0c6".into()]),
+                selection: sel_colors!(["#272c42", "#84a0c6"]),
                 diff: None,
             }),
             config: None,
@@ -1749,7 +1752,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("hyper".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#000000", // black
                     "#fe0100", // red
                     "#33ff00", // green
@@ -1761,7 +1764,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ff8000", // orange
                     "#ff33cc", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#808080", // black
                     "#fe0100", // red
                     "#33ff00", // green
@@ -1773,7 +1776,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ff9933", // orange
                     "#ff66cc", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#000000", // black
                     "#b30000", // red
                     "#29cc00", // green
@@ -1788,20 +1791,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#666666".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#0a0a0a".into(),
-                    "#000000".into(),
-                    "#111111".into(),
-                    "#1a1a1a".into(),
-                    "#222222".into(),
+                background: bg_colors!([
+                    "#0a0a0a", // bg0
+                    "#000000", // bg1
+                    "#111111", // bg2
+                    "#1a1a1a", // bg3
+                    "#222222", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#a0a0a0".into(),
-                    "#ffffff".into(),
-                    "#d0d0d0".into(),
-                    "#e0e0e0".into(),
+                foreground: fg_colors!([
+                    "#a0a0a0", // fg0
+                    "#ffffff", // fg1
+                    "#d0d0d0", // fg2
+                    "#e0e0e0", // fg3
                 ]),
-                selection: Selection::Colors(["#333333".into(), "#ffccff".into()]),
+                selection: sel_colors!(["#333333", "#ffccff"]),
                 diff: None,
             }),
             config: None,
@@ -1811,7 +1814,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("horizon_dark".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#16161c", // black
                     "#e95678", // red
                     "#29d398", // green
@@ -1823,7 +1826,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#fab795", // orange
                     "#ee64ac", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#5b5858", // black
                     "#ec6a88", // red
                     "#3fdaa4", // green
@@ -1835,7 +1838,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#fbc3a7", // orange
                     "#f075b5", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#2a2c36", // black
                     "#e35b72", // red
                     "#2fc39f", // green
@@ -1850,20 +1853,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#727072".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#1c1e26".into(),
-                    "#1c1e26".into(),
-                    "#232530".into(),
-                    "#2a2c36".into(),
-                    "#3a3c44".into(),
+                background: bg_colors!([
+                    "#1c1e26", // bg0
+                    "#1c1e26", // bg1
+                    "#232530", // bg2
+                    "#2a2c36", // bg3
+                    "#3a3c44", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#e6e6e6".into(),
-                    "#e0e0e0".into(),
-                    "#b5b5b5".into(),
-                    "#8f8f8f".into(),
+                foreground: fg_colors!([
+                    "#e6e6e6", // fg0
+                    "#e0e0e0", // fg1
+                    "#b5b5b5", // fg2
+                    "#8f8f8f", // fg3
                 ]),
-                selection: Selection::Colors(["#2a2c36".into(), "#B07F66".into()]),
+                selection: sel_colors!(["#2a2c36", "#B07F66"]),
                 diff: None,
             }),
             config: None,
@@ -1873,7 +1876,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("high_contrast".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#000000", // black
                     "#ff0000", // red
                     "#00ff00", // green
@@ -1885,7 +1888,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ff8000", // orange
                     "#ff5d62", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#444444", // black
                     "#ff3333", // red
                     "#33ff33", // green
@@ -1897,7 +1900,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ff9933", // orange
                     "#ff7a70", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#222222", // black
                     "#cc0000", // red
                     "#00cc00", // green
@@ -1912,20 +1915,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#888888".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#444444".into(),
-                    "#333333".into(),
-                    "#222222".into(),
-                    "#111111".into(),
-                    "#000000".into(),
+                background: bg_colors!([
+                    "#444444", // bg0
+                    "#333333", // bg1
+                    "#222222", // bg2
+                    "#111111", // bg3
+                    "#000000", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#dddddd".into(),
-                    "#ffffff".into(),
-                    "#eeeeee".into(),
-                    "#cccccc".into(),
+                foreground: fg_colors!([
+                    "#dddddd", // fg0
+                    "#ffffff", // fg1
+                    "#eeeeee", // fg2
+                    "#cccccc", // fg3
                 ]),
-                selection: Selection::Colors(["#666666".into(), "#ff5d62".into()]),
+                selection: sel_colors!(["#666666", "#ff5d62"]),
                 diff: None,
             }),
             config: None,
@@ -1935,7 +1938,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("hardhacker".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#282433", // black
                     "#e965a5", // red
                     "#b1f2a7", // green
@@ -1947,7 +1950,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ff5d62", // orange
                     "#f28ce3", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#3f3951", // black
                     "#f08ac2", // red
                     "#c0fbbf", // green
@@ -1959,7 +1962,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ff7b70", // orange
                     "#f4a0f0", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#1e1b2b", // black
                     "#c4558c", // red
                     "#8cd88d", // green
@@ -1974,20 +1977,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#8b8699".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#1d1a26".into(),
-                    "#282433".into(),
-                    "#322f3d".into(),
-                    "#3c3848".into(),
-                    "#464153".into(),
+                background: bg_colors!([
+                    "#1d1a26", // bg0
+                    "#282433", // bg1
+                    "#322f3d", // bg2
+                    "#3c3848", // bg3
+                    "#464153", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#e0dafc".into(),
-                    "#eee9fc".into(),
-                    "#f5f0fd".into(),
-                    "#fbf7ff".into(),
+                foreground: fg_colors!([
+                    "#e0dafc", // fg0
+                    "#eee9fc", // fg1
+                    "#f5f0fd", // fg2
+                    "#fbf7ff", // fg3
                 ]),
-                selection: Selection::Colors(["#423E51".into(), "#514C61".into()]),
+                selection: sel_colors!(["#423E51", "#514C61"]),
                 diff: None,
             }),
             config: None,
@@ -1997,7 +2000,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("gruvbox_material_medium_light".into()),
             light: Some(true),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#654735", // black
                     "#c14a4a", // red
                     "#6c782e", // green
@@ -2009,7 +2012,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d65d0e", // orange
                     "#d3869b", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#7c5c46", // black
                     "#d55c5c", // red
                     "#7f8b3a", // green
@@ -2021,7 +2024,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e16f1f", // orange
                     "#e0a3b2", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#5b4232", // black
                     "#a84444", // red
                     "#5d6728", // green
@@ -2036,20 +2039,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#928374".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#f2e5bc".into(),
-                    "#fbf1c7".into(),
-                    "#f6ebc1".into(),
-                    "#f0e4b0".into(),
-                    "#e6d8ad".into(),
+                background: bg_colors!([
+                    "#f2e5bc", // bg0
+                    "#fbf1c7", // bg1
+                    "#f6ebc1", // bg2
+                    "#f0e4b0", // bg3
+                    "#e6d8ad", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#7c6f64".into(),
-                    "#654735".into(),
-                    "#5b4636".into(),
-                    "#928374".into(),
+                foreground: fg_colors!([
+                    "#7c6f64", // fg0
+                    "#654735", // fg1
+                    "#5b4636", // fg2
+                    "#928374", // fg3
                 ]),
-                selection: Selection::Colors(["#ebdbb2".into(), "#d5c4a1".into()]),
+                selection: sel_colors!(["#ebdbb2", "#d5c4a1"]),
                 diff: None,
             }),
             config: None,
@@ -2059,7 +2062,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("gruvbox_material_medium_dark".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#3c3836", // black
                     "#ea6962", // red
                     "#a9b665", // green
@@ -2071,7 +2074,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e78a4e", // orange
                     "#eebebe", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#504945", // black
                     "#ea6962", // red
                     "#a9b665", // green
@@ -2083,7 +2086,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e78a4e", // orange
                     "#eebebe", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#32302f", // black
                     "#b85651", // red
                     "#8f9a52", // green
@@ -2098,20 +2101,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#928374".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#1d2021".into(),
-                    "#282828".into(),
-                    "#32302f".into(),
-                    "#3c3836".into(),
-                    "#504945".into(),
+                background: bg_colors!([
+                    "#1d2021", // bg0
+                    "#282828", // bg1
+                    "#32302f", // bg2
+                    "#3c3836", // bg3
+                    "#504945", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#ebdbb2".into(),
-                    "#d4be98".into(),
-                    "#bdae93".into(),
-                    "#928374".into(),
+                foreground: fg_colors!([
+                    "#ebdbb2", // fg0
+                    "#d4be98", // fg1
+                    "#bdae93", // fg2
+                    "#928374", // fg3
                 ]),
-                selection: Selection::Colors(["#32302f".into(), "#504945".into()]),
+                selection: sel_colors!(["#32302f", "#504945"]),
                 diff: None,
             }),
             config: None,
@@ -2121,7 +2124,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("gruvbox_material_hard_light".into()),
             light: Some(true),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#654735", // black
                     "#c14a4a", // red
                     "#6c782e", // green
@@ -2133,7 +2136,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#c35e0a", // orange
                     "#b16286", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#7c6f64", // black
                     "#d65d0e", // red
                     "#98971a", // green
@@ -2145,7 +2148,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#fe8019", // orange
                     "#d3869b", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#a89984", // black
                     "#cc8f8f", // red
                     "#9da87c", // green
@@ -2160,20 +2163,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#928374".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#f2e5bc".into(),
-                    "#f9f5d7".into(),
-                    "#f4ecd0".into(),
-                    "#eee6c2".into(),
-                    "#e5dcb5".into(),
+                background: bg_colors!([
+                    "#f2e5bc", // bg0
+                    "#f9f5d7", // bg1
+                    "#f4ecd0", // bg2
+                    "#eee6c2", // bg3
+                    "#e5dcb5", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#7c6f64".into(),
-                    "#654735".into(),
-                    "#504945".into(),
-                    "#928374".into(),
+                foreground: fg_colors!([
+                    "#7c6f64", // fg0
+                    "#654735", // fg1
+                    "#504945", // fg2
+                    "#928374", // fg3
                 ]),
-                selection: Selection::Colors(["#e5dcb5".into(), "#d5c4a1".into()]),
+                selection: sel_colors!(["#e5dcb5", "#d5c4a1"]),
                 diff: None,
             }),
             config: None,
@@ -2183,7 +2186,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("gruvbox_material_hard_dark".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#32302f", // black
                     "#ea6962", // red
                     "#a9b665", // green
@@ -2195,7 +2198,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e78a4e", // orange
                     "#d3869b", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#3c3836", // black
                     "#ea6962", // red
                     "#a9b665", // green
@@ -2207,7 +2210,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e78a4e", // orange
                     "#d3869b", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#282828", // black
                     "#b85651", // red
                     "#8f9a52", // green
@@ -2222,20 +2225,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#928374".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#1b1b1b".into(),
-                    "#1d2021".into(),
-                    "#242424".into(),
-                    "#2a2a2a".into(),
-                    "#3c3836".into(),
+                background: bg_colors!([
+                    "#1b1b1b", // bg0
+                    "#1d2021", // bg1
+                    "#242424", // bg2
+                    "#2a2a2a", // bg3
+                    "#3c3836", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#ebdbb2".into(),
-                    "#d4be98".into(),
-                    "#bdae93".into(),
-                    "#928374".into(),
+                foreground: fg_colors!([
+                    "#ebdbb2", // fg0
+                    "#d4be98", // fg1
+                    "#bdae93", // fg2
+                    "#928374", // fg3
                 ]),
-                selection: Selection::Colors(["#3c3836".into(), "#504945".into()]),
+                selection: sel_colors!(["#3c3836", "#504945"]),
                 diff: None,
             }),
             config: None,
@@ -2245,7 +2248,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("gruvbox_light".into()),
             light: Some(true),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#fbf1c7", // black
                     "#cc241d", // red
                     "#98971a", // green
@@ -2257,7 +2260,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d65d0e", // orange
                     "#b16286", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#928374", // black
                     "#9d0006", // red
                     "#79740e", // green
@@ -2269,7 +2272,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#af3a03", // orange
                     "#9d3c74", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#f2e5bc", // black
                     "#b01c1a", // red
                     "#878a16", // green
@@ -2284,20 +2287,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#928374".into()),
                 variable: None,
                 status_line: Some("#ebdbb2".into()),
-                background: Background::Colors([
-                    "#f2e5bc".into(),
-                    "#fbf1c7".into(),
-                    "#f7e9b5".into(),
-                    "#ebdbb2".into(),
-                    "#d5c4a1".into(),
+                background: bg_colors!([
+                    "#f2e5bc", // bg0
+                    "#fbf1c7", // bg1
+                    "#f7e9b5", // bg2
+                    "#ebdbb2", // bg3
+                    "#d5c4a1", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#d5c4a1".into(),
-                    "#3c3836".into(),
-                    "#504945".into(),
-                    "#7c6f64".into(),
+                foreground: fg_colors!([
+                    "#d5c4a1", // fg0
+                    "#3c3836", // fg1
+                    "#504945", // fg2
+                    "#7c6f64", // fg3
                 ]),
-                selection: Selection::Colors(["#ebdbb2".into(), "#d5c4a1".into()]),
+                selection: sel_colors!(["#ebdbb2", "#d5c4a1"]),
                 diff: None,
             }),
             config: None,
@@ -2307,7 +2310,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("gruvbox_dark".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#282828", // black
                     "#cc241d", // red
                     "#98971a", // green
@@ -2319,7 +2322,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#fe8019", // orange
                     "#d65d8f", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#928374", // black
                     "#fb4934", // red
                     "#b8bb26", // green
@@ -2331,7 +2334,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ff9f43", // orange
                     "#e28fb0", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#1d2021", // black
                     "#9d1f1a", // red
                     "#7c7a14", // green
@@ -2346,20 +2349,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7c6f64".into()),
                 variable: None,
                 status_line: Some("#3c3836".into()),
-                background: Background::Colors([
-                    "#1d2021".into(),
-                    "#282828".into(),
-                    "#32302f".into(),
-                    "#3c3836".into(),
-                    "#504945".into(),
+                background: bg_colors!([
+                    "#1d2021", // bg0
+                    "#282828", // bg1
+                    "#32302f", // bg2
+                    "#3c3836", // bg3
+                    "#504945", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#d5c4a1".into(),
-                    "#ebdbb2".into(),
-                    "#bdae93".into(),
-                    "#bdae93".into(),
+                foreground: fg_colors!([
+                    "#d5c4a1", // fg0
+                    "#ebdbb2", // fg1
+                    "#bdae93", // fg2
+                    "#bdae93", // fg3
                 ]),
-                selection: Selection::Colors(["#3c3836".into(), "#504945".into()]),
+                selection: sel_colors!(["#3c3836", "#504945"]),
                 diff: None,
             }),
             config: None,
@@ -2369,7 +2372,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("gruber_darker".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#181818", // black
                     "#F43841", // red
                     "#73D936", // green
@@ -2381,7 +2384,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#FF9C3A", // orange
                     "#E89AC7", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#52494E", // black
                     "#FF4F58", // red
                     "#8EEB5A", // green
@@ -2393,7 +2396,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#FFB86C", // orange
                     "#F2B0D8", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#121212", // black
                     "#C12F36", // red
                     "#73D936", // green
@@ -2408,20 +2411,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7A7A7A".into()),
                 variable: None,
                 status_line: Some("#222222".into()),
-                background: Background::Colors([
-                    "#101010".into(),
-                    "#181818".into(),
-                    "#202020".into(),
-                    "#262626".into(),
-                    "#303030".into(),
+                background: bg_colors!([
+                    "#101010", // bg0
+                    "#181818", // bg1
+                    "#202020", // bg2
+                    "#262626", // bg3
+                    "#303030", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#CFCFCF".into(),
-                    "#E4E4E4".into(),
-                    "#F0F0F0".into(),
-                    "#B8B8B8".into(),
+                foreground: fg_colors!([
+                    "#CFCFCF", // fg0
+                    "#E4E4E4", // fg1
+                    "#F0F0F0", // fg2
+                    "#B8B8B8", // fg3
                 ]),
-                selection: Selection::Colors(["#2A2A2A".into(), "#3A3A3A".into()]),
+                selection: sel_colors!(["#2A2A2A", "#3A3A3A"]),
                 diff: None,
             }),
             config: None,
@@ -2431,7 +2434,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("gotham".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#0a0f14", // black
                     "#c33027", // red
                     "#26a98b", // green
@@ -2443,7 +2446,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d26939", // orange
                     "#c07bdc", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#10151b", // black
                     "#d26939", // red
                     "#081f2d", // green
@@ -2455,7 +2458,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e08a5b", // orange
                     "#d28ae8", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#070b0f", // black
                     "#9e241d", // red
                     "#1e7f6a", // green
@@ -2470,20 +2473,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#4a5a63".into()),
                 variable: None,
                 status_line: Some("#10151b".into()),
-                background: Background::Colors([
-                    "#070b0f".into(),
-                    "#0a0f14".into(),
-                    "#10151b".into(),
-                    "#141b22".into(),
-                    "#1b242c".into(),
+                background: bg_colors!([
+                    "#070b0f", // bg0
+                    "#0a0f14", // bg1
+                    "#10151b", // bg2
+                    "#141b22", // bg3
+                    "#1b242c", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#7fb3b0".into(),
-                    "#98d1ce".into(),
-                    "#d3ebe9".into(),
-                    "#b6e3e0".into(),
+                foreground: fg_colors!([
+                    "#7fb3b0", // fg0
+                    "#98d1ce", // fg1
+                    "#d3ebe9", // fg2
+                    "#b6e3e0", // fg3
                 ]),
-                selection: Selection::Colors(["#1b3a42".into(), "#245361".into()]),
+                selection: sel_colors!(["#1b3a42", "#245361"]),
                 diff: None,
             }),
             config: None,
@@ -2493,7 +2496,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("google".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#1d1f21", // black
                     "#cc342b", // red
                     "#198844", // green
@@ -2505,7 +2508,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#f96f1c", // orange
                     "#d07acb", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#969896", // black
                     "#cc342b", // red
                     "#198844", // green
@@ -2517,7 +2520,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ff8a3d", // orange
                     "#d07acb", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#151718", // black
                     "#9e2821", // red
                     "#146c36", // green
@@ -2532,20 +2535,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7c7f7d".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#151718".into(),
-                    "#1d1f21".into(),
-                    "#242628".into(),
-                    "#2c2f31".into(),
-                    "#3a3d3f".into(),
+                background: bg_colors!([
+                    "#151718", // bg0
+                    "#1d1f21", // bg1
+                    "#242628", // bg2
+                    "#2c2f31", // bg3
+                    "#3a3d3f", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#9ea1a0".into(),
-                    "#c5c8c6".into(),
-                    "#e0e2e0".into(),
-                    "#ffffff".into(),
+                foreground: fg_colors!([
+                    "#9ea1a0", // fg0
+                    "#c5c8c6", // fg1
+                    "#e0e2e0", // fg2
+                    "#ffffff", // fg3
                 ]),
-                selection: Selection::Colors(["#373b41".into(), "#4b5056".into()]),
+                selection: sel_colors!(["#373b41", "#4b5056"]),
                 diff: None,
             }),
             config: None,
@@ -2555,7 +2558,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("rose_pine".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#26233a", // black
                     "#eb6f92", // red
                     "#31748f", // green
@@ -2567,7 +2570,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#f6c177", // orange
                     "#eb6f92", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#6e6a86", // black
                     "#eb6f92", // red
                     "#3e8fb0", // green
@@ -2579,7 +2582,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffcb8b", // orange
                     "#f29ac1", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#1f1d2e", // black
                     "#b4637a", // red
                     "#286983", // green
@@ -2594,20 +2597,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#908caa".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#0A0811".into(),
-                    "#191724".into(),
-                    "#1f1d2e".into(),
-                    "#26233a".into(),
-                    "#403d52".into(),
+                background: bg_colors!([
+                    "#0A0811", // bg0
+                    "#191724", // bg1
+                    "#1f1d2e", // bg2
+                    "#26233a", // bg3
+                    "#403d52", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#E8E7F3".into(),
-                    "#e0def4".into(),
-                    "#c8c5dd".into(),
-                    "#908caa".into(),
+                foreground: fg_colors!([
+                    "#E8E7F3", // fg0
+                    "#e0def4", // fg1
+                    "#c8c5dd", // fg2
+                    "#908caa", // fg3
                 ]),
-                selection: Selection::Colors(["#403d52".into(), "#524f67".into()]),
+                selection: sel_colors!(["#403d52", "#524f67"]),
                 diff: None,
             }),
             config: None,
@@ -2617,7 +2620,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("rose_pine_dawn".into()),
             light: Some(true),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#f2e9e1", // black
                     "#b4637a", // red
                     "#286983", // green
@@ -2629,7 +2632,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ea9d34", // orange
                     "#d7827e", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#9893a5", // black
                     "#b4637a", // red
                     "#286983", // green
@@ -2641,7 +2644,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ea9d34", // orange
                     "#d7827e", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#e6dfd9", // black
                     "#c17d8f", // red
                     "#4a7f95", // green
@@ -2656,20 +2659,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#797593".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#f2e9e1".into(),
-                    "#faf4ed".into(),
-                    "#f4ede8".into(),
-                    "#efe9e6".into(),
-                    "#cecacd".into(),
+                background: bg_colors!([
+                    "#f2e9e1", // bg0
+                    "#faf4ed", // bg1
+                    "#f4ede8", // bg2
+                    "#efe9e6", // bg3
+                    "#cecacd", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#6e6a86".into(),
-                    "#575279".into(),
-                    "#4a4661".into(),
-                    "#9893a5".into(),
+                foreground: fg_colors!([
+                    "#6e6a86", // fg0
+                    "#575279", // fg1
+                    "#4a4661", // fg2
+                    "#9893a5", // fg3
                 ]),
-                selection: Selection::Colors(["#dfdad9".into(), "#cecacd".into()]),
+                selection: sel_colors!(["#dfdad9", "#cecacd"]),
                 diff: None,
             }),
             config: None,
@@ -2679,7 +2682,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("Tokyo Night".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#32344a", // black
                     "#f7768e", // red
                     "#9ece6a", // green
@@ -2691,7 +2694,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ff9e64", // orange
                     "#ff7a93", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#444b6a", // black
                     "#ff7a93", // red
                     "#b9f27c", // green
@@ -2703,7 +2706,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffb378", // orange
                     "#ff9eb8", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#2a2e42", // black
                     "#c35a6a", // red
                     "#7aa25c", // green
@@ -2718,20 +2721,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#565f89".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#16161e".into(),
-                    "#1a1b26".into(),
-                    "#1f2335".into(),
-                    "#24283b".into(),
-                    "#414868".into(),
+                background: bg_colors!([
+                    "#16161e", // bg0
+                    "#1a1b26", // bg1
+                    "#1f2335", // bg2
+                    "#24283b", // bg3
+                    "#414868", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#c0caf5".into(),
-                    "#a9b1d6".into(),
-                    "#9aa5ce".into(),
-                    "#737aa2".into(),
+                foreground: fg_colors!([
+                    "#c0caf5", // fg0
+                    "#a9b1d6", // fg1
+                    "#9aa5ce", // fg2
+                    "#737aa2", // fg3
                 ]),
-                selection: Selection::Colors(["#2e3c64".into(), "#3d59a1".into()]),
+                selection: sel_colors!(["#2e3c64", "#3d59a1"]),
                 diff: None,
             }),
             config: None,
@@ -2741,7 +2744,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("ubuntu".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#2e3436", // black
                     "#cc0000", // red
                     "#4e9a06", // green
@@ -2753,7 +2756,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ce5c00", // orange
                     "#ef2929", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#555753", // black
                     "#ef2929", // red
                     "#8ae234", // green
@@ -2765,7 +2768,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#f57900", // orange
                     "#fcaf3e", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#1c1f21", // black
                     "#8f0000", // red
                     "#3a6e03", // green
@@ -2780,20 +2783,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#888a85".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#2a0a1f".into(),
-                    "#300a24".into(),
-                    "#3a0f2b".into(),
-                    "#431235".into(),
-                    "#75507b".into(),
+                background: bg_colors!([
+                    "#2a0a1f", // bg0
+                    "#300a24", // bg1
+                    "#3a0f2b", // bg2
+                    "#431235", // bg3
+                    "#75507b", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#f6f6f4".into(),
-                    "#eeeeec".into(),
-                    "#c0c2bd".into(),
-                    "#888a85".into(),
+                foreground: fg_colors!([
+                    "#f6f6f4", // fg0
+                    "#eeeeec", // fg1
+                    "#c0c2bd", // fg2
+                    "#888a85", // fg3
                 ]),
-                selection: Selection::Colors(["#4a1239".into(), "#84A6D3".into()]),
+                selection: sel_colors!(["#4a1239", "#84A6D3"]),
                 diff: None,
             }),
             config: None,
@@ -2803,7 +2806,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("vesper".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#101010", // black
                     "#f5a191", // red
                     "#90b99f", // green
@@ -2815,7 +2818,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e6b99d", // orange
                     "#e29eca", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#7e7e7e", // black
                     "#ff8080", // red
                     "#99ffe4", // green
@@ -2827,7 +2830,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffc799", // orange
                     "#ecaad6", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#0c0c0c", // black
                     "#c18478", // red
                     "#6f8f7b", // green
@@ -2842,20 +2845,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#6f6f6f".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#0c0c0c".into(),
-                    "#101010".into(),
-                    "#141414".into(),
-                    "#181818".into(),
-                    "#2a2a2a".into(),
+                background: bg_colors!([
+                    "#0c0c0c", // bg0
+                    "#101010", // bg1
+                    "#141414", // bg2
+                    "#181818", // bg3
+                    "#2a2a2a", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#d0d0d0".into(),
-                    "#ffffff".into(),
-                    "#b0b0b0".into(),
-                    "#6f6f6f".into(),
+                foreground: fg_colors!([
+                    "#d0d0d0", // fg0
+                    "#ffffff", // fg1
+                    "#b0b0b0", // fg2
+                    "#6f6f6f", // fg3
                 ]),
-                selection: Selection::Colors(["#242424".into(), "#333333".into()]),
+                selection: sel_colors!(["#242424", "#333333"]),
                 diff: None,
             }),
             config: None,
@@ -2865,7 +2868,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("vscode_dark_plus".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#000000", // black
                     "#cd3131", // red
                     "#0dbc79", // green
@@ -2877,7 +2880,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ce9178", // orange
                     "#c586c0", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#666666", // black
                     "#f14c4c", // red
                     "#23d18b", // green
@@ -2889,7 +2892,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d19a66", // orange
                     "#d16d9e", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#1e1e1e", // black
                     "#8b2b2b", // red
                     "#0b8f63", // green
@@ -2904,20 +2907,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#6a9955".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#252526".into(),
-                    "#1e1e1e".into(),
-                    "#2a2a2a".into(),
-                    "#2f2f2f".into(),
-                    "#3c3c3c".into(),
+                background: bg_colors!([
+                    "#252526", // bg0
+                    "#1e1e1e", // bg1
+                    "#2a2a2a", // bg2
+                    "#2f2f2f", // bg3
+                    "#3c3c3c", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#d4d4d4".into(),
-                    "#cccccc".into(),
-                    "#b3b3b3".into(),
-                    "#858585".into(),
+                foreground: fg_colors!([
+                    "#d4d4d4", // fg0
+                    "#cccccc", // fg1
+                    "#b3b3b3", // fg2
+                    "#858585", // fg3
                 ]),
-                selection: Selection::Colors(["#264f78".into(), "#04395e".into()]),
+                selection: sel_colors!(["#264f78", "#04395e"]),
                 diff: None,
             }),
             config: None,
@@ -2927,7 +2930,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("github_light".into()),
             light: Some(true),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#24292e", // black
                     "#d73a49", // red
                     "#28a745", // green
@@ -2939,7 +2942,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d18616", // orange
                     "#cb2431", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#959da5", // black
                     "#cb2431", // red
                     "#22863a", // green
@@ -2951,7 +2954,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d18616", // orange
                     "#cb2431", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#6a737d", // black
                     "#e5534b", // red
                     "#2ea043", // green
@@ -2966,20 +2969,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#6a737d".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#f6f8fa".into(),
-                    "#ffffff".into(),
-                    "#f0f3f6".into(),
-                    "#f6f8fa".into(),
-                    "#e1e4e8".into(),
+                background: bg_colors!([
+                    "#f6f8fa", // bg0
+                    "#ffffff", // bg1
+                    "#f0f3f6", // bg2
+                    "#f6f8fa", // bg3
+                    "#e1e4e8", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#c9d1d9".into(),
-                    "#24292f".into(),
-                    "#6a737d".into(),
-                    "#959da5".into(),
+                foreground: fg_colors!([
+                    "#c9d1d9", // fg0
+                    "#24292f", // fg1
+                    "#6a737d", // fg2
+                    "#959da5", // fg3
                 ]),
-                selection: Selection::Colors(["#d1d5da".into(), "#ffd33d".into()]),
+                selection: sel_colors!(["#d1d5da", "#ffd33d"]),
                 diff: None,
             }),
             config: None,
@@ -2989,7 +2992,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("github_dark".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#586069", // black
                     "#ea4a5a", // red
                     "#34d058", // green
@@ -3001,7 +3004,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d18616", // orange
                     "#f97583", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#959da5", // black
                     "#f97583", // red
                     "#85e89d", // green
@@ -3013,7 +3016,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d18616", // orange
                     "#f97583", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#6e7781", // black
                     "#f28b95", // red
                     "#5fd68b", // green
@@ -3028,20 +3031,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#8b949e".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#1b1f23".into(),
-                    "#24292e".into(),
-                    "#2c313a".into(),
-                    "#2a2f36".into(),
-                    "#444c56".into(),
+                background: bg_colors!([
+                    "#1b1f23", // bg0
+                    "#24292e", // bg1
+                    "#2c313a", // bg2
+                    "#2a2f36", // bg3
+                    "#444c56", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#c9d1d9".into(),
-                    "#d1d5da".into(),
-                    "#959da5".into(),
-                    "#6e7781".into(),
+                foreground: fg_colors!([
+                    "#c9d1d9", // fg0
+                    "#d1d5da", // fg1
+                    "#959da5", // fg2
+                    "#6e7781", // fg3
                 ]),
-                selection: Selection::Colors(["#444c56".into(), "#f2e5bc".into()]),
+                selection: sel_colors!(["#444c56", "#f2e5bc"]),
                 diff: None,
             }),
             config: None,
@@ -3051,7 +3054,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("autumn".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#212121", // black
                     "#F05E48", // red
                     "#99be70", // green
@@ -3063,7 +3066,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d97706", // orange
                     "#f4a7b9", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#404040", // black
                     "#F05E48", // red
                     "#99be70", // green
@@ -3075,7 +3078,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#f59e0b", // orange
                     "#f472b6", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#2a2a2a", // black
                     "#d94b3a", // red
                     "#89aa5f", // green
@@ -3090,20 +3093,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#999470".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#0F0F0F".into(),
-                    "#232323".into(),
-                    "#2e2e2e".into(),
-                    "#2b2b2b".into(),
-                    "#3a3a3a".into(),
+                background: bg_colors!([
+                    "#0F0F0F", // bg0
+                    "#232323", // bg1
+                    "#2e2e2e", // bg2
+                    "#2b2b2b", // bg3
+                    "#3a3a3a", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#F1F0DA".into(),
-                    "#f3f2cc".into(),
-                    "#c8c8c8".into(),
-                    "#a8a8a8".into(),
+                foreground: fg_colors!([
+                    "#F1F0DA", // fg0
+                    "#f3f2cc", // fg1
+                    "#c8c8c8", // fg2
+                    "#a8a8a8", // fg3
                 ]),
-                selection: Selection::Colors(["#44442a".into(), "#5e5e38".into()]),
+                selection: sel_colors!(["#44442a", "#5e5e38"]),
                 diff: None,
             }),
             config: None,
@@ -3113,7 +3116,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("ashes_light".into()),
             light: Some(true),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#f3f4f5", // black
                     "#b57e6b", // red
                     "#6bb57e", // green
@@ -3125,7 +3128,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d7943e", // orange
                     "#d86b91", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#9aa0a6", // black
                     "#c7ae95", // red
                     "#95c7ae", // green
@@ -3137,7 +3140,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e0af68", // orange
                     "#d3869b", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#d0d3d6", // black
                     "#c0a38c", // red
                     "#8cc0a3", // green
@@ -3152,20 +3155,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7a828b".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#CFD9E2".into(),
-                    "#f3f4f5".into(),
-                    "#e1e3e5".into(),
-                    "#d6d8da".into(),
-                    "#c0c3c6".into(),
+                background: bg_colors!([
+                    "#CFD9E2", // bg0
+                    "#f3f4f5", // bg1
+                    "#e1e3e5", // bg2
+                    "#d6d8da", // bg3
+                    "#c0c3c6", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#49525B".into(),
-                    "#565e65".into(),
-                    "#3e454c".into(),
-                    "#747c84".into(),
+                foreground: fg_colors!([
+                    "#49525B", // fg0
+                    "#565e65", // fg1
+                    "#3e454c", // fg2
+                    "#747c84", // fg3
                 ]),
-                selection: Selection::Colors(["#d6d8da".into(), "#aec795".into()]),
+                selection: sel_colors!(["#d6d8da", "#aec795"]),
                 diff: None,
             }),
             config: None,
@@ -3175,7 +3178,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("ashes_dark".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#1c2023", // black
                     "#7f5f4f", // red
                     "#5f7f5f", // green
@@ -3187,7 +3190,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d79921", // orange
                     "#d75f87", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#747c84", // black
                     "#c7ae95", // red
                     "#95c7ae", // green
@@ -3199,7 +3202,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e0af68", // orange
                     "#d3869b", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#2a2f33", // black
                     "#a78c7a", // red
                     "#8ca78c", // green
@@ -3214,20 +3217,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7f8c99".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#0D1011".into(),
-                    "#1c2023".into(),
-                    "#25292d".into(),
-                    "#2a2f33".into(),
-                    "#3a3f43".into(),
+                background: bg_colors!([
+                    "#0D1011", // bg0
+                    "#1c2023", // bg1
+                    "#25292d", // bg2
+                    "#2a2f33", // bg3
+                    "#3a3f43", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#f3f4f5".into(),
-                    "#c7ccd1".into(),
-                    "#9aa0a6".into(),
-                    "#747c84".into(),
+                foreground: fg_colors!([
+                    "#f3f4f5", // fg0
+                    "#c7ccd1", // fg1
+                    "#9aa0a6", // fg2
+                    "#747c84", // fg3
                 ]),
-                selection: Selection::Colors(["#3a3f43".into(), "#5f7f5f".into()]),
+                selection: sel_colors!(["#3a3f43", "#5f7f5f"]),
                 diff: None,
             }),
             config: None,
@@ -3237,7 +3240,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("base16_dark".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#181818", // black
                     "#ab4642", // red
                     "#a1b56c", // green
@@ -3249,7 +3252,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e78c45", // orange
                     "#d8a3af", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#585858", // black
                     "#ab4642", // red
                     "#a1b56c", // green
@@ -3261,7 +3264,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e78c45", // orange
                     "#d8a3af", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#282828", // black
                     "#8b3a36", // red
                     "#8ca456", // green
@@ -3276,20 +3279,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7c7c7c".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#111111".into(),
-                    "#181818".into(),
-                    "#202020".into(),
-                    "#282828".into(),
-                    "#383838".into(),
+                background: bg_colors!([
+                    "#111111", // bg0
+                    "#181818", // bg1
+                    "#202020", // bg2
+                    "#282828", // bg3
+                    "#383838", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#E6E6E6".into(),
-                    "#d8d8d8".into(),
-                    "#b8b8b8".into(),
-                    "#a8a8a8".into(),
+                foreground: fg_colors!([
+                    "#E6E6E6", // fg0
+                    "#d8d8d8", // fg1
+                    "#b8b8b8", // fg2
+                    "#a8a8a8", // fg3
                 ]),
-                selection: Selection::Colors(["#3a3a3a".into(), "#5a5a5a".into()]),
+                selection: sel_colors!(["#3a3a3a", "#5a5a5a"]),
                 diff: None,
             }),
             config: None,
@@ -3299,7 +3302,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("chicago95".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#000000", // black
                     "#A80000", // red
                     "#00A800", // green
@@ -3311,7 +3314,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#A85400", // orange
                     "#A800A8", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#545454", // black
                     "#FC5454", // red
                     "#54FC54", // green
@@ -3323,7 +3326,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#FCFC54", // orange
                     "#FC54FC", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#202020", // black
                     "#7A0000", // red
                     "#007A00", // green
@@ -3338,20 +3341,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#545454".into()),
                 variable: None,
                 status_line: Some("#0000A8".into()),
-                background: Background::Colors([
-                    "#0A0A0A".into(),
-                    "#000000".into(),
-                    "#1A1A1A".into(),
-                    "#2A2A2A".into(),
-                    "#545454".into(),
+                background: bg_colors!([
+                    "#0A0A0A", // bg0
+                    "#000000", // bg1
+                    "#1A1A1A", // bg2
+                    "#2A2A2A", // bg3
+                    "#545454", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#A8A8A8".into(),
-                    "#C0C7C8".into(),
-                    "#808080".into(),
-                    "#545454".into(),
+                foreground: fg_colors!([
+                    "#A8A8A8", // fg0
+                    "#C0C7C8", // fg1
+                    "#808080", // fg2
+                    "#545454", // fg3
                 ]),
-                selection: Selection::Colors(["#00132C".into(), "#272727".into()]),
+                selection: sel_colors!(["#00132C", "#272727"]),
                 diff: None,
             }),
             config: None,
@@ -3361,7 +3364,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("github_dark_tritanopia".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#484f58", // black
                     "#ff7b72", // red
                     "#58a6ff", // green
@@ -3373,7 +3376,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d29922", // orange
                     "#ff7b72", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#6e7681", // black
                     "#ffa198", // red
                     "#79c0ff", // green
@@ -3385,7 +3388,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#e3b341", // orange
                     "#ffa198", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#484f58", // black
                     "#ff7b72", // red
                     "#58a6ff", // green
@@ -3400,20 +3403,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#6e7681".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#0b0f14".into(),
-                    "#0d1117".into(),
-                    "#161b22".into(),
-                    "#1b2128".into(),
-                    "#484f58".into(),
+                background: bg_colors!([
+                    "#0b0f14", // bg0
+                    "#0d1117", // bg1
+                    "#161b22", // bg2
+                    "#1b2128", // bg3
+                    "#484f58", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#c9d1d9".into(),
-                    "#c9d1d9".into(),
-                    "#8b949e".into(),
-                    "#6e7681".into(),
+                foreground: fg_colors!([
+                    "#c9d1d9", // fg0
+                    "#c9d1d9", // fg1
+                    "#8b949e", // fg2
+                    "#6e7681", // fg3
                 ]),
-                selection: Selection::Colors(["#2B3645".into(), "#197DF0".into()]),
+                selection: sel_colors!(["#2B3645", "#197DF0"]),
                 diff: None,
             }),
             config: None,
@@ -3423,7 +3426,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("xcode_light".into()),
             light: Some(true),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#262626", // black
                     "#d12f1b", // red
                     "#23575c", // green
@@ -3435,7 +3438,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#78492a", // orange
                     "#ad3da4", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#8a99a6", // black
                     "#d12f1b", // red
                     "#23575c", // green
@@ -3447,7 +3450,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#78492a", // orange
                     "#ad3da4", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#b4d8fd", // black
                     "#d12f1b", // red
                     "#3e8087", // green
@@ -3462,20 +3465,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#8a99a6".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#f0f4f8".into(),
-                    "#ffffff".into(),
-                    "#f8faff".into(),
-                    "#f2f6fa".into(),
-                    "#dfe3e8".into(),
+                background: bg_colors!([
+                    "#f0f4f8", // bg0
+                    "#ffffff", // bg1
+                    "#f8faff", // bg2
+                    "#f2f6fa", // bg3
+                    "#dfe3e8", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#4d4d4d".into(),
-                    "#262626".into(),
-                    "#1a1a1a".into(),
-                    "#5f5f5f".into(),
+                foreground: fg_colors!([
+                    "#4d4d4d", // fg0
+                    "#262626", // fg1
+                    "#1a1a1a", // fg2
+                    "#5f5f5f", // fg3
                 ]),
-                selection: Selection::Colors(["#b4d8fd".into(), "#3F99F3".into()]),
+                selection: sel_colors!(["#b4d8fd", "#3F99F3"]),
                 diff: None,
             }),
             config: None,
@@ -3485,7 +3488,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("xcode_dark".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#414453", // black
                     "#ff8170", // red
                     "#78c2b3", // green
@@ -3497,7 +3500,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffa14f", // orange
                     "#ff7ab2", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#7f8c98", // black
                     "#ff8170", // red
                     "#acf2e4", // green
@@ -3509,7 +3512,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#ffa14f", // orange
                     "#ff7ab2", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#414453", // black
                     "#ff8170", // red
                     "#78c2b3", // green
@@ -3524,20 +3527,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7f8c98".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#1e2026".into(),
-                    "#292a30".into(),
-                    "#383b46".into(),
-                    "#414453".into(),
-                    "#5a5f6e".into(),
+                background: bg_colors!([
+                    "#1e2026", // bg0
+                    "#292a30", // bg1
+                    "#383b46", // bg2
+                    "#414453", // bg3
+                    "#5a5f6e", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#e0e0e0".into(),
-                    "#dfdfe0".into(),
-                    "#c1c1c1".into(),
-                    "#9a9da8".into(),
+                foreground: fg_colors!([
+                    "#e0e0e0", // fg0
+                    "#dfdfe0", // fg1
+                    "#c1c1c1", // fg2
+                    "#9a9da8", // fg3
                 ]),
-                selection: Selection::Colors(["#414453".into(), "#5A5E72".into()]),
+                selection: sel_colors!(["#414453", "#5A5E72"]),
                 diff: None,
             }),
             config: None,
@@ -3547,7 +3550,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("neobones_light".into()),
             light: Some(true),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#e5ede6", // black
                     "#a8334c", // red
                     "#567a30", // green
@@ -3559,7 +3562,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#944927", // orange
                     "#7b3b70", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#99ac9c", // black
                     "#94253e", // red
                     "#3f5a22", // green
@@ -3571,7 +3574,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#803d1c", // orange
                     "#7b3b70", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#cbd9c7", // black
                     "#b04159", // red
                     "#6a8b3d", // green
@@ -3586,20 +3589,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7a856d".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#d9e5d5".into(),
-                    "#e5ede6".into(),
-                    "#f0f6eb".into(),
-                    "#f5f9ef".into(),
-                    "#cdd6c1".into(),
+                background: bg_colors!([
+                    "#d9e5d5", // bg0
+                    "#e5ede6", // bg1
+                    "#f0f6eb", // bg2
+                    "#f5f9ef", // bg3
+                    "#cdd6c1", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#ffffff".into(),
-                    "#202e18".into(),
-                    "#1a2612".into(),
-                    "#4a5c3d".into(),
+                foreground: fg_colors!([
+                    "#ffffff", // fg0
+                    "#202e18", // fg1
+                    "#1a2612", // fg2
+                    "#4a5c3d", // fg3
                 ]),
-                selection: Selection::Colors(["#BEE7A6".into(), "#91B67C".into()]),
+                selection: sel_colors!(["#BEE7A6", "#91B67C"]),
                 diff: None,
             }),
             config: None,
@@ -3609,7 +3612,7 @@ pub fn by_name(name: &str) -> Theme {
             name: Some("neobones_dark".into()),
             light: Some(false),
             colors: Some(ThemeColors {
-                base: new_term_colors(
+                base: term_colors!(
                     "#0f191f", // black
                     "#de6e7c", // red
                     "#90ff6b", // green
@@ -3621,7 +3624,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#b77e64", // orange
                     "#cf86c1", // pink
                 ),
-                bright: Some(new_term_colors(
+                bright: Some(term_colors!(
                     "#334652", // black
                     "#e8838f", // red
                     "#a0ff85", // green
@@ -3633,7 +3636,7 @@ pub fn by_name(name: &str) -> Theme {
                     "#d68c67", // orange
                     "#cf86c1", // pink
                 )),
-                dim: Some(new_term_colors(
+                dim: Some(term_colors!(
                     "#1c2930", // black
                     "#de8a92", // red
                     "#9cfb7b", // green
@@ -3648,20 +3651,20 @@ pub fn by_name(name: &str) -> Theme {
                 comment: Some("#7a857a".into()),
                 variable: None,
                 status_line: None,
-                background: Background::Colors([
-                    "#0c151a".into(),
-                    "#0f191f".into(),
-                    "#1a2226".into(),
-                    "#252b2e".into(),
-                    "#2b3234".into(),
+                background: bg_colors!([
+                    "#0c151a", // bg0
+                    "#0f191f", // bg1
+                    "#1a2226", // bg2
+                    "#252b2e", // bg3
+                    "#2b3234", // bg4
                 ]),
-                foreground: Foreground::Colors([
-                    "#e5e8e3".into(),
-                    "#c6d5cf".into(),
-                    "#a0b09b".into(),
-                    "#7f8a82".into(),
+                foreground: fg_colors!([
+                    "#e5e8e3", // fg0
+                    "#c6d5cf", // fg1
+                    "#a0b09b", // fg2
+                    "#7f8a82", // fg3
                 ]),
-                selection: Selection::Colors(["#3a3e3d".into(), "#5B6764".into()]),
+                selection: sel_colors!(["#3a3e3d", "#5B6764"]),
                 diff: None,
             }),
             config: None,
