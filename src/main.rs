@@ -4,14 +4,12 @@ mod models;
 mod templ;
 use clap::Parser;
 use rand::seq::IndexedRandom;
-use std::{
-    fmt::Write,
-    io::{BufRead, Write as IoWrite}, process::exit,
-};
+use std::{sync::Once, path::{Path, PathBuf}, fmt::Write, io::BufRead, process::exit};
 use strsim::levenshtein;
 
-const NVIM_CONFIG_FILE_PATH: &str = ".config/nvim/init.lua";
-const ALACRITTY_CONFIG_FILE_PATH: &str = ".config/alacritty/alacritty.toml";
+static INIT: Once = Once::new();
+const DEFAULT_NVIM_CONFIG_PATH: &str = ".config/nvim/init.lua";
+const DEFAULT_ALACRITTY_CONFIG_PATH: &str = ".config/alacritty/alacritty.toml";
 
 fn supports_truecolor() -> bool {
     matches!(
@@ -21,8 +19,35 @@ fn supports_truecolor() -> bool {
 }
 
 #[inline(always)]
-fn home_path_join(p: impl AsRef<std::path::Path>) -> std::path::PathBuf {
-    std::env::home_dir().expect("home_dir").join(p)
+fn home_dir() -> PathBuf {
+    std::env::home_dir().expect("home_dir")
+}
+
+static mut NVIM_CONFIG_PATH: Option<PathBuf> = None;
+static mut ALACRITTY_CONFIG_PATH: Option<PathBuf> = None;
+
+fn init(cli: Option<&Cli>) {
+    // TODO: cli
+    unsafe {
+        INIT.call_once(|| {
+            let _cli = cli.expect("shoud be some");
+            let home_dir = home_dir();
+            NVIM_CONFIG_PATH = Some(home_dir.join(DEFAULT_NVIM_CONFIG_PATH));
+            ALACRITTY_CONFIG_PATH = Some(home_dir.join(DEFAULT_ALACRITTY_CONFIG_PATH));
+        })
+    }
+}
+
+fn get_nvim_config_path() -> &'static PathBuf {
+    unsafe {
+        NVIM_CONFIG_PATH.as_ref().expect("shoud be init")
+    }
+}
+
+fn get_alacritty_config_path() -> &'static PathBuf {
+    unsafe {
+        ALACRITTY_CONFIG_PATH.as_ref().expect("shoud be init")
+    }
 }
 
 fn apply_theme_to_nvim(theme: &mut models::Theme) -> Result<(), Box<dyn std::error::Error>> {
@@ -30,7 +55,7 @@ fn apply_theme_to_nvim(theme: &mut models::Theme) -> Result<(), Box<dyn std::err
     const END_MARK: &str = "-- ====THEMESYNCENDBLOCK====";
 
     let content = templ::nvim(theme);
-    let path = home_path_join(NVIM_CONFIG_FILE_PATH);
+    let path = get_nvim_config_path();
 
     let file = std::fs::File::open(&path).unwrap();
     let reader = std::io::BufReader::new(file);
@@ -77,28 +102,24 @@ fn apply_theme_to_nvim(theme: &mut models::Theme) -> Result<(), Box<dyn std::err
 }
 
 #[inline(always)]
-fn load_alacritty_config(
-    path: impl AsRef<std::path::Path>,
-) -> Result<models::alacritty::Config, Box<dyn std::error::Error>> {
-    let buff = std::fs::read_to_string(path)?;
+fn load_alacritty_config() -> Result<models::alacritty::Config, Box<dyn std::error::Error>> {
+    let buff = std::fs::read_to_string(get_alacritty_config_path())?;
     Ok(toml::from_str::<models::alacritty::Config>(&buff)?)
 }
 
 #[inline(always)]
 fn save_alacritty_config(
-    path: impl AsRef<std::path::Path>,
     config: &models::alacritty::Config,
 ) -> Result<models::alacritty::Config, Box<dyn std::error::Error>> {
     let buff = toml::to_string_pretty(&config)?;
-    std::fs::write(&path, &buff)?;
+    std::fs::write(get_alacritty_config_path(), &buff)?;
     Ok(toml::from_str::<models::alacritty::Config>(&buff)?)
 }
 
 fn apply_theme_to_alacritty(theme: &mut models::Theme) -> Result<(), Box<dyn std::error::Error>> {
-    let path = home_path_join(ALACRITTY_CONFIG_FILE_PATH);
-    let mut config = load_alacritty_config(&path)?;
+    let mut config = load_alacritty_config()?;
     config.replace_colors_from_theme(theme.get_or_insert_colors());
-    save_alacritty_config(path, &config)?;
+    save_alacritty_config(&config)?;
     Ok(())
 }
 
@@ -152,7 +173,7 @@ fn set_alacritty_font(query: &str) -> Result<(), Box<dyn std::error::Error>> {
         .min_by_key(|v| levenshtein(&v.to_lowercase(), &query))
         .ok_or_else(|| format!("No matching font found for query '{}'", query))?;
 
-    let path = home_path_join(ALACRITTY_CONFIG_FILE_PATH);
+    let path = home_path_join(DEFAULT_ALACRITTY_CONFIG_PATH);
     let mut config = load_alacritty_config(&path)?;
     config.set_font_family(font);
     save_alacritty_config(path, &config)?;
@@ -202,20 +223,21 @@ struct Cli {
     #[arg(long)]
     font_list: bool,
 
-    /// Display the theme's color palette in the terminal
+    /// Display the theme's color palette in the terminal without applying it
     #[arg(short, long)]
     show: bool,
 
-    /// Show theme configuration in TOML format
+    /// TOML format
     #[arg(long)]
     show_toml: bool,
 
-    /// Show full debug information of the theme
+    /// Rust fmt format
     #[arg(long)]
     show_fmt: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut is_error = false;
     if !supports_truecolor() {
         println!("Warning: Your terminal does not fully support truecolor");
     }
@@ -234,13 +256,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         list_nerd_fonts()?.iter().for_each(|i| println!("{i}"));
     }
     if let Some(query) = cli.font {
-        set_alacritty_font(&query)?;
+        if let Err(e) = set_alacritty_font(&query) {
+            is_error = true;
+            eprintln!("{}", e);
+        }
     } else if cli.font_rand {
-        set_alacritty_font(
+        let res = set_alacritty_font(
             list_nerd_fonts()?
                 .choose(&mut rand::rng())
                 .unwrap_or(&"".into()),
-        )?;
+        );
+        if let Err(e) = res {
+            is_error = true;
+            eprintln!("{}", e);
+        }
     }
     let theme = if let Some(query) = cli.theme {
         Some(collection::search(&query))
@@ -260,9 +289,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         theme.prepare()?;
         // theme.validation()?;
         if cli.show {
-            let base_colors = theme.get_or_insert_colors()
-                .base
-                .to_vec_colors()?;
+            let base_colors = theme.get_or_insert_colors().base.to_vec_colors()?;
             color::print_palette(&base_colors);
             toml::to_string_pretty(&theme).unwrap();
         }
@@ -273,7 +300,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("{:#?}", theme);
         }
         if !cli.show && !cli.show_toml && !cli.show_fmt {
-            let mut is_error = false;
+            if 
             if let Err(e) = apply_theme_to_nvim(&mut theme) {
                 is_error = true;
                 eprintln!("{}", e);
@@ -282,10 +309,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 is_error = true;
                 eprintln!("{}", e);
             }
-            if is_error {
-                exit(1);
-            }
         }
+    }
+    if is_error {
+        exit(1);
     }
 
     Ok(())
