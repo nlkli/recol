@@ -2,9 +2,68 @@ use crate::color;
 use crate::color::Color;
 use crate::utils::as_array_ref;
 use serde::{Deserialize, Serialize};
+use std::io;
 
-pub const ANSI_NC: usize = 8;
 pub const COLOR_SCHEME_NC: usize = 1 + 1 + 2 + 2 + ANSI_NC * 2;
+pub const COLOR_SCHEME_SIZE: usize = COLOR_SCHEME_NC * 3;
+pub const ANSI_NC: usize = 8;
+pub const ANSI_SIZE: usize = ANSI_NC * 3;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct Theme {
+    pub name: String,
+    pub is_light: bool,
+    pub colors: ColorScheme,
+}
+
+impl Theme {
+    pub fn new(name: String, colors: ColorScheme) -> Self {
+        let is_light = color!(&colors.background[1]).luminance() > 50.;
+        Self {
+            name,
+            is_light,
+            colors,
+        }
+    }
+
+    /// [NAME_SIZE u8] [NAME utf8 string] [IS_LIGHT u8] [COLOR_SCHEME bytes]
+    pub fn from_bytes(b: &[u8]) -> Result<Self, io::Error> {
+        if b.len() < 2 {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "too short"));
+        }
+        let name_size = b[0] as usize;
+        let required = 1 + name_size + 1 + COLOR_SCHEME_SIZE;
+        if b.len() < required {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "invalid length"));
+        }
+        let name = String::from_utf8(b[1..1 + name_size].to_vec())
+            .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "invalid utf8"))?;
+        let is_light = b[1 + name_size] != 0;
+        let colors = ColorScheme::from_bytes(as_array_ref(&b[2 + name_size..required]));
+
+        Ok(Self {
+            name,
+            is_light,
+            colors,
+        })
+    }
+    pub fn size(&self) -> usize {
+        2 + self.name.len() + COLOR_SCHEME_SIZE
+    }
+
+    /// [NAME_SIZE u8] [NAME utf8 string] [IS_LIGHT u8] [COLOR_SCHEME bytes]
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut buf = Vec::with_capacity(self.size());
+        debug_assert!(self.name.len() <= u8::MAX as usize);
+        buf.push(self.name.len() as u8);
+        buf.extend_from_slice(self.name.as_bytes());
+        buf.push(self.is_light as u8);
+        buf.extend_from_slice(&self.colors.to_bytes());
+        buf
+    }
+
+    pub fn print_palette(&self) {}
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct ColorScheme {
@@ -27,15 +86,15 @@ impl ColorScheme {
     /// 6. cur_text
     /// 7. base (8 ansi colors)
     /// 8. bright (8 ansi colors)
-    pub fn from_colors_slice(c: &[Color; COLOR_SCHEME_NC]) -> Self {
+    pub fn from_color_slice(c: &[Color; COLOR_SCHEME_NC]) -> Self {
         let bg = c[0];
         let fg = c[1];
         let sel = c[2];
         let sel_text = c[3];
         let cur = c[4];
         let cur_text = c[5];
-        let base = AnsiColors::from_colors_slice(as_array_ref(&c[6..6 + ANSI_NC]));
-        let bright = AnsiColors::from_colors_slice(as_array_ref(&c[6 + ANSI_NC..]));
+        let base = AnsiColors::from_color_slice(as_array_ref(&c[6..6 + ANSI_NC]));
+        let bright = AnsiColors::from_color_slice(as_array_ref(&c[6 + ANSI_NC..]));
 
         const SHADE_F: f32 = 0.15;
         let dim = base.for_each(|c| Color::shade(c, -SHADE_F));
@@ -91,14 +150,13 @@ impl ColorScheme {
         }
     }
 
-    pub fn from_bytes(b: &[u8; COLOR_SCHEME_NC * 3]) -> Self {
+    pub fn from_bytes(b: &[u8; COLOR_SCHEME_SIZE]) -> Self {
         let colors = b
             .chunks_exact(3)
             .map(|s| Color::from_bytes(as_array_ref(s)))
             .collect::<Vec<_>>();
-        Self::from_colors_slice(as_array_ref(&colors))
+        Self::from_color_slice(as_array_ref(&colors))
     }
-
 
     pub fn to_colors_array(&self) -> [Color; COLOR_SCHEME_NC] {
         let mut colors = Vec::with_capacity(COLOR_SCHEME_NC);
@@ -116,12 +174,14 @@ impl ColorScheme {
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
-        let mut buf = Vec::with_capacity(COLOR_SCHEME_NC * 3);
+        let mut buf = Vec::with_capacity(COLOR_SCHEME_SIZE);
         for c in self.to_colors_array() {
             buf.extend_from_slice(&c.to_bytes());
         }
         buf
     }
+
+    pub fn print_palette(&self) {}
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -179,7 +239,7 @@ impl AnsiColors {
     /// 6. magenta
     /// 7. cyan
     /// 8. white
-    pub fn from_colors_slice(c: &[Color; ANSI_NC]) -> Self {
+    pub fn from_color_slice(c: &[Color; ANSI_NC]) -> Self {
         Self {
             black: c[0].to_css(),
             red: c[1].to_css(),
@@ -195,12 +255,12 @@ impl AnsiColors {
         }
     }
 
-    pub fn from_bytes(b: &[u8; ANSI_NC * 3]) -> Self {
+    pub fn from_bytes(b: &[u8; ANSI_SIZE]) -> Self {
         let colors = b
             .chunks_exact(3)
             .map(|s| Color::from_bytes(as_array_ref(s)))
             .collect::<Vec<_>>();
-        Self::from_colors_slice(as_array_ref(&colors))
+        Self::from_color_slice(as_array_ref(&colors))
     }
 
     pub fn to_colors_array(&self) -> [Color; ANSI_NC] {
@@ -217,7 +277,7 @@ impl AnsiColors {
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
-        let mut buf = Vec::with_capacity(ANSI_NC * 3);
+        let mut buf = Vec::with_capacity(ANSI_SIZE);
         for c in self.to_colors_array() {
             buf.extend_from_slice(&c.to_bytes());
         }
@@ -227,6 +287,8 @@ impl AnsiColors {
     pub fn for_each(&self, f: fn(&Color) -> Color) -> Self {
         let mut colors = self.to_colors_array();
         colors.iter_mut().for_each(|c| *c = f(c));
-        Self::from_colors_slice(&colors)
+        Self::from_color_slice(&colors)
     }
+
+    pub fn print_palette(&self) {}
 }
