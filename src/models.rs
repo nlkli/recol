@@ -1,7 +1,7 @@
-use serde::{Serialize, Deserialize};
-use crate::utils::as_array_ref;
-use crate::color::Color;
 use crate::color;
+use crate::color::Color;
+use crate::utils::as_array_ref;
+use serde::{Deserialize, Serialize};
 
 const ANSI_NC: usize = 8;
 
@@ -12,9 +12,7 @@ struct ColorScheme {
     dim: Option<AnsiColors>,
 }
 
-impl ColorScheme {
-
-}
+impl ColorScheme {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnsiColors {
@@ -30,15 +28,15 @@ pub struct AnsiColors {
 
 impl Default for AnsiColors {
     fn default() -> Self {
-        Self { 
-            black: Default::default(), 
-            red: Default::default(), 
-            green: Default::default(), 
-            yellow: Default::default(), 
-            blue: Default::default(), 
-            magenta: Default::default(), 
-            cyan: Default::default(), 
-            white: Default::default()
+        Self {
+            black: Default::default(),
+            red: Default::default(),
+            green: Default::default(),
+            yellow: Default::default(),
+            blue: Default::default(),
+            magenta: Default::default(),
+            cyan: Default::default(),
+            white: Default::default(),
         }
     }
 }
@@ -57,9 +55,10 @@ impl AnsiColors {
         }
     }
 
-
     pub fn from_bytes(b: &[u8; ANSI_NC * 3]) -> Self {
-        let mut colors = b.chunks_exact(3).map(|s| Color::from_bytes(as_array_ref(s)));
+        let mut colors = b
+            .chunks_exact(3)
+            .map(|s| Color::from_bytes(as_array_ref(s)));
         unsafe {
             Self {
                 black: colors.next().unwrap_unchecked().to_css(),
@@ -127,4 +126,3 @@ pub struct Colors {
 pub struct Theme {
     colors: Colors,
 }
-
