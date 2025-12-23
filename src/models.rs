@@ -3,91 +3,138 @@ use crate::color::Color;
 use crate::utils::as_array_ref;
 use serde::{Deserialize, Serialize};
 
-// # Colors (iTerm2 Default)
-//
-// [colors.bright]
-// black = '#686868'
-// blue = '#6871ff'
-// cyan = '#60fdff'
-// green = '#5ffa68'
-// magenta = '#ff77ff'
-// red = '#ff6e67'
-// white = '#ffffff'
-// yellow = '#fffc67'
-//
-// [colors.cursor]
-// cursor = '#e5e5e5'
-// text = '#000000'
-//
-// [colors.normal]
-// black = '#000000'
-// blue = '#2225c4'
-// cyan = '#00c5c7'
-// green = '#00c200'
-// magenta = '#ca30c7'
-// red = '#c91b00'
-// white = '#ffffff'
-// yellow = '#c7c400'
-//
-// [colors.primary]
-// background = '#000000'
-// foreground = '#ffffff'
-//
-// [colors.selection]
-// background = '#c1deff'
-// text = '#000000'
-
 pub const ANSI_NC: usize = 8;
+pub const COLOR_SCHEME_NC: usize = 1 + 1 + 2 + 2 + ANSI_NC * 2;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct ColorScheme {
-    bg: Option<String>,
-    fg: Option<String>,
-    normal: Option<AnsiColors>,
-    bright: Option<AnsiColors>,
-    dim: Option<AnsiColors>,
+    pub background: [String; 5],
+    pub foreground: [String; 4],
+    pub selection: SelectionColors,
+    pub cursor: CursorColors,
+    pub base: AnsiColors,
+    pub bright: AnsiColors,
+    pub dim: AnsiColors,
 }
 
 impl ColorScheme {
-    pub fn complete(&mut self) {
+    /// Color order:
+    /// 1. bg
+    /// 2. fg
+    /// 3. sel
+    /// 4. sel_text
+    /// 5. cur
+    /// 6. cur_text
+    /// 7. base (8 ansi colors)
+    /// 8. bright (8 ansi colors)
+    pub fn from_colors_slice(c: &[Color; COLOR_SCHEME_NC]) -> Self {
+        let bg = c[0];
+        let fg = c[1];
+        let sel = c[2];
+        let sel_text = c[3];
+        let cur = c[4];
+        let cur_text = c[5];
+        let base = AnsiColors::from_colors_slice(as_array_ref(&c[6..6 + ANSI_NC]));
+        let bright = AnsiColors::from_colors_slice(as_array_ref(&c[6 + ANSI_NC..]));
+
         const SHADE_F: f32 = 0.15;
+        let dim = base.for_each(|c| Color::shade(c, -SHADE_F));
 
-        if self.normal.is_none() || self.bright.is_none() || self.dim.is_none() {
-            let mut normal = self.normal().clone();
-            self.bright
-                .get_or_insert(normal.for_each(|c| Color::shade(c, SHADE_F)));
-            self.dim
-                .get_or_insert(normal.for_each(|c| Color::shade(c, -SHADE_F)));
+        const BGS: [f32; 4] = [-4., 6., 12., 23.];
+        const FGS: [f32; 3] = [6., -23., -45.];
+        const SEL_S: f32 = 16.;
+
+        let is_light = bg.luminance() > 50.;
+
+        let m = if is_light { -1. } else { 1. };
+        let z = if is_light { 0. } else { 100. };
+
+        let bg0 = if (bg.to_hsl().2 + BGS[0] * m - z) * (-m) - 1. < 100. {
+            bg.brighten(BGS[0] * m)
+        } else {
+            bg.brighten(-BGS[0] * m)
+        };
+        let bg2 = bg.brighten(BGS[1] * m);
+        let bg3 = bg.brighten(BGS[2] * m);
+        let bg4 = bg.brighten(BGS[3] * m);
+        let fg0 = if (fg.to_hsl().2 + FGS[0] * m - z) * (-m) - 1. > 0. {
+            fg.brighten(FGS[0] * m)
+        } else {
+            fg.brighten(-FGS[0] * m)
+        };
+        let fg2 = fg.brighten(FGS[1] * m);
+        let fg3 = fg.brighten(FGS[2] * m);
+
+        let sel0 = sel.brighten(SEL_S * m);
+
+        Self {
+            background: [
+                bg0.to_css(),
+                bg.to_css(),
+                bg2.to_css(),
+                bg3.to_css(),
+                bg4.to_css(),
+            ],
+            foreground: [fg0.to_css(), fg.to_css(), fg2.to_css(), fg3.to_css()],
+            selection: SelectionColors {
+                sel0: sel0.to_css(),
+                sel: sel.to_css(),
+                text: sel_text.to_css(),
+            },
+            cursor: CursorColors {
+                cur: cur.to_css(),
+                text: cur_text.to_css(),
+            },
+            base,
+            bright,
+            dim,
         }
-        if let Some(normal) = self.normal.as_mut() {
-            normal.complete();
+    }
+
+    pub fn from_bytes(b: &[u8; COLOR_SCHEME_NC * 3]) -> Self {
+        let colors = b
+            .chunks_exact(3)
+            .map(|s| Color::from_bytes(as_array_ref(s)))
+            .collect::<Vec<_>>();
+        Self::from_colors_slice(as_array_ref(&colors))
+    }
+
+
+    pub fn to_colors_array(&self) -> [Color; COLOR_SCHEME_NC] {
+        let mut colors = Vec::with_capacity(COLOR_SCHEME_NC);
+
+        colors.push(color!(&self.background[1]));
+        colors.push(color!(&self.foreground[1]));
+        colors.push(color!(&self.selection.sel));
+        colors.push(color!(&self.selection.text));
+        colors.push(color!(&self.cursor.cur));
+        colors.push(color!(&self.cursor.text));
+        colors.extend_from_slice(&self.base.to_colors_array());
+        colors.extend_from_slice(&self.bright.to_colors_array());
+
+        *as_array_ref(&colors)
+    }
+
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut buf = Vec::with_capacity(COLOR_SCHEME_NC * 3);
+        for c in self.to_colors_array() {
+            buf.extend_from_slice(&c.to_bytes());
         }
-        if let Some(bright) = self.bright.as_mut() {
-            bright.complete();
-        }
-        if let Some(dim) = self.dim.as_mut() {
-            dim.complete();
-        }
+        buf
     }
-    pub fn bg(&mut self) -> &str {
-        self.bg.get_or_insert("#000000".into())
-    }
+}
 
-    pub fn fg(&mut self) -> &str {
-        self.fg.get_or_insert("#ffffff".into())
-    }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct SelectionColors {
+    pub sel0: String,
+    pub sel: String,
+    pub text: String,
+}
 
-    pub fn normal(&mut self) -> &AnsiColors {
-        self.normal.get_or_insert(Default::default())
-    }
-
-    pub fn bright(&mut self) -> &AnsiColors {
-        self.bright.get_or_insert(Default::default())
-    }
-
-    pub fn dim(&mut self) -> &AnsiColors {
-        self.dim.get_or_insert(Default::default())
-    }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct CursorColors {
+    pub cur: String,
+    pub text: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -101,8 +148,8 @@ pub struct AnsiColors {
     pub cyan: String,
     pub white: String,
 
-    orange: Option<String>,
-    pink: Option<String>,
+    pub orange: String,
+    pub pink: String,
 }
 
 impl Default for AnsiColors {
@@ -116,21 +163,22 @@ impl Default for AnsiColors {
             magenta: "#ca30c7".into(),
             cyan: "#00c5c7".into(),
             white: "#ffffff".into(),
-
-            orange: None,
-            pink: None,
+            orange: "#c7c400".into(),
+            pink: "#c91b00".into(),
         }
     }
 }
 
 impl AnsiColors {
-    pub fn complete(&mut self) {
-        self.orange
-            .get_or_insert(color!(&self.red).blend(&color!(&self.yellow), 0.5).to_css());
-        self.pink
-            .get_or_insert(color!(&self.red).blend(&color!(&self.white), 0.5).to_css());
-    }
-
+    /// Color order:
+    /// 1. black
+    /// 2. red
+    /// 3. green
+    /// 4. yellow
+    /// 5. blue
+    /// 6. magenta
+    /// 7. cyan
+    /// 8. white
     pub fn from_colors_slice(c: &[Color; ANSI_NC]) -> Self {
         Self {
             black: c[0].to_css(),
@@ -141,27 +189,18 @@ impl AnsiColors {
             magenta: c[5].to_css(),
             cyan: c[6].to_css(),
             white: c[7].to_css(),
-            ..Default::default()
+
+            orange: c[1].blend(&c[3], 0.5).to_css(),
+            pink: c[1].blend(&c[7], 0.5).to_css(),
         }
     }
 
     pub fn from_bytes(b: &[u8; ANSI_NC * 3]) -> Self {
-        let mut colors = b
+        let colors = b
             .chunks_exact(3)
-            .map(|s| Color::from_bytes(as_array_ref(s)));
-        unsafe {
-            Self {
-                black: colors.next().unwrap_unchecked().to_css(),
-                red: colors.next().unwrap_unchecked().to_css(),
-                green: colors.next().unwrap_unchecked().to_css(),
-                yellow: colors.next().unwrap_unchecked().to_css(),
-                blue: colors.next().unwrap_unchecked().to_css(),
-                magenta: colors.next().unwrap_unchecked().to_css(),
-                cyan: colors.next().unwrap_unchecked().to_css(),
-                white: colors.next().unwrap_unchecked().to_css(),
-                ..Default::default()
-            }
-        }
+            .map(|s| Color::from_bytes(as_array_ref(s)))
+            .collect::<Vec<_>>();
+        Self::from_colors_slice(as_array_ref(&colors))
     }
 
     pub fn to_colors_array(&self) -> [Color; ANSI_NC] {
@@ -185,41 +224,9 @@ impl AnsiColors {
         buf
     }
 
-    pub fn for_each(&mut self, f: fn(&Color) -> Color) -> Self {
+    pub fn for_each(&self, f: fn(&Color) -> Color) -> Self {
         let mut colors = self.to_colors_array();
         colors.iter_mut().for_each(|c| *c = f(c));
         Self::from_colors_slice(&colors)
     }
-}
-
-#[derive(Deserialize, Debug)]
-pub struct CursorColors {
-    cursor: String,
-    text: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct PrimaryColors {
-    background: String,
-    foreground: String,
-}
-
-#[derive(Daserialize, Debug)]
-pub struct SelectionColors {
-    background: String,
-    text: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Colors {
-    primary: Primary,
-    normal: TermColors,
-    bright: TermColors,
-    cursor: Cursor,
-    selection: Selection,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Theme {
-    colors: Colors,
 }
