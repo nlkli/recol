@@ -1,6 +1,6 @@
 
 #[inline(always)]
-pub fn as_array_ref<const N: usize>(s: &[u8]) -> &[u8; N] {
+pub fn as_array_ref<T, const N: usize>(s: &[T]) -> &[T; N] {
     assert_eq!(s.len(), N);
-    unsafe { &*(s.as_ptr() as *const [u8; N]) }
+    unsafe { &*(s.as_ptr() as *const [T; N]) }
 }
