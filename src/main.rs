@@ -1,7 +1,8 @@
+mod models;
 mod utils;
 mod collection;
 mod color;
-mod models;
+mod theme;
 mod templ;
 mod converter;
 use clap::Parser;
@@ -10,18 +11,6 @@ use std::io::Write as IoWrite;
 use std::{fmt::Write, fs::OpenOptions, io::BufRead, path::PathBuf, process::exit};
 use strsim::levenshtein;
 
-const DEFAULT_NVIM_CONFIG_PATH: &str = ".config/nvim/init.lua";
-const DEFAULT_ALACRITTY_CONFIG_PATH: &str = ".config/alacritty/alacritty.toml";
-
-fn supports_truecolor() -> bool {
-    matches!(
-        std::env::var("COLORTERM").as_deref(),
-        Ok("truecolor") | Ok("24bit")
-    )
-}
-
-use color::Color;
-use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub struct TermColors {
@@ -214,102 +203,4 @@ fn gent() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // let white = color::Color::from_hex_str("#ffffff")?;
-    // let black = color::Color::from_hex_str("#000000")?;
-
-    // color::print_palette(&[black, black.brighten(4.0)]);
-
-    // println!("{} {}", black.to_css(false), black.brighten(4.0).to_css(false));
-
-    gent()?;
-
-    return Ok(());
-    let cli = Cli::parse();
-
-    if !supports_truecolor() {
-        println!("Warning: Your terminal does not fully support truecolor");
-    }
-
-    if cli.theme_list {
-        {
-            if cli.dark {
-                collection::DARK_LIST.iter()
-            } else if cli.light {
-                collection::LIGHT_LIST.iter()
-            } else {
-                collection::LIST.iter()
-            }
-        }
-        .for_each(|i| println!("{i}"));
-    }
-    if cli.font_list {
-        list_nerd_fonts()?.iter().for_each(|i| println!("{i}"));
-    }
-
-    let mut has_error = false;
-
-    if let Some(query) = cli.font {
-        if let Err(e) = set_alacritty_font(&query) {
-            has_error = true;
-            eprintln!("{}", e);
-        }
-    } else if cli.font_rand {
-        let res = set_alacritty_font(
-            list_nerd_fonts()?
-                .choose(&mut rand::rng())
-                .unwrap_or(&"".into()),
-        );
-        if let Err(e) = res {
-            has_error = true;
-            eprintln!("{}", e);
-        }
-    }
-    let theme = if let Some(query) = cli.theme {
-        Some(collection::search(&query))
-    } else if cli.rand {
-        if cli.dark {
-            Some(collection::rand_dark())
-        } else if cli.light {
-            Some(collection::rand_light())
-        } else {
-            Some(collection::rand())
-        }
-    } else {
-        None
-    };
-    if let Some(mut theme) = theme {
-        println!("{}", theme.name.clone().unwrap_or("unknown".into()));
-        theme.prepare()?;
-        // theme.validation()?;
-        if cli.show {
-            let base_colors = theme.get_or_insert_colors().base.to_vec_colors()?;
-            color::print_palette(&base_colors);
-            toml::to_string_pretty(&theme).unwrap();
-        }
-        if cli.show_toml {
-            println!("{}", toml::to_string_pretty(&theme)?);
-        }
-        if cli.show_fmt {
-            println!("{:#?}", theme);
-        }
-        if !cli.show && !cli.show_toml && !cli.show_fmt {
-            if nvim_config_path().exists() {
-                if let Err(e) = apply_theme_to_nvim(&mut theme) {
-                    has_error = true;
-                    eprintln!("{}", e);
-                }
-            }
-            if alacritty_config_path().exists() {
-                if let Err(e) = apply_theme_to_alacritty(&mut theme) {
-                    has_error = true;
-                    eprintln!("{}", e);
-                }
-            }
-        }
-    }
-    if has_error {
-        exit(1);
-    }
-
-    Ok(())
 }
