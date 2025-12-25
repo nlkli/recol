@@ -1,5 +1,5 @@
 #[cfg(debug_assertions)]
-pub mod converter;
+pub mod build;
 
 pub mod theme;
 use rand::seq::IteratorRandom;
@@ -139,31 +139,69 @@ impl<'a> Collection<'a> {
         LazyThemeIter::new(self)
     }
 
-    pub fn rand(&'a self) -> Option<LazyTheme<'a>> {
-        let i = rand::random_range(0..self.count as usize);
-        self.get(i)
+    pub fn rand(&'a self, filter: Option<&LazyThemeFilter>) -> Option<LazyTheme<'a>> {
+        let filter = filter.unwrap_or(&LazyThemeFilter::None);
+        if filter.is_none() {
+            let i = rand::random_range(0..self.count as usize);
+            return self.get(i);
+        }
+        filter.apply(self.iter()).choose(&mut rand::rng())
     }
 
-    pub fn rand_dark(&'a self) -> Option<LazyTheme<'a>> {
-        self.iter().filter(|t| !t.is_light).choose(&mut rand::rng())
+    pub fn by_name(
+        &'a self,
+        name: &str,
+        filter: Option<&LazyThemeFilter>,
+    ) -> Option<LazyTheme<'a>> {
+        filter
+            .unwrap_or(&LazyThemeFilter::None)
+            .apply(self.iter())
+            .find(|t| t.name == name)
     }
 
-    pub fn rand_light(&'a self) -> Option<LazyTheme<'a>> {
-        self.iter().filter(|t| t.is_light).choose(&mut rand::rng())
-    }
-
-    pub fn by_name(&'a self, name: &str) -> Option<LazyTheme<'a>> {
-        self.iter().find(|t| t.name == name)
-    }
-
-    pub fn name_list(&'a self) -> Vec<&'a str> {
-        let mut list = Vec::with_capacity(self.count as usize);
-        self.iter().for_each(|t| list.push(t.name));
+    pub fn name_list(&'a self, filter: Option<&LazyThemeFilter>, sort: bool) -> Vec<&'a str> {
+        let filter = filter.unwrap_or(&LazyThemeFilter::None);
+        let mut list = if filter.is_none() {
+            let mut list = Vec::with_capacity(self.count as usize);
+            self.iter().for_each(|t| list.push(t.name));
+            list
+        } else {
+            filter.apply(self.iter()).map(|t| t.name).collect()
+        };
+        if sort {
+            list.sort();
+        }
         list
     }
 
-    pub fn fuzzy_search(&'a self, query: &str) -> Option<&'a str> {
-        let names = self.name_list();
-        fuzzy_search(&names, query)
+    pub fn fuzzy_search(&'a self, query: &str, filter: Option<&LazyThemeFilter>) -> Option<LazyTheme<'a>> {
+        let names = self.name_list(filter, false);
+        fuzzy_search(&names, query).and_then(|n| self.by_name(n, filter))
+    }
+}
+
+#[derive(Default, Clone, Debug)]
+pub enum LazyThemeFilter {
+    #[default]
+    None,
+
+    Light,
+    Dark,
+}
+
+impl LazyThemeFilter {
+    pub fn apply<'a>(&self, iter: LazyThemeIter<'a>) -> impl Iterator<Item = LazyTheme<'a>> {
+        iter.filter(move |t| match self {
+            LazyThemeFilter::None => true,
+            LazyThemeFilter::Light => t.is_light,
+            LazyThemeFilter::Dark => !t.is_light,
+        })
+    }
+
+    pub fn is_none(&self) -> bool {
+        match self {
+            Self::None => true,
+            _ => false,
+        }
     }
 }
