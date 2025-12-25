@@ -1,16 +1,34 @@
+//! Theme and color scheme representation.
+//!
+//! This module defines the binary format and data structures used to represent
+//! color themes and color schemes.
+//!
+//! Themes are serialized into a compact byte layout and can be embedded into
+//! the binary or loaded at runtime. The layout is optimized for fast parsing
+//! and fixed-size color data.
+//!
+//! Color schemes are derived from a base set of colors and expanded into
+//! background, foreground, selection, cursor, ANSI, bright, and dim variants.
+
 use crate::color;
 use crate::color::Color;
 use crate::utils::as_array_ref;
 use serde::{Deserialize, Serialize};
-use std::io;
+use std::io::{self, Write};
 
 pub const COLOR_SCHEME_NC: usize = 1 + 1 + 2 + 2 + ANSI_NC * 2;
 pub const COLOR_SCHEME_SIZE: usize = COLOR_SCHEME_NC * 3;
 pub const ANSI_NC: usize = 8;
 pub const ANSI_SIZE: usize = ANSI_NC * 3;
 
+const DEFAULT_BG: &str = "#000000";
+const DEFAULT_FG: &str = "#ffffff";
+const DEFAULT_SEL: &str = "#808080";
+
+/// Binary layout:
+/// `[NAME_LEN u8] [NAME string] [IS_LIGHT u8] [COLOR_SCHEME bytes]`
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct Theme {
+pub struct Theme {
     pub name: String,
     pub is_light: bool,
     pub colors: ColorScheme,
@@ -18,7 +36,7 @@ struct Theme {
 
 impl Theme {
     pub fn new(name: String, colors: ColorScheme) -> Self {
-        let is_light = color!(&colors.background[1]).luminance() > 50.;
+        let is_light = color!(&colors.background[1]).to_hsl().2 > 50.;
         Self {
             name,
             is_light,
@@ -26,7 +44,6 @@ impl Theme {
         }
     }
 
-    /// [NAME_SIZE u8] [NAME utf8 string] [IS_LIGHT u8] [COLOR_SCHEME bytes]
     pub fn from_bytes(b: &[u8]) -> Result<Self, io::Error> {
         if b.len() < 2 {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "too short"));
@@ -47,14 +64,15 @@ impl Theme {
             colors,
         })
     }
+
+    /// Returns the total byte size of this theme.
     pub fn size(&self) -> usize {
         2 + self.name.len() + COLOR_SCHEME_SIZE
     }
 
-    /// [NAME_SIZE u8] [NAME utf8 string] [IS_LIGHT u8] [COLOR_SCHEME bytes]
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut buf = Vec::with_capacity(self.size());
-        debug_assert!(self.name.len() <= u8::MAX as usize);
+        debug_assert!(self.name.len() <= u8::max as usize);
         buf.push(self.name.len() as u8);
         buf.extend_from_slice(self.name.as_bytes());
         buf.push(self.is_light as u8);
@@ -62,11 +80,15 @@ impl Theme {
         buf
     }
 
+    pub fn write_bytes<W: Write>(&self, mut w: W) -> Result<(), io::Error> {
+        w.write_all(&self.to_bytes())
+    }
+
     pub fn print_palette(&self) {}
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct ColorScheme {
+pub struct ColorScheme {
     pub background: [String; 5],
     pub foreground: [String; 4],
     pub selection: SelectionColors,
@@ -103,12 +125,13 @@ impl ColorScheme {
         const FGS: [f32; 3] = [6., -23., -45.];
         const SEL_S: f32 = 16.;
 
-        let is_light = bg.luminance() > 50.;
+        let bg_lum = bg.to_hsl().2;
+        let is_light = bg_lum > 50.;
 
         let m = if is_light { -1. } else { 1. };
         let z = if is_light { 0. } else { 100. };
 
-        let bg0 = if (bg.to_hsl().2 + BGS[0] * m - z) * (-m) - 1. < 100. {
+        let bg0 = if (bg_lum + BGS[0] * m - z) * (-m) - 1. < 100. {
             bg.brighten(BGS[0] * m)
         } else {
             bg.brighten(-BGS[0] * m)
@@ -185,14 +208,14 @@ impl ColorScheme {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct SelectionColors {
+pub struct SelectionColors {
     pub sel0: String,
     pub sel: String,
     pub text: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct CursorColors {
+pub struct CursorColors {
     pub cur: String,
     pub text: String,
 }
