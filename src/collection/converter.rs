@@ -1,20 +1,18 @@
-//! Alacritty color scheme converter.
+//! Alacritty color scheme converter (build-time).
 //!
-//! This module converts color definitions from Alacritty `.toml` configuration
-//! files into the internal [`Theme`] and [`ColorScheme`] formats.
+//! This module is used during development to generate a binary collection
+//! of color themes (`colorschemes.bin`) from Alacritty `.toml` configuration
+//! files.
 //!
-//! It is intended to build a collection of themes from the Alacritty color
-//! scheme repository:
+//! The input themes are sourced from the Alacritty color scheme repository:
 //! https://github.com/mbadolato/iTerm2-Color-Schemes/tree/master/alacritty
 //!
-//! Each Alacritty config is parsed, validated, and mapped to a fixed color order
-//! expected by the theme system. Missing or invalid required fields result in
-//! an error.
+//! Each `.toml` file is parsed, validated, converted into the internal
+//! [`Theme`] representation, and serialized into a compact binary format.
 //!
-//! The module supports:
-//! - converting a single Alacritty config into a `Theme`
-//! - writing a theme directly to an output writer
-//! - processing a directory of Alacritty configs to build a theme collection
+//! The resulting `colorschemes.bin` file is embedded into the final build
+//! and used at runtime. This module itself is not required after the binary
+//! asset has been generated.
 
 use crate::collection::theme::{COLOR_SCHEME_NC, ColorScheme, Theme};
 use crate::utils::{io_other_error, missing_field};
@@ -25,18 +23,74 @@ use std::{
     path::Path,
 };
 
-/// Reads an Alacritty `.toml` config and writes the theme bytes to the writer.
-pub fn write_theme_from_alacritty<P: AsRef<Path>, W: Write>(
-    path: P,
-    name: String,
-    w: W,
-) -> io::Result<()> {
-    theme_from_alacritty(path, name)?.write_bytes(w)
+/// Generates the `colorschemes.bin` file from a directory of Alacritty themes.
+///
+/// This function is intended to be used at build time only. It reads all
+/// Alacritty `.toml` color schemes from the given directory, converts them
+/// into the internal `Theme` format, and serializes them into a single
+/// binary file.
+///
+/// File layout:
+/// - `u16` theme count
+/// - `u32[]` offset table (relative to the start of the theme data section)
+/// - serialized `Theme` entries
+///
+/// The resulting file is written to `src/collection/colorschemes.bin` and
+/// embedded into the final build using `include_bytes!`.
+pub fn create_colorshemes_bin<P: AsRef<Path>>(dir: P) -> io::Result<()> {
+    let mut colorschemes_bin = fs::File::create("src/collection/colorschemes.bin")?;
+    let mut buf = Vec::new();
+    let (count, offsets) = build_theme_bundle(dir, &mut buf)?;
+    colorschemes_bin.write_all(&count.to_be_bytes())?;
+    for offset in offsets.iter() {
+        colorschemes_bin.write_all(&offset.to_be_bytes())?;
+    }
+    colorschemes_bin.write_all(&buf)?;
+
+    Ok(())
 }
 
-/// Parses an Alacritty color config and builds a `Theme`.
-/// Fails if any required color field is missing or invalid.
-pub fn theme_from_alacritty<P: AsRef<Path>>(path: P, name: String) -> io::Result<Theme> {
+/// Builds a binary theme bundle from a directory of Alacritty configs.
+///
+/// Returns:
+/// - number of themes
+/// - offset table (byte offsets of each theme)
+fn build_theme_bundle<P: AsRef<Path>, W: Write>(
+    dir: P,
+    mut w: W,
+) -> io::Result<(u16, Vec<u32>)> {
+    const TOML_EXT: &str = ".toml";
+
+    let mut count = 0u16;
+    let mut offset = 0u32;
+    let mut offsets = Vec::new();
+
+    for entry in fs::read_dir(dir)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        let Some(name) = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .and_then(|n| n.strip_suffix(TOML_EXT))
+        else {
+            continue;
+        };
+
+        offsets.push(offset);
+        let theme = parse_alacritty_theme(&path, name.to_string())?;
+        let size = theme.write_bytes(&mut w)?;
+        offset += size as u32;
+        count += 1;
+    }
+    Ok((count, offsets))
+}
+
+/// Parses a single Alacritty `.toml` file into a `Theme`.
+fn parse_alacritty_theme<P: AsRef<Path>>(
+    path: P,
+    name: String,
+) -> io::Result<Theme> {
     let content = fs::read_to_string(path)?;
     let config = toml::from_str::<models::alacritty::Config>(&content).map_err(io_other_error)?;
 
@@ -144,21 +198,3 @@ pub fn theme_from_alacritty<P: AsRef<Path>>(path: P, name: String) -> io::Result
     Ok(Theme::new(name, scheme))
 }
 
-/// Reads all Alacritty `.toml` files in a directory and writes each theme.
-pub fn write_themes_from_alacritty_dir<P: AsRef<Path>, W: Write>(
-    dir: P,
-    mut w: W,
-) -> io::Result<()> {
-    const FILET_EXT: &str = ".toml";
-    let dir = fs::read_dir(dir)?;
-    for entry in dir {
-        let entry = entry?;
-        let file_name = entry.file_name();
-        if let Ok(file_name) = file_name.into_string() {
-            let theme_name = file_name.trim_end_matches(FILET_EXT).to_string();
-            let path = entry.path();
-            write_theme_from_alacritty(path, theme_name, &mut w)?;
-        }
-    }
-    Ok(())
-}

@@ -16,9 +16,13 @@ use crate::utils::as_array_ref;
 use serde::{Deserialize, Serialize};
 use std::io::{self, Write};
 
+/// Number of base colors used to build a color scheme.
 pub const COLOR_SCHEME_NC: usize = 1 + 1 + 2 + 2 + ANSI_NC * 2;
+/// Size of a color scheme in bytes.
 pub const COLOR_SCHEME_SIZE: usize = COLOR_SCHEME_NC * 3;
+/// Number of ANSI colors.
 pub const ANSI_NC: usize = 8;
+/// Size of ANSI colors in bytes.
 pub const ANSI_SIZE: usize = ANSI_NC * 3;
 
 const DEFAULT_BG: &str = "#000000";
@@ -44,7 +48,7 @@ impl Theme {
         }
     }
 
-    pub fn from_bytes(b: &[u8]) -> Result<Self, io::Error> {
+    pub fn from_bytes(b: &[u8]) -> io::Result<Self> {
         if b.len() < 2 {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "too short"));
         }
@@ -80,8 +84,10 @@ impl Theme {
         buf
     }
 
-    pub fn write_bytes<W: Write>(&self, mut w: W) -> Result<(), io::Error> {
-        w.write_all(&self.to_bytes())
+    pub fn write_bytes<W: Write>(&self, mut w: W) -> io::Result<usize> {
+        let buf = self.to_bytes();
+        w.write_all(&buf)?;
+        Ok(buf.len())
     }
 
     pub fn print_palette(&self) {}
