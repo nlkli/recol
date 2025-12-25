@@ -1,29 +1,31 @@
-use std::io;
+use std::{
+    fmt::Write,
+    fs,
+    io::{self, BufRead},
+    path::Path,
+};
 use strsim::{jaro_winkler, normalized_levenshtein};
 
-fn normalize(s: &str) -> String {
-    s.to_lowercase()
+pub fn fuzzy_search<'a, 'v>(items: &'v [&'a str], query: &str) -> Option<&'a str> {
+    if query.len() > 512 {
+        return None;
+    }
+    let query_norm = query.to_lowercase()
         .split_whitespace()
         .collect::<Vec<_>>()
-        .join(" ")
-}
-
-pub fn fuzzy_search<'a, 'v>(items: &'v [&'a str], query: &str) -> Option<&'a str> {
-    let query_norm = normalize(query);
+        .join(" ");
 
     let mut best_score = 0.0;
     let mut best_item = None;
 
     for &item in items {
-        let item_norm = normalize(item);
+        let item_norm = item.to_lowercase();
 
         let jw = jaro_winkler(&query_norm, &item_norm);
         let lev = normalized_levenshtein(&query_norm, &item_norm);
 
-        // основной скор
         let mut score = 0.7 * jw + 0.3 * lev;
 
-        // небольшой бонус, если все слова запроса присутствуют
         let query_words: Vec<&str> = query_norm.split(' ').collect();
         let mut word_matches = 0;
 
@@ -44,12 +46,68 @@ pub fn fuzzy_search<'a, 'v>(items: &'v [&'a str], query: &str) -> Option<&'a str
     best_item
 }
 
+pub fn write_content_inside_text_block<P>(
+    path: P,
+    content: &str,
+    blocks_mark: (&str, &str),
+) -> io::Result<()>
+where
+    P: AsRef<Path>,
+{
+    let file = fs::File::open(&path)?;
+    let reader = io::BufReader::new(file);
+
+    let mut buf = String::new();
+    let mut lines = reader.lines();
+    let mut inserted = false;
+
+    while let Some(line) = lines.next() {
+        let line = line?;
+        let _ = writeln!(&mut buf, "{}", &line);
+        if line == blocks_mark.0 {
+            let _ = writeln!(&mut buf, "{}", &content);
+            inserted = true;
+            break;
+        }
+    }
+    if inserted {
+        let mut replace_buf = String::new();
+        let mut found_end = false;
+        while let Some(line) = lines.next() {
+            let line = line?;
+            let _ = writeln!(&mut replace_buf, "{}", &line);
+            if line == blocks_mark.1 {
+                found_end = true;
+                break;
+            }
+        }
+        if found_end {
+            let _ = writeln!(&mut buf, "{}", blocks_mark.1);
+        } else {
+            let _ = writeln!(&mut buf, "{}", &replace_buf);
+        }
+        while let Some(line) = lines.next() {
+            let line = line?;
+            let _ = writeln!(&mut buf, "{}", &line);
+        }
+    } else {
+        let _ = writeln!(
+            &mut buf,
+            "\n{}en{content}\n{}",
+            blocks_mark.0,
+            blocks_mark.1,
+        );
+    }
+
+    fs::write(&path, &buf)?;
+    Ok(())
+}
+
 #[inline(always)]
 pub fn as_array_ref<T, const N: usize>(s: &[T]) -> &[T; N] {
     assert_eq!(s.len(), N);
     unsafe { &*(s.as_ptr() as *const [T; N]) }
 }
-
 
 pub fn io_other_error<E>(err: E) -> io::Error
 where
@@ -68,8 +126,6 @@ pub fn missing_field(path: &'static str) -> io::Error {
 #[macro_export]
 macro_rules! require_field {
     ($root:expr, $path:literal, $field:ident) => {
-        $root.$field
-            .as_ref()
-            .ok_or_else(|| missing_field($path))
+        $root.$field.as_ref().ok_or_else(|| missing_field($path))
     };
 }
