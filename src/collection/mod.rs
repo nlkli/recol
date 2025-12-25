@@ -5,7 +5,7 @@ pub mod theme;
 use rand::seq::IteratorRandom;
 use std::io;
 
-use crate::utils::as_array_ref;
+use crate::utils::{as_array_ref, fuzzy_search};
 use theme::{COLOR_SCHEME_SIZE, ColorScheme, Theme};
 
 /// All Alacritty color schemes embedded as a binary bundle.
@@ -34,7 +34,7 @@ pub struct LazyTheme<'a> {
 }
 
 impl<'a> LazyTheme<'a> {
-    pub fn from_bytes(b: &'a [u8]) -> io::Result<Self> {
+    fn from_bytes(b: &'a [u8]) -> io::Result<Self> {
         let name_size = b[0] as usize;
         let required = 1 + name_size + 1 + COLOR_SCHEME_SIZE;
         if b.len() < required {
@@ -154,5 +154,16 @@ impl<'a> Collection<'a> {
 
     pub fn by_name(&'a self, name: &str) -> Option<LazyTheme<'a>> {
         self.iter().find(|t| t.name == name)
+    }
+
+    pub fn name_list(&'a self) -> Vec<&'a str> {
+        let mut list = Vec::with_capacity(self.count as usize);
+        self.iter().for_each(|t| list.push(t.name));
+        list
+    }
+
+    pub fn fuzzy_search(&'a self, query: &str) -> Option<&'a str> {
+        let names = self.name_list();
+        fuzzy_search(&names, query)
     }
 }
