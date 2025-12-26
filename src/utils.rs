@@ -93,7 +93,7 @@ where
     } else {
         let _ = writeln!(
             &mut buf,
-            "\n{}en{content}\n{}",
+            "\n{}{content}\n{}",
             blocks_mark.0,
             blocks_mark.1,
         );

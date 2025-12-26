@@ -178,6 +178,7 @@ impl ColorScheme {
             bright,
             dim: None,
             comment: None,
+            diff: None,
         }
     }
 

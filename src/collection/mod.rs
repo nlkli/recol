@@ -2,7 +2,7 @@
 pub mod build;
 
 mod theme;
-pub use theme::{Theme, ColorScheme};
+pub use theme::{Theme, ColorScheme, AnsiColors};
 use rand::seq::IteratorRandom;
 use std::io;
 use theme::COLOR_SCHEME_SIZE;

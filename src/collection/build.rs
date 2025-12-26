@@ -16,7 +16,7 @@
 
 use crate::collection::theme::{COLOR_SCHEME_NC, ColorScheme, Theme};
 use crate::utils::{io_other_error, missing_field};
-use crate::{color, color::Color, models, require_field};
+use crate::{color, color::Color, require_field, targets::alacritty::Config as AlConfig};
 use std::{
     fs,
     io::{self, Write},
@@ -55,10 +55,7 @@ pub fn create_colorshemes_bin<P: AsRef<Path>>(dir: P) -> io::Result<()> {
 /// Returns:
 /// - number of themes
 /// - offset table (byte offsets of each theme)
-fn build_theme_bundle<P: AsRef<Path>, W: Write>(
-    dir: P,
-    mut w: W,
-) -> io::Result<(u16, Vec<u32>)> {
+fn build_theme_bundle<P: AsRef<Path>, W: Write>(dir: P, mut w: W) -> io::Result<(u16, Vec<u32>)> {
     const TOML_EXT: &str = ".toml";
 
     let mut count = 0u16;
@@ -87,12 +84,9 @@ fn build_theme_bundle<P: AsRef<Path>, W: Write>(
 }
 
 /// Parses a single Alacritty `.toml` file into a `Theme`.
-fn parse_alacritty_theme<P: AsRef<Path>>(
-    path: P,
-    name: String,
-) -> io::Result<Theme> {
+fn parse_alacritty_theme<P: AsRef<Path>>(path: P, name: String) -> io::Result<Theme> {
     let content = fs::read_to_string(path)?;
-    let config = toml::from_str::<models::alacritty::Config>(&content).map_err(io_other_error)?;
+    let config = toml::from_str::<AlConfig>(&content).map_err(io_other_error)?;
 
     let mut colors = Vec::with_capacity(COLOR_SCHEME_NC);
 
@@ -197,4 +191,3 @@ fn parse_alacritty_theme<P: AsRef<Path>>(
     let scheme = ColorScheme::from_color_slice(crate::utils::as_array_ref(&colors));
     Ok(Theme::new(name, scheme))
 }
-
