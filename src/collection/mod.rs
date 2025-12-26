@@ -1,12 +1,12 @@
 #[cfg(debug_assertions)]
 pub mod build;
 
-pub mod theme;
+mod theme;
+pub use theme::{Theme, ColorScheme};
 use rand::seq::IteratorRandom;
 use std::io;
-
+use theme::COLOR_SCHEME_SIZE;
 use crate::utils::{as_array_ref, fuzzy_search};
-use theme::{COLOR_SCHEME_SIZE, ColorScheme, Theme};
 
 /// All Alacritty color schemes embedded as a binary bundle.
 ///

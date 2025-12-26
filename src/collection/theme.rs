@@ -101,7 +101,10 @@ pub struct ColorScheme {
     pub cursor: CursorColors,
     pub base: AnsiColors,
     pub bright: AnsiColors,
-    pub dim: AnsiColors,
+
+    dim: Option<AnsiColors>,
+    diff: Option<DiffColors>,
+    comment: Option<String>,
 }
 
 impl ColorScheme {
@@ -124,9 +127,7 @@ impl ColorScheme {
         let base = AnsiColors::from_color_slice(as_array_ref(&c[6..6 + ANSI_NC]));
         let bright = AnsiColors::from_color_slice(as_array_ref(&c[6 + ANSI_NC..]));
 
-        const SHADE_F: f32 = 0.15;
-        let dim = base.for_each(|c| Color::shade(c, -SHADE_F));
-
+        //                    bg0  bg2  bg3  bg4
         const BGS: [f32; 4] = [-4., 6., 12., 23.];
         const FGS: [f32; 3] = [6., -23., -45.];
         const SEL_S: f32 = 16.;
@@ -175,7 +176,8 @@ impl ColorScheme {
             },
             base,
             bright,
-            dim,
+            dim: None,
+            comment: None,
         }
     }
 
@@ -208,6 +210,40 @@ impl ColorScheme {
             buf.extend_from_slice(&c.to_bytes());
         }
         buf
+    }
+
+    /// If `shade_f` is `None`, a default shade factor (`-0.15`) is used.
+    /// The result is computed once and stored for reuse.
+    pub fn dim(&mut self, shade_f: Option<f32>) -> &AnsiColors {
+        self.dim.get_or_insert({
+            const SHADE_F: f32 = -0.15;
+            let shade_f = shade_f.unwrap_or(SHADE_F);
+            self.base.for_each(|c| c.shade(shade_f))
+        })
+    }
+
+    /// Blends the foreground and background colors using `blend_f`.
+    /// If `blend_f` is `None`, a default blend factor (`0.4`) is used.
+    pub fn comment(&mut self, blend_f: Option<f32>) -> &str {
+        self.comment.get_or_insert({
+            const BLEND_F: f32 = 0.4;
+            let blend_f = blend_f.unwrap_or(BLEND_F);
+            color!(&self.foreground[1])
+                .blend(&color!(&self.background[1]), blend_f)
+                .to_css()
+        })
+    }
+
+    pub fn diff(&mut self) -> &DiffColors {
+        self.diff.get_or_insert({
+            let bg = color!(&self.background[1]);
+            DiffColors {
+                add: color!(&self.base.green).blend(&bg, 0.2).to_css(),
+                delete: color!(&self.base.red).blend(&bg, 0.2).to_css(),
+                change: color!(&self.base.blue).blend(&bg, 0.2).to_css(),
+                text: color!(&self.base.magenta).blend(&bg, 0.3).to_css(),
+            }
+        })
     }
 
     pub fn print_palette(&self) {}
@@ -313,11 +349,22 @@ impl AnsiColors {
         buf
     }
 
-    pub fn for_each(&self, f: fn(&Color) -> Color) -> Self {
+    pub fn for_each<F>(&self, f: F) -> Self
+    where
+        F: Fn(&Color) -> Color,
+    {
         let mut colors = self.to_colors_array();
         colors.iter_mut().for_each(|c| *c = f(c));
         Self::from_color_slice(&colors)
     }
 
     pub fn print_palette(&self) {}
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiffColors {
+    pub add: String,
+    pub delete: String,
+    pub change: String,
+    pub text: String,
 }
