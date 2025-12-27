@@ -1,6 +1,5 @@
-use std::path::PathBuf;
-
 use clap::Parser;
+use rand::seq::IndexedRandom;
 mod cli;
 mod collection;
 mod color;
@@ -10,16 +9,47 @@ mod utils;
 const DEFAULT_NVIM_CONFIG_PATH: &str = ".config/nvim/init.lua";
 const DEFAULT_ALACRITTY_CONFIG_PATH: &str = ".config/alacritty/alacritty.toml";
 
-fn al_path() -> PathBuf {
-    std::env::home_dir()
-        .expect("home dir")
-        .join(DEFAULT_ALACRITTY_CONFIG_PATH)
+#[inline(always)]
+fn home_dir() -> std::path::PathBuf {
+    std::env::home_dir().unwrap()
 }
 
-fn nvim_path() -> PathBuf {
-    std::env::home_dir()
-        .expect("home dir")
-        .join(DEFAULT_NVIM_CONFIG_PATH)
+fn list_nerd_fonts() -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    let mut fonts = Vec::new();
+
+    #[cfg(target_os = "macos")]
+    {
+        let path = home_dir().join("Library/Fonts");
+        for entry in std::fs::read_dir(path)? {
+            let path = entry?.path();
+            if !path.is_file() {
+                continue;
+            }
+
+            if let Some(file_name) = path.file_name().and_then(|s| s.to_str()) {
+                if let Some((name, _)) = file_name.split_once('-') {
+                    if name.contains("NerdFont") {
+                        let name = name
+                            .replace("NerdFont", " Nerd Font ")
+                            .replace("  ", " ")
+                            .trim()
+                            .to_string();
+                        fonts.push(name);
+                    }
+                }
+            }
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        // TODO:
+        println!("list_nerd_fonts: not implemented for Linux");
+    }
+
+    fonts.sort();
+    fonts.dedup();
+    Ok(fonts)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -42,7 +72,31 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("{}", name);
         }
     }
-    if args.font_list {}
+
+    let mut font_list = Vec::new();
+    if args.font_list || args.font_rand || args.font.is_some() {
+        font_list = list_nerd_fonts().unwrap_or_default();
+    }
+    if args.font_list {
+        for f in &font_list {
+            println!("{f}");
+        }
+    }
+
+    let mut font = None;
+    if args.font_rand {
+        font = font_list
+            .choose(&mut rand::rng())
+            .cloned();
+    }
+    if let Some(query) = args.font {
+        font = utils::fuzzy_search_strings(&font_list, &query).map(String::from);
+    }
+    if let Some(font) = font {
+        let path = home_dir().join(DEFAULT_ALACRITTY_CONFIG_PATH);
+        if path.exists() && path.is_file() {
+        }
+    }
 
     let mut theme = None;
     if args.rand {
@@ -72,7 +126,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 break;
             }
             println!("{}", theme.name);
-            let home_dir = std::env::home_dir().unwrap();
+            let home_dir = home_dir();
             let path = home_dir.join(DEFAULT_ALACRITTY_CONFIG_PATH);
             if path.exists() && path.is_file() {
                 targets::alacritty::write_theme_into_config(&path, theme)?;
