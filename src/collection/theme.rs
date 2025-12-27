@@ -91,7 +91,11 @@ impl Theme {
     }
 
     pub fn print_palette(&self) {
-        print_palette(&self.colors.base.to_colors_array());
+        let mut p = Vec::with_capacity(ANSI_NC + 2);
+        p.push(color!(&self.colors.background[1]));
+        p.push(color!(&self.colors.foreground[1]));
+        p.extend_from_slice(&self.colors.base.to_colors_array());
+        print_palette(&p);
     }
 }
 

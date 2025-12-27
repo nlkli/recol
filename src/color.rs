@@ -76,11 +76,7 @@ impl Color {
     }
 
     pub fn from_rgb(r: u8, g: u8, b: u8) -> Self {
-        Self::new(
-            r as f32 / 255.0,
-            g as f32 / 255.0,
-            b as f32 / 255.0,
-        )
+        Self::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0)
     }
 
     pub fn from_hex(hex: u32) -> Self {
