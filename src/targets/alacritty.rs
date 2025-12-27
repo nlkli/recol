@@ -76,12 +76,12 @@ impl Colors {
                 bright_foreground: Some(cs.foreground[0].clone()),
             }),
             cursor: Some(CursorColors {
-                cursor: Some(cs.cursor.cur.clone()),
-                text: Some(cs.cursor.text.clone()),
+                cursor: Some(cs.cursor.bg.clone()),
+                text: Some(cs.cursor.fg.clone()),
             }),
             selection: Some(SelectionColors {
-                background: Some(cs.selection.sel.clone()),
-                text: Some(cs.selection.text.clone()),
+                background: Some(cs.selection.bg.clone()),
+                text: Some(cs.selection.fg.clone()),
             }),
             normal: Some(AnsiColors::from_color_scheme_ansi(&cs.base)),
             bright: Some(AnsiColors::from_color_scheme_ansi(&cs.bright)),

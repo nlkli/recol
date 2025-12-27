@@ -104,6 +104,7 @@ pub struct ColorScheme {
 
     dim: Option<AnsiColors>,
     diff: Option<DiffColors>,
+    code_selection: Option<[String; 2]>,
     comment: Option<String>,
 }
 
@@ -127,10 +128,10 @@ impl ColorScheme {
         let base = AnsiColors::from_color_slice(as_array_ref(&c[6..6 + ANSI_NC]));
         let bright = AnsiColors::from_color_slice(as_array_ref(&c[6 + ANSI_NC..]));
 
-        //                    bg0  bg2  bg3  bg4
-        const BGS: [f32; 4] = [-4., 6., 12., 23.];
-        const FGS: [f32; 3] = [6., -23., -45.];
-        const SEL_S: f32 = 16.;
+        //                    bg0   bg2  bg3  bg4
+        const BGS: [f32; 4] = [-4.3, 6., 12., 23.];
+        const FGS: [f32; 3] = [6., -23., -44.];
+        const GAP: f32 = 2.;
 
         let bg_lum = bg.to_hsl().2;
         let is_light = bg_lum > 50.;
@@ -138,7 +139,7 @@ impl ColorScheme {
         let m = if is_light { -1. } else { 1. };
         let z = if is_light { 0. } else { 100. };
 
-        let bg0 = if (bg_lum + BGS[0] * m - z) * (-m) - 1. < 100. {
+        let bg0 = if (bg_lum + BGS[0] * m - z) * (-m) - GAP < 100. {
             bg.brighten(BGS[0] * m)
         } else {
             bg.brighten(-BGS[0] * m)
@@ -146,15 +147,13 @@ impl ColorScheme {
         let bg2 = bg.brighten(BGS[1] * m);
         let bg3 = bg.brighten(BGS[2] * m);
         let bg4 = bg.brighten(BGS[3] * m);
-        let fg0 = if (fg.to_hsl().2 + FGS[0] * m - z) * (-m) - 1. > 0. {
+        let fg0 = if (fg.to_hsl().2 + FGS[0] * m - z) * (-m) - GAP > 0. {
             fg.brighten(FGS[0] * m)
         } else {
             fg.brighten(-FGS[0] * m)
         };
         let fg2 = fg.brighten(FGS[1] * m);
         let fg3 = fg.brighten(FGS[2] * m);
-
-        let sel0 = sel.brighten(SEL_S * m);
 
         Self {
             background: [
@@ -166,18 +165,18 @@ impl ColorScheme {
             ],
             foreground: [fg0.to_css(), fg.to_css(), fg2.to_css(), fg3.to_css()],
             selection: SelectionColors {
-                sel0: sel0.to_css(),
-                sel: sel.to_css(),
-                text: sel_text.to_css(),
+                bg: sel.to_css(),
+                fg: sel_text.to_css(),
             },
             cursor: CursorColors {
-                cur: cur.to_css(),
-                text: cur_text.to_css(),
+                bg: cur.to_css(),
+                fg: cur_text.to_css(),
             },
             base,
             bright,
             dim: None,
             comment: None,
+            code_selection: None,
             diff: None,
         }
     }
@@ -195,10 +194,10 @@ impl ColorScheme {
 
         colors.push(color!(&self.background[1]));
         colors.push(color!(&self.foreground[1]));
-        colors.push(color!(&self.selection.sel));
-        colors.push(color!(&self.selection.text));
-        colors.push(color!(&self.cursor.cur));
-        colors.push(color!(&self.cursor.text));
+        colors.push(color!(&self.selection.bg));
+        colors.push(color!(&self.selection.fg));
+        colors.push(color!(&self.cursor.bg));
+        colors.push(color!(&self.cursor.fg));
         colors.extend_from_slice(&self.base.to_colors_array());
         colors.extend_from_slice(&self.bright.to_colors_array());
 
@@ -247,20 +246,32 @@ impl ColorScheme {
         })
     }
 
+    // for nvim
+    pub fn code_selection(&mut self, blend_f: Option<f32>) -> &[String; 2] {
+        self.code_selection.get_or_insert({
+            const BLEND_F: f32 = 0.15;
+            let blend_f = blend_f.unwrap_or(BLEND_F);
+            let bg = color!(&self.background[1]);
+            [
+                bg.blend(&color!(&self.foreground[1]), blend_f).to_css(),
+                bg.blend(&color!(&self.cursor.bg), blend_f*1.6).to_css(),
+            ]
+        })
+    }
+
     pub fn print_palette(&self) {}
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SelectionColors {
-    pub sel0: String,
-    pub sel: String,
-    pub text: String,
+    pub bg: String,
+    pub fg: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CursorColors {
-    pub cur: String,
-    pub text: String,
+    pub bg: String,
+    pub fg: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

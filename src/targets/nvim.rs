@@ -6,6 +6,7 @@ pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &mut Theme) -> io:
     let c = &mut theme.colors;
     let comment = c.comment(None).to_string();
     let dim = c.dim(None).clone();
+    let code_selection = c.code_selection(None).clone();
     let diff = c.diff().clone();
     const HEAD: &str = r###"
 local function applyRecol()
@@ -28,6 +29,10 @@ local function applyRecol()
         bg = {{ "{bg0}", "{bg1}", "{bg2}", "{bg3}", "{bg4}" }},
         fg = {{ "{fg0}", "{fg1}", "{fg2}", "{fg3}" }},
         sel = {{ "{sel0}", "{sel1}" }},
+        cur = {{ 
+            bg = "{cur_bg}",
+            fg = "{cur_fg}",
+        }},
         comment = "{comment}",
         status_line = "{status_line}",
         diff = {{
@@ -79,8 +84,10 @@ local function applyRecol()
         fg1 = c.foreground[1],
         fg2 = c.foreground[2],
         fg3 = c.foreground[3],
-        sel0 = c.selection.sel0,
-        sel1 = c.selection.sel,
+        sel0 = code_selection[0],
+        sel1 = code_selection[1],
+        cur_bg = c.cursor.bg,
+        cur_fg = c.cursor.fg,
         diff_add = diff.add,
         diff_delete = diff.delete,
         diff_change = diff.change,
@@ -155,7 +162,7 @@ local function applyRecol()
     for group, opts in pairs({
         ColorColumn  = { bg = P.bg[3] },
         Conceal      = { fg = P.bg[5] },
-        Cursor       = { fg = P.bg[2], bg = P.fg[2] },
+        Cursor       = { fg = P.cur.fg, bg = P.cur.bg },
         lCursor      = { link = "Cursor" },
         CursorIM     = { link = "Cursor" },
         CursorColumn = { link = "CursorLine" },

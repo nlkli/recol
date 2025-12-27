@@ -1,10 +1,4 @@
-use std::path::PathBuf;
 use clap::Parser;
-mod collection;
-mod color;
-mod targets;
-mod utils;
-mod cli;
 
 #[derive(Parser)]
 #[command(
@@ -68,33 +62,4 @@ struct Cli {
     // /// Neovim config path
     // #[arg(short, long)]
     // nvim_path: Option<String>,
-}
-
-const DEFAULT_NVIM_CONFIG_PATH: &str = ".config/nvim/init.lua";
-const DEFAULT_ALACRITTY_CONFIG_PATH: &str = ".config/alacritty/alacritty.toml";
-
-fn al_path() -> PathBuf {
-    std::env::home_dir().expect("home dir").join(DEFAULT_ALACRITTY_CONFIG_PATH)
-}
-
-fn nvim_path() -> PathBuf {
-    std::env::home_dir().expect("home dir").join(DEFAULT_NVIM_CONFIG_PATH)
-}
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // #[cfg(debug_assertions)]
-    // collection::build::create_colorshemes_bin("colorschemes")?;
-
-    let cli = Cli::parse();
-    let col = collection::Collection::new(collection::COLOR_SCHEMES);
-
-    if cli.rand {
-        let mut theme = col.rand(None).unwrap().into_theme();
-        println!("{}", theme.name);
-        targets::alacritty::write_theme_into_config(al_path(), &mut theme)?;
-        targets::nvim::write_theme_into_config(nvim_path(), &mut theme)?;
-    }
-
-    // println!("{:#?}", theme.into_theme());
-    Ok(())
 }
