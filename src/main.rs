@@ -108,9 +108,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
     if let Some(ref mut theme) = theme {
+        let print_header = || {
+            let tmod = if theme.is_light { "light" } else { "dark" };
+            println!("{}        [{tmod}]", theme.name);
+        };
         loop {
             if args.show {
-                println!("{}", theme.name);
+                print_header();
                 theme.print_palette();
                 break;
             }
@@ -123,7 +127,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("{:#?}", theme);
                 break;
             }
-            println!("{}", theme.name);
+            print_header();
             let home_dir = home_dir();
             let path = home_dir.join(DEFAULT_ALACRITTY_CONFIG_PATH);
             if path.exists() && path.is_file() {
