@@ -1,5 +1,3 @@
-use std::fs;
-
 use clap::Parser;
 use rand::seq::IndexedRandom;
 mod cli;
@@ -87,9 +85,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut font = None;
     if args.font_rand {
-        font = font_list
-            .choose(&mut rand::rng())
-            .cloned();
+        font = font_list.choose(&mut rand::rng()).cloned();
     }
     if let Some(query) = args.font {
         font = utils::fuzzy_search_strings(&font_list, &query).map(String::from);

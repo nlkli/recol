@@ -6,10 +6,7 @@ use std::{
 };
 use strsim::{jaro_winkler, normalized_levenshtein};
 
-pub fn fuzzy_search_strings<'a>(
-    items: &'a [String],
-    query: &str,
-) -> Option<&'a str> {
+pub fn fuzzy_search_strings<'a>(items: &'a [String], query: &str) -> Option<&'a str> {
     let refs: Vec<&'a str> = items.iter().map(|s| s.as_str()).collect();
     fuzzy_search(&refs, query)
 }
@@ -18,7 +15,8 @@ pub fn fuzzy_search<'a, 'v>(items: &'v [&'a str], query: &str) -> Option<&'a str
     if query.len() > 512 {
         return None;
     }
-    let query_norm = query.to_lowercase()
+    let query_norm = query
+        .to_lowercase()
         .split_whitespace()
         .collect::<Vec<_>>()
         .join(" ");
@@ -99,12 +97,7 @@ where
             let _ = writeln!(&mut buf, "{}", &line);
         }
     } else {
-        let _ = writeln!(
-            &mut buf,
-            "\n{}{content}\n{}",
-            blocks_mark.0,
-            blocks_mark.1,
-        );
+        let _ = writeln!(&mut buf, "\n{}{content}\n{}", blocks_mark.0, blocks_mark.1,);
     }
 
     fs::write(&path, &buf)?;
