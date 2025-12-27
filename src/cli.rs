@@ -4,12 +4,14 @@ use clap::Parser;
 #[command(
     name = "recol",
     version,
-    about = "Change your terminal theme and font easily",
-    long_about = r#"Change your terminal theme and font easily
-
+    about = "Quickly change your terminal theme",
+    long_about = r#"Quickly change your terminal theme.
+Supported targets:
+  - Alacritty
+  - Neovim
 Examples:
-    tvibe -t <query> -f <query> # set specific theme and font
-    tvibe -rdF                  # set rand dark theme and rand font"#
+    tvibe -t <query> -f <query> # set a specific theme and font (fuzzy match)
+    tvibe -rdF                  # random dark theme and random Nerd Font"#
 )]
 pub struct Args {
     /// Apply theme by name (supports fuzzy matching)

@@ -1,3 +1,5 @@
+use std::fs;
+
 use clap::Parser;
 use rand::seq::IndexedRandom;
 mod cli;
@@ -95,6 +97,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(font) = font {
         let path = home_dir().join(DEFAULT_ALACRITTY_CONFIG_PATH);
         if path.exists() && path.is_file() {
+            targets::alacritty::set_font_into_config(&path, font)?;
         }
     }
 

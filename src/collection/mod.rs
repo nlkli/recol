@@ -1,5 +1,5 @@
-#[cfg(debug_assertions)]
-pub mod build;
+// #[cfg(debug_assertions)]
+// pub mod build;
 
 mod theme;
 pub use theme::{Theme, ColorScheme, AnsiColors};

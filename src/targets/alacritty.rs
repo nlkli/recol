@@ -5,6 +5,13 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::{fs, io, path::Path};
 
+fn write_config(path: impl AsRef<Path>, c: &Config) -> io::Result<()> {
+    let content = toml::to_string::<Config>(c).map_err(|_| utils::io_other_error("serde fail"))?;
+
+    fs::write(&path, &content)?;
+    Ok(())
+}
+
 pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &mut Theme) -> io::Result<()> {
     let content = fs::read_to_string(&path)?;
     let mut config =
@@ -12,11 +19,17 @@ pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &mut Theme) -> io:
     config
         .colors
         .replace(Colors::from_color_scheme(&mut theme.colors));
-    let content =
-        toml::to_string::<Config>(&config).map_err(|_| utils::io_other_error("serde fail"))?;
 
-    fs::write(&path, &content)?;
-    Ok(())
+    write_config(path, &config)
+}
+
+pub fn set_font_into_config(path: impl AsRef<Path>, font: String) -> io::Result<()> {
+    let content = fs::read_to_string(&path)?;
+    let mut config =
+        toml::from_str::<Config>(&content).map_err(|_| utils::io_other_error("serde fail"))?;
+    config.set_font_family(font);
+
+    write_config(path, &config)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,6 +42,14 @@ pub struct Config {
 
     #[serde(flatten)]
     pub other: toml::Value,
+}
+
+impl Config {
+    pub fn set_font_family(&mut self, f: String) {
+        self.font.replace(Font {
+            normal: Some(FontInner { family: Some(f) }),
+        });
+    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
