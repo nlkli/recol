@@ -41,9 +41,9 @@ Over 425 terminal colorschemes.
 https://github.com/mbadolato/iTerm2-Color-Schemes
 Supported targets: Alacritty, Neovim.
 
-  tvibe <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
-  tvibe -rdF               # random dark theme and random Nerd Font
-  tvibe -rls               # show random light theme palette
+  recol <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
+  recol -rdF               # random dark theme and random Nerd Font
+  recol -rls               # show random light theme palette
 
 Options:
   [ ], -t, --theme <NAME>
