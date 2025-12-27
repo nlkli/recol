@@ -3,7 +3,6 @@
 
 mod theme;
 pub use theme::{Theme, ColorScheme, AnsiColors};
-use rand::seq::IteratorRandom;
 use std::io;
 use theme::COLOR_SCHEME_SIZE;
 use crate::utils::{as_array_ref, fuzzy_search};
@@ -142,10 +141,10 @@ impl<'a> Collection<'a> {
     pub fn rand(&'a self, filter: Option<&LazyThemeFilter>) -> Option<LazyTheme<'a>> {
         let filter = filter.unwrap_or(&LazyThemeFilter::None);
         if filter.is_none() {
-            let i = rand::random_range(0..self.count as usize);
+            let i = fastrand::choice(0..self.count as usize).unwrap();
             return self.get(i);
         }
-        filter.apply(self.iter()).choose(&mut rand::rng())
+        fastrand::choice(filter.apply(self.iter()).collect::<Vec<_>>())
     }
 
     pub fn by_name(
