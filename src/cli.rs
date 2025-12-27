@@ -39,9 +39,9 @@ const VERSION: &str = "recol 0.1.3";
 const HELP: &str = r#"Quickly change your terminal theme.
 Supported targets: Alacritty, Neovim.
 
-    tvibe <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
-    tvibe -rdF               # random dark theme and random Nerd Font
-    tvibe -rls               # show random light theme palette
+  tvibe <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
+  tvibe -rdF               # random dark theme and random Nerd Font
+  tvibe -rls               # show random light theme palette
 
 Options:
   [ ], -t, --theme <NAME>
