@@ -1,68 +1,137 @@
-use clap::Parser;
 
-#[derive(Parser)]
-#[command(
-    name = "recol",
-    version,
-    about = "Quickly change your terminal theme",
-    long_about = r#"Quickly change your terminal theme.
-Supported targets:
-  - Alacritty
-  - Neovim
-Examples:
-    tvibe -t <query> -f <query> # set a specific theme and font (fuzzy match)
-    tvibe -rdF                  # random dark theme and random Nerd Font"#
-)]
+#[derive(Clone, Debug, Default)]
 pub struct Args {
     /// Apply a theme by name (fuzzy matching)
-    #[arg(short, long)]
     pub theme: Option<String>,
 
     /// Apply a random theme
-    #[arg(short, long)]
     pub rand: bool,
 
     /// Filter to dark themes (used with --rand or --theme-list)
-    #[arg(short, long)]
     pub dark: bool,
 
     /// Filter to light themes
-    #[arg(short, long)]
     pub light: bool,
 
     /// List available themes
-    #[arg(long)]
     pub theme_list: bool,
 
     /// Set font family by name (fuzzy matching)
-    #[arg(short, long)]
     pub font: Option<String>,
 
     /// Pick a random Nerd Font
-    #[arg(short = 'F', long)]
     pub font_rand: bool,
 
     /// List available Nerd Fonts
-    #[arg(long)]
     pub font_list: bool,
 
     /// Show the theme color palette without applying it
-    #[arg(short, long)]
     pub show: bool,
 
     /// Output theme as TOML
-    #[arg(long)]
     pub show_toml: bool,
 
     /// Output theme in rustfmt-style format
-    #[arg(long)]
     pub show_fmt: bool,
+}
 
-    // /// Alacritty config path
-    // #[arg(short, long)]
-    // alacritty_path: Option<String>,
+const VERSION: &str = "recol 0.1.3";
+const HELP: &str = r#"Quickly change your terminal theme.
+Supported targets: Alacritty, Neovim.
 
-    // /// Neovim config path
-    // #[arg(short, long)]
-    // nvim_path: Option<String>,
+    tvibe <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
+    tvibe -rdF               # random dark theme and random Nerd Font
+    tvibe -rls               # show random light theme palette
+
+Options:
+  [ ], -t, --theme <NAME>
+          Apply a theme by name (fuzzy matching)
+  -r, --rand
+          Apply a random theme
+  -d, --dark
+    Filter to dark themes (used with --rand, --theme or --theme-list)
+  -l, --light   Filter to light themes
+
+  -f, --font <NAME>
+          Set font family by name (fuzzy matching)
+      -F, --font-rand   Pick a random Nerd Font
+
+  --theme-list  List available themes
+  --font-list   List available Nerd Fonts
+
+  -s, --show
+    Show the theme color palette without applying it
+      --show-toml   Output theme as TOML
+      --show-fmt    Output theme in rustfmt-style format
+
+  -h, --help    Print help
+  -V, --version Print version"#;
+
+impl Args {
+    pub fn parse() -> Self {
+        let mut args = Self::default();
+        let input = std::env::args();
+        let mut last = None;
+        for i in input {
+            if i.starts_with("--") {
+                let key = i.trim_start_matches("--");
+                match key {
+                    "theme" => { last.replace('t'); },
+                    "font" => { last.replace('f'); },
+                    "theme-list" => args.theme_list = true,
+                    "font-list" => args.font_list = true,
+                    "font-rand" => args.font_rand = true,
+                    "rand" => args.rand = true,
+                    "dark" => args.dark = true,
+                    "light" => args.light = true,
+                    "show" => args.show = true,
+                    "show-toml" => args.show_toml = true,
+                    "show-fmt" => args.show_fmt = true,
+                    "help" => {
+                        println!("{}", HELP);
+                        std::process::exit(0);
+                    },
+                    "version" => {
+                        println!("{}", VERSION);
+                        std::process::exit(0);
+                    },
+                    _ => (),
+                }
+            } else if i.starts_with("-") {
+                let chars = i.trim_start_matches("-").chars();
+                for c in chars {
+                    match c {
+                        't' => { last.replace(c); },
+                        'f' => { last.replace(c); },
+                        'r' => args.rand = true,
+                        'd' => args.dark = true,
+                        'l' => args.light = true,
+                        'F' => args.font_rand = true,
+                        's' => args.show = true,
+                        'h' => {
+                            println!("{}", HELP);
+                            std::process::exit(0);
+                        }
+                        'V' => {
+                            println!("{}", VERSION);
+                            std::process::exit(0);
+                        }
+                        _ => (),
+                    }
+                }
+            } else {
+                if let Some(c) = last {
+                    match c {
+                        't' => { args.theme.replace(i); },
+                        'f' => { args.font.replace(i); },
+                        _ => (),
+                    }
+                    last = None;
+                } else {
+                    args.theme.replace(i);
+                }
+            }
+        }
+        args
+    }
 }

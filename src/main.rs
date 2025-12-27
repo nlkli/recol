@@ -1,4 +1,3 @@
-use clap::Parser;
 mod cli;
 mod collection;
 mod color;
