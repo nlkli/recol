@@ -8,6 +8,7 @@ A fast CLI utility for managing color themes and fonts across your terminal and 
     https://github.com/EdenEast/nightfox.nvim
 - Terminal color themes are currently supported for Alacritty only
 - Font switching is implemented on macOS only
+- Makes non-destructive changes to existing configuration, affecting colors only
 
 ```text
 Quickly change your terminal theme.
