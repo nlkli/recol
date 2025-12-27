@@ -72,7 +72,7 @@ impl Args {
         let mut args = Self::default();
         let input = std::env::args();
         let mut last = None;
-        for i in input {
+        for i in input.skip(1) {
             if i.starts_with("--") {
                 let key = i.trim_start_matches("--");
                 match key {
