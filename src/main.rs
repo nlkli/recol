@@ -110,7 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(ref mut theme) = theme {
         let print_header = || {
             let tmod = if theme.is_light { "light" } else { "dark" };
-            println!("{}        [{tmod}]", theme.name);
+            println!("{}  <{tmod}>", theme.name);
         };
         loop {
             if args.show {
