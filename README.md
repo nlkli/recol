@@ -14,7 +14,7 @@ A fast CLI utility for managing color themes and fonts across your terminal and 
 ### Build from source
 
 ```sh
-git clone https://github.com/yourusername/recol.git
+git clone https://github.com/nlkli/recol.git
 cd recol
 cargo build --release
 cp target/release/recol /usr/local/bin/
