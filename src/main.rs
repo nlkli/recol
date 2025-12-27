@@ -1,100 +1,89 @@
 use std::path::PathBuf;
+
 use clap::Parser;
+mod cli;
 mod collection;
 mod color;
 mod targets;
 mod utils;
-mod cli;
-
-#[derive(Parser)]
-#[command(
-    name = "recol",
-    version,
-    about = "Change your terminal theme and font easily",
-    long_about = r#"Change your terminal theme and font easily
-
-Examples:
-    tvibe -t <query> -f <query> # set specific theme and font
-    tvibe -rdF                  # set rand dark theme and rand font"#
-)]
-struct Cli {
-    /// Apply theme by name (supports fuzzy matching)
-    #[arg(short, long)]
-    theme: Option<String>,
-
-    /// Apply a random theme
-    #[arg(short, long)]
-    rand: bool,
-
-    /// When used with --rand or --theme-list, filters to dark themes
-    #[arg(short, long)]
-    dark: bool,
-
-    /// Filter to light themes
-    #[arg(short, long)]
-    light: bool,
-
-    /// List available Nerd Fonts
-    #[arg(long)]
-    theme_list: bool,
-
-    /// Set font family by name (supports fuzzy matching)
-    #[arg(short, long)]
-    font: Option<String>,
-
-    /// Pick a random Nerd Font
-    #[arg(short = 'F', long)]
-    font_rand: bool,
-
-    /// List available Nerd Fonts
-    #[arg(long)]
-    font_list: bool,
-
-    /// Display the theme's color palette in the terminal without applying it
-    #[arg(short, long)]
-    show: bool,
-
-    /// TOML format
-    #[arg(long)]
-    show_toml: bool,
-
-    /// Rust fmt format
-    #[arg(long)]
-    show_fmt: bool,
-    // /// Alacritty config path
-    // #[arg(short, long)]
-    // alacritty_path: Option<String>,
-
-    // /// Neovim config path
-    // #[arg(short, long)]
-    // nvim_path: Option<String>,
-}
 
 const DEFAULT_NVIM_CONFIG_PATH: &str = ".config/nvim/init.lua";
 const DEFAULT_ALACRITTY_CONFIG_PATH: &str = ".config/alacritty/alacritty.toml";
 
 fn al_path() -> PathBuf {
-    std::env::home_dir().expect("home dir").join(DEFAULT_ALACRITTY_CONFIG_PATH)
+    std::env::home_dir()
+        .expect("home dir")
+        .join(DEFAULT_ALACRITTY_CONFIG_PATH)
 }
 
 fn nvim_path() -> PathBuf {
-    std::env::home_dir().expect("home dir").join(DEFAULT_NVIM_CONFIG_PATH)
+    std::env::home_dir()
+        .expect("home dir")
+        .join(DEFAULT_NVIM_CONFIG_PATH)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // #[cfg(debug_assertions)]
     // collection::build::create_colorshemes_bin("colorschemes")?;
 
-    let cli = Cli::parse();
+    let args = cli::Args::parse();
     let col = collection::Collection::new(collection::COLOR_SCHEMES);
 
-    if cli.rand {
-        let mut theme = col.rand(None).unwrap().into_theme();
-        println!("{}", theme.name);
-        targets::alacritty::write_theme_into_config(al_path(), &mut theme)?;
-        targets::nvim::write_theme_into_config(nvim_path(), &mut theme)?;
+    let mut filter = collection::LazyThemeFilter::default();
+
+    if args.light {
+        filter = collection::LazyThemeFilter::Light;
+    }
+    if args.dark {
+        filter = collection::LazyThemeFilter::Dark;
+    }
+    if args.theme_list {
+        for name in col.name_list(Some(&filter), true) {
+            println!("{}", name);
+        }
+    }
+    if args.font_list {}
+
+    let mut theme = None;
+    if args.rand {
+        theme.replace(col.rand(Some(&filter)).unwrap().into_theme());
+    }
+    if let Some(ref query) = args.theme {
+        theme.replace(
+            col.fuzzy_search(query, Some(&filter))
+                .unwrap_or(col.rand(None).unwrap())
+                .into_theme(),
+        );
+    }
+    if let Some(ref mut theme) = theme {
+        loop {
+            if args.show {
+                println!("{}", theme.name);
+                theme.print_palette();
+                break;
+            }
+            if args.show_toml {
+                let toml_str = toml::to_string_pretty(theme)?;
+                println!("{}", toml_str);
+                break;
+            }
+            if args.show_fmt {
+                println!("{:#?}", theme);
+                break;
+            }
+            println!("{}", theme.name);
+            let home_dir = std::env::home_dir().unwrap();
+            let path = home_dir.join(DEFAULT_ALACRITTY_CONFIG_PATH);
+            if path.exists() && path.is_file() {
+                targets::alacritty::write_theme_into_config(&path, theme)?;
+            }
+            let path = home_dir.join(DEFAULT_NVIM_CONFIG_PATH);
+            if path.exists() && path.is_file() {
+                targets::nvim::write_theme_into_config(&path, theme)?;
+            }
+            break;
+        }
     }
 
-    // println!("{:#?}", theme.into_theme());
     Ok(())
 }

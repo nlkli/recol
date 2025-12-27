@@ -11,7 +11,7 @@
 //! background, foreground, selection, cursor, ANSI, bright, and dim variants.
 
 use crate::color;
-use crate::color::Color;
+use crate::color::{Color, print_palette};
 use crate::utils::as_array_ref;
 use serde::{Deserialize, Serialize};
 use std::io::{self, Write};
@@ -90,7 +90,9 @@ impl Theme {
         Ok(buf.len())
     }
 
-    pub fn print_palette(&self) {}
+    pub fn print_palette(&self) {
+        print_palette(&self.colors.base.to_colors_array());
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -259,7 +261,7 @@ impl ColorScheme {
         })
     }
 
-    pub fn print_palette(&self) {}
+    // pub fn print_palette(&self) {}
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -370,7 +372,7 @@ impl AnsiColors {
         Self::from_color_slice(&colors)
     }
 
-    pub fn print_palette(&self) {}
+    // pub fn print_palette(&self) {}
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

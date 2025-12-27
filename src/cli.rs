@@ -11,50 +11,50 @@ Examples:
     tvibe -t <query> -f <query> # set specific theme and font
     tvibe -rdF                  # set rand dark theme and rand font"#
 )]
-struct Cli {
+pub struct Args {
     /// Apply theme by name (supports fuzzy matching)
     #[arg(short, long)]
-    theme: Option<String>,
+    pub theme: Option<String>,
 
     /// Apply a random theme
     #[arg(short, long)]
-    rand: bool,
+    pub rand: bool,
 
     /// When used with --rand or --theme-list, filters to dark themes
     #[arg(short, long)]
-    dark: bool,
+    pub dark: bool,
 
     /// Filter to light themes
     #[arg(short, long)]
-    light: bool,
+    pub light: bool,
 
-    /// List available Nerd Fonts
+    /// List of available colorschemes
     #[arg(long)]
-    theme_list: bool,
+    pub theme_list: bool,
 
     /// Set font family by name (supports fuzzy matching)
     #[arg(short, long)]
-    font: Option<String>,
+    pub font: Option<String>,
 
     /// Pick a random Nerd Font
     #[arg(short = 'F', long)]
-    font_rand: bool,
+    pub font_rand: bool,
 
-    /// List available Nerd Fonts
+    /// List of available Nerd Fonts
     #[arg(long)]
-    font_list: bool,
+    pub font_list: bool,
 
     /// Display the theme's color palette in the terminal without applying it
     #[arg(short, long)]
-    show: bool,
+    pub show: bool,
 
     /// TOML format
     #[arg(long)]
-    show_toml: bool,
+    pub show_toml: bool,
 
     /// Rust fmt format
     #[arg(long)]
-    show_fmt: bool,
+    pub show_fmt: bool,
     // /// Alacritty config path
     // #[arg(short, long)]
     // alacritty_path: Option<String>,
