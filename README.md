@@ -9,6 +9,18 @@ A fast CLI utility for managing color themes and fonts across your terminal and 
 - Terminal color themes are currently supported for Alacritty only
 - Font switching is implemented on macOS only
 - Makes non-destructive changes to existing configuration, affecting colors only
+- ~600 KB binary
+
+### Build from source
+
+```sh
+git clone https://github.com/yourusername/recol.git
+cd recol
+cargo build --release
+cp target/release/recol /usr/local/bin/
+```
+
+### Help message
 
 ```text
 Quickly change your terminal theme.
