@@ -2,10 +2,9 @@
 
 A fast CLI utility for managing color themes and fonts across your terminal and Neovim.
 
-- Includes 425+ prebuilt color schemes from the
-    iTerm2 Color Schemes repository: https://github.com/mbadolato/iTerm2-Color-Schemes
-- Neovim color configuration is derived from the
-    nightfox.nvim theme collection:
+- Includes 425+ prebuilt color schemes from the iTerm2 Color Schemes repository: 
+    https://github.com/mbadolato/iTerm2-Color-Schemes
+- Neovim color configuration is derived from the nightfox.nvim theme collection: 
     https://github.com/EdenEast/nightfox.nvim
 - Terminal color themes are currently supported for Alacritty only
 - Font switching is implemented on macOS only
