@@ -14,7 +14,7 @@ Examples:
     tvibe -rdF                  # random dark theme and random Nerd Font"#
 )]
 pub struct Args {
-    /// Apply theme by name (supports fuzzy matching)
+    /// Apply a theme by name (fuzzy matching)
     #[arg(short, long)]
     pub theme: Option<String>,
 
@@ -22,7 +22,7 @@ pub struct Args {
     #[arg(short, long)]
     pub rand: bool,
 
-    /// When used with --rand or --theme-list, filters to dark themes
+    /// Filter to dark themes (used with --rand or --theme-list)
     #[arg(short, long)]
     pub dark: bool,
 
@@ -30,11 +30,11 @@ pub struct Args {
     #[arg(short, long)]
     pub light: bool,
 
-    /// List of available colorschemes
+    /// List available themes
     #[arg(long)]
     pub theme_list: bool,
 
-    /// Set font family by name (supports fuzzy matching)
+    /// Set font family by name (fuzzy matching)
     #[arg(short, long)]
     pub font: Option<String>,
 
@@ -42,21 +42,22 @@ pub struct Args {
     #[arg(short = 'F', long)]
     pub font_rand: bool,
 
-    /// List of available Nerd Fonts
+    /// List available Nerd Fonts
     #[arg(long)]
     pub font_list: bool,
 
-    /// Display the theme's color palette in the terminal without applying it
+    /// Show the theme color palette without applying it
     #[arg(short, long)]
     pub show: bool,
 
-    /// TOML format
+    /// Output theme as TOML
     #[arg(long)]
     pub show_toml: bool,
 
-    /// Rust fmt format
+    /// Output theme in rustfmt-style format
     #[arg(long)]
     pub show_fmt: bool,
+
     // /// Alacritty config path
     // #[arg(short, long)]
     // alacritty_path: Option<String>,
