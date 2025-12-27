@@ -35,8 +35,10 @@ pub struct Args {
     pub show_fmt: bool,
 }
 
-const VERSION: &str = "recol 0.1.3";
+const VERSION: &str = "recol 0.1.4";
 const HELP: &str = r#"Quickly change your terminal theme.
+Over 425 terminal colorschemes.
+https://github.com/mbadolato/iTerm2-Color-Schemes
 Supported targets: Alacritty, Neovim.
 
   tvibe <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
