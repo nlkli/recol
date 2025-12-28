@@ -1,4 +1,4 @@
-mod cli;
+mcd cli;
 mod collection;
 mod color;
 mod targets;
