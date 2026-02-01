@@ -1,4 +1,4 @@
-mcd cli;
+mod cli;
 mod collection;
 mod color;
 mod targets;
@@ -134,12 +134,12 @@ fn main() -> AnyResult<()> {
                 break;
             }
             if args.show_toml {
-                let toml_str = toml::to_string_pretty(theme)?;
+                let toml_str = toml::to_string_pretty(theme.prepare(None, None, None))?;
                 println!("{}", toml_str);
                 break;
             }
             if args.show_fmt {
-                println!("{:#?}", theme);
+                println!("{:#?}", theme.prepare(None, None, None));
                 break;
             }
             print_header();

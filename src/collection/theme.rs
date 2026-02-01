@@ -90,6 +90,17 @@ impl Theme {
         Ok(buf.len())
     }
 
+    pub fn prepare(
+        &mut self,
+        dim_shade_f: Option<f32>,
+        comment_blend_f: Option<f32>,
+        code_selection_blend_f: Option<f32>,
+    ) -> &Self {
+        self.colors
+            .prepare(dim_shade_f, comment_blend_f, code_selection_blend_f);
+        self
+    }
+
     pub fn print_palette(&self) {
         let mut p = Vec::with_capacity(ANSI_NC + 2);
         p.push(color!(&self.colors.background[1]));
@@ -260,9 +271,22 @@ impl ColorScheme {
             let bg = color!(&self.background[1]);
             [
                 bg.blend(&color!(&self.foreground[1]), blend_f).to_css(),
-                bg.blend(&color!(&self.cursor.bg), blend_f*1.6).to_css(),
+                bg.blend(&color!(&self.cursor.bg), blend_f * 1.6).to_css(),
             ]
         })
+    }
+
+    pub fn prepare(
+        &mut self,
+        dim_shade_f: Option<f32>,
+        comment_blend_f: Option<f32>,
+        code_selection_blend_f: Option<f32>,
+    ) -> &Self {
+        self.dim(dim_shade_f);
+        self.comment(comment_blend_f);
+        self.diff();
+        self.code_selection(code_selection_blend_f);
+        self
     }
 
     // pub fn print_palette(&self) {}
