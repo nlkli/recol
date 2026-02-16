@@ -1,4 +1,3 @@
-
 #[derive(Clone, Debug, Default)]
 pub struct Args {
     /// Apply a theme by name (fuzzy matching)
@@ -27,6 +26,9 @@ pub struct Args {
 
     /// Show the theme color palette without applying it
     pub show: bool,
+
+    /// Output theme as JSON
+    pub show_json: bool,
 
     /// Output theme as TOML
     pub show_toml: bool,
@@ -63,6 +65,7 @@ Options:
 
   -s, --show
     Show the theme color palette without applying it
+      --show-json   Output theme as JSON
       --show-toml   Output theme as TOML
       --show-fmt    Output theme in rustfmt-style format
 
@@ -78,8 +81,12 @@ impl Args {
             if i.starts_with("--") {
                 let key = i.trim_start_matches("--");
                 match key {
-                    "theme" => { last.replace('t'); },
-                    "font" => { last.replace('f'); },
+                    "theme" => {
+                        last.replace('t');
+                    }
+                    "font" => {
+                        last.replace('f');
+                    }
                     "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
                     "font-rand" => args.font_rand = true,
@@ -87,24 +94,29 @@ impl Args {
                     "dark" => args.dark = true,
                     "light" => args.light = true,
                     "show" => args.show = true,
+                    "show-json" => args.show_json = true,
                     "show-toml" => args.show_toml = true,
                     "show-fmt" => args.show_fmt = true,
                     "help" => {
                         println!("{}", HELP);
                         std::process::exit(0);
-                    },
+                    }
                     "version" => {
                         println!("{}", VERSION);
                         std::process::exit(0);
-                    },
+                    }
                     _ => (),
                 }
             } else if i.starts_with("-") {
                 let chars = i.trim_start_matches("-").chars();
                 for c in chars {
                     match c {
-                        't' => { last.replace(c); },
-                        'f' => { last.replace(c); },
+                        't' => {
+                            last.replace(c);
+                        }
+                        'f' => {
+                            last.replace(c);
+                        }
                         'r' => args.rand = true,
                         'd' => args.dark = true,
                         'l' => args.light = true,
@@ -124,8 +136,12 @@ impl Args {
             } else {
                 if let Some(c) = last {
                     match c {
-                        't' => { args.theme.replace(i); },
-                        'f' => { args.font.replace(i); },
+                        't' => {
+                            args.theme.replace(i);
+                        }
+                        'f' => {
+                            args.font.replace(i);
+                        }
                         _ => (),
                     }
                     last = None;

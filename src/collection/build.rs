@@ -62,7 +62,7 @@ fn build_theme_bundle<P: AsRef<Path>, W: Write>(dir: P, mut w: W) -> io::Result<
     let mut offset = 0u32;
     let mut offsets = Vec::new();
 
-    for entry in fs::read_dir(dir)? {
+    for (n, entry) in fs::read_dir(dir)?.enumerate() {
         let entry = entry?;
         let path = entry.path();
 
@@ -73,6 +73,8 @@ fn build_theme_bundle<P: AsRef<Path>, W: Write>(dir: P, mut w: W) -> io::Result<
         else {
             continue;
         };
+
+        println!("{}. {}", n, name);
 
         offsets.push(offset);
         let theme = parse_alacritty_theme(&path, name.to_string())?;

@@ -133,6 +133,11 @@ fn main() -> AnyResult<()> {
                 theme.print_palette();
                 break;
             }
+            if args.show_json {
+                let json_str = serde_json::to_string_pretty(theme.prepare(None, None, None))?;
+                println!("{}", json_str);
+                break;
+            }
             if args.show_toml {
                 let toml_str = toml::to_string_pretty(theme.prepare(None, None, None))?;
                 println!("{}", toml_str);

@@ -2,10 +2,10 @@
 // pub mod build;
 
 mod theme;
-pub use theme::{Theme, ColorScheme, AnsiColors};
+use crate::utils::{as_array_ref, fuzzy_search};
 use std::io;
 use theme::COLOR_SCHEME_SIZE;
-use crate::utils::{as_array_ref, fuzzy_search};
+pub use theme::{AnsiColors, ColorScheme, Theme};
 
 /// All Alacritty color schemes embedded as a binary bundle.
 ///
@@ -173,7 +173,11 @@ impl<'a> Collection<'a> {
         list
     }
 
-    pub fn fuzzy_search(&'a self, query: &str, filter: Option<&LazyThemeFilter>) -> Option<LazyTheme<'a>> {
+    pub fn fuzzy_search(
+        &'a self,
+        query: &str,
+        filter: Option<&LazyThemeFilter>,
+    ) -> Option<LazyTheme<'a>> {
         let names = self.name_list(filter, false);
         fuzzy_search(&names, query).and_then(|n| self.by_name(n, filter))
     }

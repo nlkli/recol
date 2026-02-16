@@ -2,7 +2,7 @@
 
 A fast CLI utility for managing color themes and fonts across your terminal and Neovim.
 
-- Includes 425+ prebuilt color schemes from the iTerm2 Color Schemes repository: 
+- Includes 460+ prebuilt color schemes from the iTerm2 Color Schemes repository: 
     https://github.com/mbadolato/iTerm2-Color-Schemes
 - Neovim color configuration is derived from the nightfox.nvim theme collection: 
     https://github.com/EdenEast/nightfox.nvim
@@ -24,7 +24,7 @@ cp target/release/recol /usr/local/bin/
 
 ```text
 Quickly change your terminal theme.
-Over 425 terminal colorschemes.
+Over 460 terminal colorschemes.
 https://github.com/mbadolato/iTerm2-Color-Schemes
 Supported targets: Alacritty, Neovim.
 
@@ -50,6 +50,7 @@ Options:
 
   -s, --show
     Show the theme color palette without applying it
+      --show-json   Output theme as JSON
       --show-toml   Output theme as TOML
       --show-fmt    Output theme in rustfmt-style format
 

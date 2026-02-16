@@ -263,7 +263,6 @@ impl ColorScheme {
         })
     }
 
-    // for nvim
     pub fn code_selection(&mut self, blend_f: Option<f32>) -> &[String; 2] {
         self.code_selection.get_or_insert({
             const BLEND_F: f32 = 0.15;
