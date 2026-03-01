@@ -255,10 +255,10 @@ impl ColorScheme {
         self.diff.get_or_insert({
             let bg = color!(&self.background[1]);
             DiffColors {
-                add: color!(&self.base.green).blend(&bg, 0.2).to_css(),
-                delete: color!(&self.base.red).blend(&bg, 0.2).to_css(),
-                change: color!(&self.base.blue).blend(&bg, 0.2).to_css(),
-                text: color!(&self.base.magenta).blend(&bg, 0.3).to_css(),
+                add: color!(&self.base.green).blend(&bg, 0.33).to_css(),
+                delete: color!(&self.base.red).blend(&bg, 0.33).to_css(),
+                change: color!(&self.base.blue).blend(&bg, 0.33).to_css(),
+                text: color!(&self.base.magenta).blend(&bg, 0.4).to_css(),
             }
         })
     }

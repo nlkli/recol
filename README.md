@@ -2,6 +2,8 @@
 
 A fast CLI utility for managing color themes and fonts across your terminal and Neovim.
 
+![recol-demo-o](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-o.gif)
+
 - Includes 460+ prebuilt color schemes from the iTerm2 Color Schemes repository: 
     https://github.com/mbadolato/iTerm2-Color-Schemes
 - Neovim color configuration is derived from the nightfox.nvim theme collection: 
@@ -10,6 +12,12 @@ A fast CLI utility for managing color themes and fonts across your terminal and 
 - Font switching is implemented on macOS only
 - Makes non-destructive changes to existing configuration, affecting colors only
 - ~600 KB binary
+
+**Note:** Unlike Alacritty, Neovim doesn't support hot reload. To apply the new theme, either restart Neovim or use a keybinding to reload your config:
+
+```lua
+vim.keymap.set("n", "<leader>u", ":source ~/.config/nvim/init.lua<CR>")
+```
 
 ### Build from source
 
