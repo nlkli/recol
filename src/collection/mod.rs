@@ -1,6 +1,8 @@
 // #[cfg(debug_assertions)]
 // pub mod build;
 
+#[allow(dead_code)]
+
 mod theme;
 use crate::utils::{as_array_ref, fuzzy_search};
 use std::io;

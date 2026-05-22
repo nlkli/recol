@@ -76,7 +76,7 @@ impl Theme {
 
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut buf = Vec::with_capacity(self.size());
-        debug_assert!(self.name.len() <= u8::max as usize);
+        debug_assert!(self.name.len() <= u8::max as *const () as usize);
         buf.push(self.name.len() as u8);
         buf.extend_from_slice(self.name.as_bytes());
         buf.push(self.is_light as u8);

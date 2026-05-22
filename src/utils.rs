@@ -117,6 +117,7 @@ where
     io::Error::new(io::ErrorKind::Other, err)
 }
 
+#[allow(dead_code)]
 pub fn missing_field(path: &'static str) -> io::Error {
     io::Error::new(
         io::ErrorKind::InvalidData,

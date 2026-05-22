@@ -35,13 +35,21 @@ pub struct Args {
 
     /// Output theme in rustfmt-style format
     pub show_fmt: bool,
+
+    /// Alacritty config path
+    pub alacritty_config: Option<String>,
+
+    /// Neovim config path
+    pub nvim_config: Option<String>,
 }
 
-const VERSION: &str = "recol 0.1.4";
-const HELP: &str = r#"Quickly change your terminal theme.
-Over 425 terminal colorschemes.
+const VERSION: &str = "recol 0.1.5 [https://github.com/nlkli/recol]";
+const HELP: &str = r#"
+recol — quickly change your terminal theme
+https://github.com/nlkli/recol
+500+ terminal color schemes:
 https://github.com/mbadolato/iTerm2-Color-Schemes
-Supported targets: Alacritty, Neovim.
+Supported targets: alacritty, neovim.
 
   recol <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
   recol -rdF               # random dark theme and random Nerd Font
@@ -49,16 +57,23 @@ Supported targets: Alacritty, Neovim.
 
 Options:
   [ ], -t, --theme <NAME>
-          Apply a theme by name (fuzzy matching)
+      Apply a theme by name (fuzzy matching)
   -r, --rand
-          Apply a random theme
+      Apply a random theme
   -d, --dark
-    Filter to dark themes (used with --rand, --theme or --theme-list)
-  -l, --light   Filter to light themes
+  -l, --light
+      Filter to dark or light themes 
+      (used with --rand, --theme or --theme-list)
+
+  --alacritty_config <PATH>
+      default: ~/.config/alacritty/alacritty.toml
+  --nvim_config <PATH>
+      default: ~/.config/nvim/init.lua
 
   -f, --font <NAME>
-          Set font family by name (fuzzy matching)
-      -F, --font-rand   Pick a random Nerd Font
+      Set font family by name (fuzzy matching)
+  -F, --font-rand   
+      Pick a random Nerd Font
 
   --theme-list  List available themes
   --font-list   List available Nerd Fonts
@@ -69,8 +84,9 @@ Options:
       --show-toml   Output theme as TOML
       --show-fmt    Output theme in rustfmt-style format
 
-  -h, --help    Print help
-  -V, --version Print version"#;
+  -h, --help
+  -V, --version
+"#;
 
 impl Args {
     pub fn parse() -> Self {
@@ -86,6 +102,12 @@ impl Args {
                     }
                     "font" => {
                         last.replace('f');
+                    }
+                    "alacritty_config" => {
+                        last.replace('0');
+                    }
+                    "nvim_config" => {
+                        last.replace('1');
                     }
                     "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
@@ -117,6 +139,9 @@ impl Args {
                         'f' => {
                             last.replace(c);
                         }
+                        'T' => {
+                            last.replace(c);
+                        }
                         'r' => args.rand = true,
                         'd' => args.dark = true,
                         'l' => args.light = true,
@@ -141,6 +166,12 @@ impl Args {
                         }
                         'f' => {
                             args.font.replace(i);
+                        }
+                        '0' => {
+                            args.alacritty_config.replace(i);
+                        }
+                        '1' => {
+                            args.nvim_config.replace(i);
                         }
                         _ => (),
                     }

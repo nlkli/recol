@@ -52,13 +52,21 @@ fn list_nerd_fonts() -> AnyResult<Vec<String>> {
     Ok(fonts)
 }
 
-fn apply_theme_for_targets(_args: &cli::Args, t: &mut collection::Theme) -> AnyResult<()> {
+fn apply_theme_for_targets(args: &cli::Args, t: &mut collection::Theme) -> AnyResult<()> {
     let home_dir = home_dir();
-    let path = home_dir.join(DEFAULT_ALACRITTY_CONFIG_PATH);
+    let path = if let Some(p) = args.alacritty_config.as_ref() {
+        p.into()
+    } else {
+        home_dir.join(DEFAULT_ALACRITTY_CONFIG_PATH)
+    };
     if path.exists() && path.is_file() {
         targets::alacritty::write_theme_into_config(&path, t)?;
     }
-    let path = home_dir.join(DEFAULT_NVIM_CONFIG_PATH);
+    let path = if let Some(p) = args.nvim_config.as_ref() {
+        p.into()
+    } else {
+        home_dir.join(DEFAULT_NVIM_CONFIG_PATH)
+    };
     if path.exists() && path.is_file() {
         targets::nvim::write_theme_into_config(&path, t)?;
     }

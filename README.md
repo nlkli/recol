@@ -4,7 +4,7 @@ A fast CLI utility for managing color themes and fonts across your terminal and 
 
 ![recol-demo-o](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-o.gif)
 
-- Includes 460+ prebuilt color schemes from the iTerm2 Color Schemes repository: 
+- Includes 500+ prebuilt color schemes from the iTerm2 Color Schemes repository: 
     https://github.com/mbadolato/iTerm2-Color-Schemes
 - Neovim color configuration is derived from the nightfox.nvim theme collection: 
     https://github.com/EdenEast/nightfox.nvim
@@ -16,7 +16,7 @@ A fast CLI utility for managing color themes and fonts across your terminal and 
 **Note:** Unlike Alacritty, Neovim doesn't support hot reload. To apply the new theme, either restart Neovim or use a keybinding to reload your config:
 
 ```lua
-vim.keymap.set("n", "<leader>u", ":source ~/.config/nvim/init.lua<CR>")
+vim.keymap.set("n", "<leader>R", ":source ~/.config/nvim/init.lua<CR>")
 ```
 
 ### Build from source
@@ -31,10 +31,11 @@ cp target/release/recol /usr/local/bin/
 ### Help message
 
 ```text
-Quickly change your terminal theme.
-Over 460 terminal colorschemes.
+recol — quickly change your terminal theme
+https://github.com/nlkli/recol
+500+ terminal color schemes:
 https://github.com/mbadolato/iTerm2-Color-Schemes
-Supported targets: Alacritty, Neovim.
+Supported targets: alacritty, neovim.
 
   recol <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
   recol -rdF               # random dark theme and random Nerd Font
@@ -42,16 +43,23 @@ Supported targets: Alacritty, Neovim.
 
 Options:
   [ ], -t, --theme <NAME>
-          Apply a theme by name (fuzzy matching)
+      Apply a theme by name (fuzzy matching)
   -r, --rand
-          Apply a random theme
+      Apply a random theme
   -d, --dark
-    Filter to dark themes (used with --rand, --theme or --theme-list)
-  -l, --light   Filter to light themes
+  -l, --light
+      Filter to dark or light themes 
+      (used with --rand, --theme or --theme-list)
+
+  --alacritty_config <PATH>
+      default: ~/.config/alacritty/alacritty.toml
+  --nvim_config <PATH>
+      default: ~/.config/nvim/init.lua
 
   -f, --font <NAME>
-          Set font family by name (fuzzy matching)
-      -F, --font-rand   Pick a random Nerd Font
+      Set font family by name (fuzzy matching)
+  -F, --font-rand   
+      Pick a random Nerd Font
 
   --theme-list  List available themes
   --font-list   List available Nerd Fonts
@@ -62,6 +70,6 @@ Options:
       --show-toml   Output theme as TOML
       --show-fmt    Output theme in rustfmt-style format
 
-  -h, --help    Print help
-  -V, --version Print version
+  -h, --help
+  -V, --version
 ```
