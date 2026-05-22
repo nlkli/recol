@@ -2,7 +2,7 @@
 
 A fast CLI utility for managing color themes and fonts across your terminal and Neovim.
 
-![recol-demo-o](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-o.gif)
+![recol-demo-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo.gif)
 
 - Includes 500+ prebuilt color schemes from the iTerm2 Color Schemes repository: 
     https://github.com/mbadolato/iTerm2-Color-Schemes
@@ -17,6 +17,17 @@ A fast CLI utility for managing color themes and fonts across your terminal and 
 
 ```lua
 vim.keymap.set("n", "<leader>R", ":source ~/.config/nvim/init.lua<CR>")
+```
+
+### recol user command
+
+```lua
+if vim.fn.executable("recol") == 1 then
+    vim.api.nvim_create_user_command("Recol", function(opts)
+        vim.cmd("!recol " .. opts.args)
+        vim.cmd("source ~/.config/nvim/init.lua")
+    end, { nargs = "*" })
+end
 ```
 
 ### Build from source
@@ -73,3 +84,29 @@ Options:
   -h, --help
   -V, --version
 ```
+
+---
+
+![recol-demo-img-1](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-1.jpg)
+
+![recol-demo-img-2](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-2.jpg)
+
+![recol-demo-img-3](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-3.jpg)
+
+![recol-demo-img-4](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-4.jpg)
+
+![recol-demo-img-5](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-5.jpg)
+
+![recol-demo-img-6](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-6.jpg)
+
+![recol-demo-img-7](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-7.jpg)
+
+![recol-demo-img-8](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-8.jpg)
+
+![recol-demo-img-9](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-9.jpg)
+
+![recol-demo-img-10](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-10.jpg)
+
+![recol-demo-img-11](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-11.jpg)
+
+![recol-demo-img-12](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-12.jpg)
