@@ -1,25 +1,34 @@
 # recol
 
-A fast CLI utility for managing color themes and fonts across your terminal and Neovim.
+A fast CLI utility for managing color themes and fonts across your terminal and [Neovim](https://neovim.io).
 
 ![recol-demo-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo.gif)
 
-- Includes 500+ prebuilt color schemes from the iTerm2 Color Schemes repository: 
-    https://github.com/mbadolato/iTerm2-Color-Schemes
-- Neovim color configuration is derived from the nightfox.nvim theme collection: 
-    https://github.com/EdenEast/nightfox.nvim
-- Terminal color themes are currently supported for Alacritty only
-- Font switching is implemented on macOS only
-- Makes non-destructive changes to existing configuration, affecting colors only
-- ~600 KB binary
+* 500+ prebuilt color schemes from the iTerm2 Color Schemes repository:
+  [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes?utm_source=chatgpt.com)
+* Neovim theme integration based on the Nightfox theme collection:
+  [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim?utm_source=chatgpt.com)
+* Terminal support:
 
-**Note:** Unlike Alacritty, Neovim doesn't support hot reload. To apply the new theme, either restart Neovim or use a keybinding to reload your config:
+  * [Alacritty](https://alacritty.org/index.html)
+  * [Ghostty](https://ghostty.org)
+* Font switching support (macOS only)
+* Non-destructive configuration updates (only colors/fonts are modified)
+
+### Terminal support notes
+
+- **Alacritty** supports hot configuration reload. Changes are applied immediately without restarting the terminal.
+- **Ghostty** requires a manual reload (e.g. `Ctrl + Shift + ,` on Linux or `Cmd + Shift + ,` on macOS).
+
+### Neovim integration
+
+**Neovim** does not support hot theme reloading. To apply the new theme, either restart Neovim or use a keybinding to reload your config:
 
 ```lua
 vim.keymap.set("n", "<leader>R", ":source ~/.config/nvim/init.lua<CR>")
 ```
 
-### recol user command
+Add a simple command to apply themes from within Neovim:
 
 ```lua
 if vim.fn.executable("recol") == 1 then
@@ -33,7 +42,7 @@ end
 ### Build from source
 
 ```sh
-git clone https://github.com/nlkli/recol.git
+git clone https://github.com/nlkli/recol
 cd recol
 cargo build --release
 cp target/release/recol /usr/local/bin/
@@ -46,7 +55,7 @@ recol — quickly change your terminal theme
 https://github.com/nlkli/recol
 500+ terminal color schemes:
 https://github.com/mbadolato/iTerm2-Color-Schemes
-Supported targets: alacritty, neovim.
+Supported targets: alacritty, ghostty, neovim.
 
   recol <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
   recol -rdF               # random dark theme and random Nerd Font
@@ -61,11 +70,6 @@ Options:
   -l, --light
       Filter to dark or light themes 
       (used with --rand, --theme or --theme-list)
-
-  --alacritty_config <PATH>
-      default: ~/.config/alacritty/alacritty.toml
-  --nvim_config <PATH>
-      default: ~/.config/nvim/init.lua
 
   -f, --font <NAME>
       Set font family by name (fuzzy matching)

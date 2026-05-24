@@ -35,21 +35,15 @@ pub struct Args {
 
     /// Output theme in rustfmt-style format
     pub show_fmt: bool,
-
-    /// Alacritty config path
-    pub alacritty_config: Option<String>,
-
-    /// Neovim config path
-    pub nvim_config: Option<String>,
 }
 
-const VERSION: &str = "recol 0.1.5 [https://github.com/nlkli/recol]";
+const VERSION: &str = "recol 0.1.6 [https://github.com/nlkli/recol]";
 const HELP: &str = r#"
 recol — quickly change your terminal theme
 https://github.com/nlkli/recol
 500+ terminal color schemes:
 https://github.com/mbadolato/iTerm2-Color-Schemes
-Supported targets: alacritty, neovim.
+Supported targets: alacritty, ghostty, neovim.
 
   recol <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
   recol -rdF               # random dark theme and random Nerd Font
@@ -64,11 +58,6 @@ Options:
   -l, --light
       Filter to dark or light themes 
       (used with --rand, --theme or --theme-list)
-
-  --alacritty_config <PATH>
-      default: ~/.config/alacritty/alacritty.toml
-  --nvim_config <PATH>
-      default: ~/.config/nvim/init.lua
 
   -f, --font <NAME>
       Set font family by name (fuzzy matching)
@@ -102,12 +91,6 @@ impl Args {
                     }
                     "font" => {
                         last.replace('f');
-                    }
-                    "alacritty_config" => {
-                        last.replace('0');
-                    }
-                    "nvim_config" => {
-                        last.replace('1');
                     }
                     "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
@@ -166,12 +149,6 @@ impl Args {
                         }
                         'f' => {
                             args.font.replace(i);
-                        }
-                        '0' => {
-                            args.alacritty_config.replace(i);
-                        }
-                        '1' => {
-                            args.nvim_config.replace(i);
                         }
                         _ => (),
                     }

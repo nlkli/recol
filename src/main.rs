@@ -4,17 +4,14 @@ mod color;
 mod targets;
 mod utils;
 
-const DEFAULT_NVIM_CONFIG_PATH: &str = ".config/nvim/init.lua";
-const DEFAULT_ALACRITTY_CONFIG_PATH: &str = ".config/alacritty/alacritty.toml";
-
-type AnyResult<T> = Result<T, Box<dyn std::error::Error>>;
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 #[inline(always)]
 fn home_dir() -> std::path::PathBuf {
     std::env::home_dir().unwrap()
 }
 
-fn list_nerd_fonts() -> AnyResult<Vec<String>> {
+fn list_nerd_fonts() -> Result<Vec<String>> {
     let mut fonts = Vec::new();
 
     #[cfg(target_os = "macos")]
@@ -41,40 +38,43 @@ fn list_nerd_fonts() -> AnyResult<Vec<String>> {
         }
     }
 
-    #[cfg(target_os = "linux")]
-    {
-        // TODO:
-        println!("list_nerd_fonts: not implemented for Linux");
-    }
+    // #[cfg(target_os = "linux")]
+    // {
+    //     // TODO:
+    //     println!("list_nerd_fonts: not implemented for Linux");
+    // }
 
     fonts.sort();
     fonts.dedup();
     Ok(fonts)
 }
 
-fn apply_theme_for_targets(args: &cli::Args, t: &mut collection::Theme) -> AnyResult<()> {
-    let home_dir = home_dir();
-    let path = if let Some(p) = args.alacritty_config.as_ref() {
-        p.into()
-    } else {
-        home_dir.join(DEFAULT_ALACRITTY_CONFIG_PATH)
-    };
-    if path.exists() && path.is_file() {
+fn apply_theme_for_targets(t: &mut collection::Theme) -> Result<()> {
+    if let Some(path) = targets::config_path(targets::Target::Alacritty) {
         targets::alacritty::write_theme_into_config(&path, t)?;
     }
-    let path = if let Some(p) = args.nvim_config.as_ref() {
-        p.into()
-    } else {
-        home_dir.join(DEFAULT_NVIM_CONFIG_PATH)
-    };
-    if path.exists() && path.is_file() {
+    if let Some(path) = targets::config_path(targets::Target::Ghostty) {
+        targets::ghostty::write_theme_into_config(&path, t)?;
+    }
+    if let Some(path) = targets::config_path(targets::Target::Nvim) {
         targets::nvim::write_theme_into_config(&path, t)?;
     }
 
     Ok(())
 }
 
-fn main() -> AnyResult<()> {
+fn apply_font_for_targets(f: &str) -> Result<()> {
+    if let Some(path) = targets::config_path(targets::Target::Alacritty) {
+        targets::alacritty::set_font_into_config(&path, f.into())?;
+    }
+    if let Some(path) = targets::config_path(targets::Target::Ghostty) {
+        targets::ghostty::set_font_into_config(&path, f.into())?;
+    }
+
+    Ok(())
+}
+
+fn main() -> Result<()> {
     // #[cfg(debug_assertions)]
     // collection::build::create_colorshemes_bin("colorschemes")?;
 
@@ -112,11 +112,8 @@ fn main() -> AnyResult<()> {
     if let Some(ref query) = args.font {
         font = utils::fuzzy_search_strings(&font_list, query).map(String::from);
     }
-    if let Some(font) = font {
-        let path = home_dir().join(DEFAULT_ALACRITTY_CONFIG_PATH);
-        if path.exists() && path.is_file() {
-            targets::alacritty::set_font_into_config(&path, font)?;
-        }
+    if let Some(ref font) = font {
+        apply_font_for_targets(font)?;
     }
 
     let mut theme = None;
@@ -156,7 +153,7 @@ fn main() -> AnyResult<()> {
                 break;
             }
             print_header();
-            apply_theme_for_targets(&args, theme)?;
+            apply_theme_for_targets(theme)?;
             break;
         }
     }
