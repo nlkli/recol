@@ -71,6 +71,9 @@ Options:
       Filter to dark or light themes 
       (used with --rand, --theme or --theme-list)
 
+  --nvim-config <PATH>
+      default: ~/.config/nvim/init.lua
+
   -f, --font <NAME>
       Set font family by name (fuzzy matching)
   -F, --font-rand   
@@ -83,7 +86,6 @@ Options:
     Show the theme color palette without applying it
       --show-json   Output theme as JSON
       --show-toml   Output theme as TOML
-      --show-fmt    Output theme in rustfmt-style format
 
   -h, --help
   -V, --version

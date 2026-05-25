@@ -2,6 +2,7 @@ mod cli;
 mod collection;
 mod color;
 mod targets;
+mod tmpstore;
 mod utils;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -49,15 +50,22 @@ fn list_nerd_fonts() -> Result<Vec<String>> {
     Ok(fonts)
 }
 
-fn apply_theme_for_targets(t: &mut collection::Theme) -> Result<()> {
+fn apply_theme_for_targets(args: &cli::Args, t: &mut collection::Theme) -> Result<()> {
     if let Some(path) = targets::config_path(targets::Target::Alacritty) {
         targets::alacritty::write_theme_into_config(&path, t)?;
     }
     if let Some(path) = targets::config_path(targets::Target::Ghostty) {
         targets::ghostty::write_theme_into_config(&path, t)?;
     }
-    if let Some(path) = targets::config_path(targets::Target::Nvim) {
-        targets::nvim::write_theme_into_config(&path, t)?;
+    if let Some(ref path) = args.nvim_config {
+        let path = std::path::PathBuf::from(path);
+        if path.exists() && path.is_file() {
+            targets::nvim::write_theme_into_config(&path, t)?;
+        }
+    } else {
+        if let Some(path) = targets::config_path(targets::Target::Nvim) {
+            targets::nvim::write_theme_into_config(&path, t)?;
+        }
     }
 
     Ok(())
@@ -105,20 +113,47 @@ fn main() -> Result<()> {
         }
     }
 
+    tmpstore::init();
+
     let mut font = None;
     if args.font_rand {
+        let font_history = tmpstore::read_font_history(2);
         font = fastrand::choice(&font_list).cloned();
+        let mut n: isize = 0;
+        while n < 5 {
+            if let Some(ref f) = font {
+                if font_history.contains(f) {
+                    font = fastrand::choice(&font_list).cloned();
+                    n += 1;
+                    continue;
+                }
+            }
+            break;
+        }
     }
     if let Some(ref query) = args.font {
         font = utils::fuzzy_search_strings(&font_list, query).map(String::from);
     }
     if let Some(ref font) = font {
         apply_font_for_targets(font)?;
+        tmpstore::append_font_history(font);
     }
 
     let mut theme = None;
     if args.rand {
+        let theme_history = tmpstore::read_theme_history(21);
         theme.replace(col.rand(Some(&filter)).unwrap().into_theme());
+        let mut n: isize = 0;
+        while n < 9 {
+            if let Some(ref t) = theme {
+                if theme_history.contains(&t.name) {
+                    theme.replace(col.rand(Some(&filter)).unwrap().into_theme());
+                    n += 1;
+                    continue;
+                }
+            }
+            break;
+        }
     }
     if let Some(ref query) = args.theme {
         theme.replace(
@@ -148,12 +183,9 @@ fn main() -> Result<()> {
                 println!("{}", toml_str);
                 break;
             }
-            if args.show_fmt {
-                println!("{:#?}", theme.prepare(None, None, None));
-                break;
-            }
             print_header();
-            apply_theme_for_targets(theme)?;
+            apply_theme_for_targets(&args, theme)?;
+            tmpstore::append_theme_history(&theme.name);
             break;
         }
     }

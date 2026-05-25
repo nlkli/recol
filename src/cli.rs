@@ -12,6 +12,9 @@ pub struct Args {
     /// Filter to light themes
     pub light: bool,
 
+    /// Neovim config path
+    pub nvim_config: Option<String>,
+
     /// List available themes
     pub theme_list: bool,
 
@@ -32,9 +35,6 @@ pub struct Args {
 
     /// Output theme as TOML
     pub show_toml: bool,
-
-    /// Output theme in rustfmt-style format
-    pub show_fmt: bool,
 }
 
 const VERSION: &str = "recol 0.1.6 [https://github.com/nlkli/recol]";
@@ -59,6 +59,9 @@ Options:
       Filter to dark or light themes 
       (used with --rand, --theme or --theme-list)
 
+  --nvim-config <PATH>
+      default: ~/.config/nvim/init.lua
+
   -f, --font <NAME>
       Set font family by name (fuzzy matching)
   -F, --font-rand   
@@ -71,7 +74,6 @@ Options:
     Show the theme color palette without applying it
       --show-json   Output theme as JSON
       --show-toml   Output theme as TOML
-      --show-fmt    Output theme in rustfmt-style format
 
   -h, --help
   -V, --version
@@ -92,6 +94,9 @@ impl Args {
                     "font" => {
                         last.replace('f');
                     }
+                    "nvim-config" => {
+                        last.replace('0');
+                    }
                     "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
                     "font-rand" => args.font_rand = true,
@@ -101,7 +106,6 @@ impl Args {
                     "show" => args.show = true,
                     "show-json" => args.show_json = true,
                     "show-toml" => args.show_toml = true,
-                    "show-fmt" => args.show_fmt = true,
                     "help" => {
                         println!("{}", HELP);
                         std::process::exit(0);
@@ -149,6 +153,9 @@ impl Args {
                         }
                         'f' => {
                             args.font.replace(i);
+                        }
+                        '0' => {
+                            args.nvim_config.replace(i);
                         }
                         _ => (),
                     }
