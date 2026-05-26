@@ -34,6 +34,7 @@ pub fn append_theme_history(theme_name: &str) {
         for line in lines {
             let _ = writeln!(&mut writer, "{}", line);
         }
+        let _ = writer.flush();
     }
 }
 
@@ -58,5 +59,6 @@ pub fn append_font_history(font_name: &str) {
         for line in lines {
             let _ = writeln!(&mut writer, "{}", line);
         }
+        let _ = writer.flush();
     }
 }

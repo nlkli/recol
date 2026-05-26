@@ -19,7 +19,7 @@ fn read_config(path: impl AsRef<Path>) -> io::Result<Vec<ConfigLine>> {
     let mut lines = Vec::new();
     for line in reader.lines() {
         let line = line?.trim().to_string();
-        if line.len() == 0 {
+        if line.is_empty() {
             lines.push(ConfigLine::Empty);
             continue;
         }
