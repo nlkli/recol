@@ -1,7 +1,14 @@
 [package]
 name = "recol"
 version = "0.1.6"
-edition = "2024"
+edition = "2021"
+license = "MIT"
+description = "CLI utility for terminal and Neovim theme switching"
+repository = "https://github.com/nlkli/recol"
+homepage = "https://github.com/nlkli/recol"
+readme = "README.md"
+keywords = ["cli", "terminal", "theme", "colorscheme", "neovim", "alacritty", "ghostty"]
+categories = ["command-line-utilities"]
 
 [profile.release]
 opt-level = "z"

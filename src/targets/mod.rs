@@ -33,7 +33,7 @@ pub fn config_path(target: Target) -> Option<PathBuf> {
             if path.exists() {
                 return Some(path);
             }
-            let path = prefix.join("/etc/alacritty/alacritty.toml");
+            let path = PathBuf::from("/etc/alacritty/alacritty.toml");
             if path.exists() {
                 return Some(path);
             }

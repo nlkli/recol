@@ -9,6 +9,7 @@ enum ConfigLine {
     KeyValue((String, String)),
     Palette((isize, String)),
     Comment(String),
+    Any(String),
     Empty,
 }
 
@@ -16,30 +17,29 @@ fn read_config(path: impl AsRef<Path>) -> io::Result<Vec<ConfigLine>> {
     let file = fs::File::open(path)?;
     let reader = io::BufReader::new(file);
 
-    let mut lines = Vec::new();
+    let mut lines = Vec::with_capacity(32);
     for line in reader.lines() {
         let line = line?.trim().to_string();
         if line.is_empty() {
             lines.push(ConfigLine::Empty);
-            continue;
-        }
-        if line.starts_with("#") {
-            lines.push(ConfigLine::Comment(line));
-            continue;
-        }
-        if let Some((k, v)) = line.split_once("=") {
-            let k = k.trim().to_string();
-            let v = v.trim().to_string();
-            match k.as_str() {
-                "palette" => {
-                    if let Some((n, c)) = v.split_once("=") {
-                        if let Ok(n) = n.parse::<isize>() {
-                            lines.push(ConfigLine::Palette((n, c.into())));
-                        }
+        } else if line.starts_with('#') {
+            lines.push(ConfigLine::Comment(line.to_string()));
+        } else if let Some((k, v)) = line.split_once('=') {
+            let k = k.trim();
+            let v = v.trim();
+            if k == "palette" {
+                if let Some((n, c)) = v.split_once('=') {
+                    if let Ok(n) = n.trim().parse::<isize>() {
+                        lines.push(ConfigLine::Palette((n, c.trim().into())));
+                        continue;
                     }
                 }
-                _ => lines.push(ConfigLine::KeyValue((k, v))),
+                lines.push(ConfigLine::Any(line));
+            } else {
+                lines.push(ConfigLine::KeyValue((k.into(), v.into())));
             }
+        } else {
+            lines.push(ConfigLine::Any(line));
         }
     }
 
@@ -55,6 +55,7 @@ fn write_config(path: impl AsRef<Path>, lines: &[ConfigLine]) -> io::Result<()> 
             ConfigLine::KeyValue((k, v)) => writeln!(writer, "{k} = {v}")?,
             ConfigLine::Palette((n, c)) => writeln!(writer, "palette = {n}={c}")?,
             ConfigLine::Comment(c) => writeln!(writer, "{}", c)?,
+            ConfigLine::Any(l) => writeln!(writer, "{}", l)?,
             ConfigLine::Empty => writeln!(writer, "")?,
         }
     }

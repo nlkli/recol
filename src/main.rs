@@ -7,6 +7,7 @@ mod utils;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
+#[allow(dead_code)]
 #[inline(always)]
 fn home_dir() -> std::path::PathBuf {
     std::env::home_dir().unwrap()

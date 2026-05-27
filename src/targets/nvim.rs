@@ -8,11 +8,13 @@ pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &mut Theme) -> io:
     let dim = c.dim(None).clone();
     let code_selection = c.code_selection(None).clone();
     let diff = c.diff().clone();
+
     const HEAD: &str = r###"
 local function applyRecol()
     vim.cmd("highlight clear")
     if vim.fn.has("syntax_on") then vim.cmd("syntax reset") end
 "###;
+
     let palette = format!(
         r###"
     local P = {{

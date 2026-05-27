@@ -57,12 +57,12 @@ https://github.com/nlkli/recol
 https://github.com/mbadolato/iTerm2-Color-Schemes
 Supported targets: alacritty, ghostty, neovim.
 
-  recol <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
-  recol -rdF               # random dark theme and random Nerd Font
-  recol -rls               # show random light theme palette
+recol <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
+recol -rdF               # random dark theme and random Nerd Font
+recol -rls               # show random light theme palette
 
 Options:
-  [ ], -t, --theme <NAME>
+  <TNAME>, -t, --theme <NAME>
       Apply a theme by name (fuzzy matching)
   -r, --rand
       Apply a random theme
@@ -76,7 +76,7 @@ Options:
 
   -f, --font <NAME>
       Set font family by name (fuzzy matching)
-  -F, --font-rand   
+  -F, --font-rand
       Pick a random Nerd Font
 
   --theme-list  List available themes
@@ -116,3 +116,5 @@ Options:
 ![recol-demo-img-11](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-11.jpg)
 
 ![recol-demo-img-12](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-12.jpg)
+
+😉👉⭐️

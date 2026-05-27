@@ -2,7 +2,6 @@
 // pub mod build;
 
 #[allow(dead_code)]
-
 mod theme;
 use crate::utils::{as_array_ref, fuzzy_search};
 use std::io;
@@ -140,7 +139,7 @@ impl<'a> Collection<'a> {
         LazyThemeIter::new(self)
     }
 
-    pub fn rand(&'a self, filter: Option<&LazyThemeFilter>) -> Option<LazyTheme<'a>> {
+    pub fn rand(&'a self, filter: Option<&'a LazyThemeFilter>) -> Option<LazyTheme<'a>> {
         let filter = filter.unwrap_or(&LazyThemeFilter::None);
         if filter.is_none() {
             let i = fastrand::choice(0..self.count as usize).unwrap();
@@ -152,7 +151,7 @@ impl<'a> Collection<'a> {
     pub fn by_name(
         &'a self,
         name: &str,
-        filter: Option<&LazyThemeFilter>,
+        filter: Option<&'a LazyThemeFilter>,
     ) -> Option<LazyTheme<'a>> {
         filter
             .unwrap_or(&LazyThemeFilter::None)
@@ -160,7 +159,7 @@ impl<'a> Collection<'a> {
             .find(|t| t.name == name)
     }
 
-    pub fn name_list(&'a self, filter: Option<&LazyThemeFilter>, sort: bool) -> Vec<&'a str> {
+    pub fn name_list(&'a self, filter: Option<&'a LazyThemeFilter>, sort: bool) -> Vec<&'a str> {
         let filter = filter.unwrap_or(&LazyThemeFilter::None);
         let mut list = if filter.is_none() {
             let mut list = Vec::with_capacity(self.count as usize);
@@ -178,7 +177,7 @@ impl<'a> Collection<'a> {
     pub fn fuzzy_search(
         &'a self,
         query: &str,
-        filter: Option<&LazyThemeFilter>,
+        filter: Option<&'a LazyThemeFilter>,
     ) -> Option<LazyTheme<'a>> {
         let names = self.name_list(filter, false);
         fuzzy_search(&names, query).and_then(|n| self.by_name(n, filter))
@@ -195,7 +194,7 @@ pub enum LazyThemeFilter {
 }
 
 impl LazyThemeFilter {
-    pub fn apply<'a>(&self, iter: LazyThemeIter<'a>) -> impl Iterator<Item = LazyTheme<'a>> {
+    pub fn apply<'a>(&'a self, iter: LazyThemeIter<'a>) -> impl Iterator<Item = LazyTheme<'a>> {
         iter.filter(move |t| match self {
             LazyThemeFilter::None => true,
             LazyThemeFilter::Light => t.is_light,
