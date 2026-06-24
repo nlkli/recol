@@ -38,7 +38,7 @@ use std::{
 /// The resulting file is written to `src/collection/colorschemes.bin` and
 /// embedded into the final build using `include_bytes!`.
 pub fn create_colorshemes_bin<P: AsRef<Path>>(dir: P) -> io::Result<()> {
-    let mut colorschemes_bin = fs::File::create("src/collection/colorschemes.bin")?;
+    let mut colorschemes_bin = fs::File::create("src/collection/colorschemes1.bin")?;
     let mut buf = Vec::new();
     let (count, offsets) = build_theme_bundle(dir, &mut buf)?;
     colorschemes_bin.write_all(&count.to_be_bytes())?;

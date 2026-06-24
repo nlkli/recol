@@ -4,7 +4,7 @@ A fast CLI utility for managing color themes and fonts across your terminal and 
 
 ![recol-demo-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo.gif)
 
-* 500+ prebuilt color schemes from the iTerm2 Color Schemes repository:
+* 550+ prebuilt color schemes from the iTerm2 Color Schemes repository:
   [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes?utm_source=chatgpt.com)
 * Neovim theme integration based on the Nightfox theme collection:
   [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim?utm_source=chatgpt.com)
