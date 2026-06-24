@@ -2,3 +2,4 @@
 *.bac
 *.tmp
 /colorschemes
+.DS_Store
