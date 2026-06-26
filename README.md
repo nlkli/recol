@@ -51,42 +51,35 @@ cp target/release/recol /usr/local/bin/
 ### Help message
 
 ```text
-recol — quickly change your terminal theme
+CLI utility for changing the color scheme
 https://github.com/nlkli/recol
-500+ terminal color schemes:
+550+ color schemes:
 https://github.com/mbadolato/iTerm2-Color-Schemes
+
 Supported targets: alacritty, ghostty, neovim.
 
-recol <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
-recol -rdF               # random dark theme and random Nerd Font
-recol -rls               # show random light theme palette
+Usage: recol [OPTIONS] [THEME_NAME]
 
 Options:
-  <TNAME>, -t, --theme <NAME>
+  -t, --theme <NAME>
       Apply a theme by name (fuzzy matching)
   -r, --rand
       Apply a random theme
   -d, --dark
   -l, --light
-      Filter to dark or light themes 
+      Filter to dark or light themes
       (used with --rand, --theme or --theme-list)
-
   --nvim-config <PATH>
       default: ~/.config/nvim/init.lua
-
   -f, --font <NAME>
       Set font family by name (fuzzy matching)
   -F, --font-rand
       Pick a random Nerd Font
-
   --theme-list  List available themes
   --font-list   List available Nerd Fonts
-
   -s, --show
-    Show the theme color palette without applying it
-      --show-json   Output theme as JSON
-      --show-toml   Output theme as TOML
-
+      Show the theme color palette without applying it
+  --json        Output theme as JSON
   -h, --help
   -V, --version
 ```

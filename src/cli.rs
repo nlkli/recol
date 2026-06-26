@@ -14,6 +14,9 @@ pub struct Args {
     /// Filter to light themes
     pub light: bool,
 
+    /// Filter themes by name substring
+    pub contains: Option<String>,
+
     /// Neovim config path
     pub nvim_config: Option<String>,
 
@@ -33,72 +36,73 @@ pub struct Args {
     pub show: bool,
 
     /// Output theme as JSON
-    pub show_json: bool,
-
-    /// Output theme as TOML
-    pub show_toml: bool,
+    pub json: bool,
 }
 
-const VERSION: &str = "recol 0.1.6 [https://github.com/nlkli/recol]";
-const HELP: &str = r#"
-recol — quickly change your terminal theme
-https://github.com/nlkli/recol
-500+ terminal color schemes:
-https://github.com/mbadolato/iTerm2-Color-Schemes
-Supported targets: alacritty, ghostty, neovim.
+// Standard ANSI color codes
+const RESET: &str = "\x1b[0m";
+const GREEN: &str = "\x1b[32m";
+const BLUE: &str = "\x1b[34m";
+const MAGENTA: &str = "\x1b[35m";
 
-recol <TNAME> -f <FNAME> # set a specific theme and font (fuzzy match)
-recol -rdF               # random dark theme and random Nerd Font
-recol -rls               # show random light theme palette
+const VERSION: &str = "recol 0.1.7 [https://github.com/nlkli/recol]";
+fn help() -> String {
+    format!(
+        r#"
+CLI utility for changing the color scheme
+{magenta}https://github.com/nlkli/recol{reset}
+550+ color schemes:
+{magenta}https://github.com/mbadolato/iTerm2-Color-Schemes{reset}
 
-Options:
-  <TNAME>, -t, --theme <NAME>
+{green}Supported targets:{reset} alacritty, ghostty, neovim.
+
+{green}Usage:{reset} {blue}recol [OPTIONS] [THEME_NAME]{reset}
+
+{green}Options:{reset}
+  {blue}-t{reset}, {blue}--theme <NAME>{reset}
       Apply a theme by name (fuzzy matching)
-  -r, --rand
+  {blue}-r{reset}, {blue}--rand{reset}
       Apply a random theme
-  -d, --dark
-  -l, --light
-      Filter to dark or light themes 
+  {blue}-d{reset}, {blue}--dark{reset}
+  {blue}-l{reset}, {blue}--light{reset}
+  {blue}--contains <STR>{reset}
+      Filter to dark or light themes
+      Filter themes by name substring
       (used with --rand, --theme or --theme-list)
-
-  --nvim-config <PATH>
+  {blue}--nvim-config <PATH>{reset}
       default: ~/.config/nvim/init.lua
-
-  -f, --font <NAME>
+  {blue}-f{reset}, {blue}--font <NAME>{reset}
       Set font family by name (fuzzy matching)
-  -F, --font-rand
+  {blue}-F{reset}, {blue}--font-rand{reset}
       Pick a random Nerd Font
-
-  --theme-list  List available themes
-  --font-list   List available Nerd Fonts
-
-  -s, --show
-    Show the theme color palette without applying it
-      --show-json   Output theme as JSON
-      --show-toml   Output theme as TOML
-
-  -h, --help
-  -V, --version
-"#;
+  {blue}--theme-list{reset}  List available themes
+  {blue}--font-list{reset}   List available Nerd Fonts
+  {blue}-s{reset}, {blue}--show{reset}
+      Show the theme color palette without applying it
+  {blue}--json{reset}        Output theme as JSON
+  {blue}-h{reset}, {blue}--help{reset}
+  {blue}-V{reset}, {blue}--version{reset}
+"#,
+        reset = RESET,
+        green = GREEN,
+        blue = BLUE,
+        magenta = MAGENTA,
+    )
+}
 
 impl Args {
     pub fn parse() -> Self {
         let mut args = Self::default();
-        let input = std::env::args();
-        let mut last = None;
-        for i in input.skip(1) {
-            if i.starts_with("--") {
-                let key = i.trim_start_matches("--");
-                match key {
-                    "theme" => {
-                        last.replace('t');
-                    }
-                    "font" => {
-                        last.replace('f');
-                    }
-                    "nvim-config" => {
-                        last.replace('0');
-                    }
+        let mut last: Option<char> = None;
+
+        let mut iter = std::env::args().skip(1);
+        while let Some(arg) = iter.next() {
+            if let Some(flag) = arg.strip_prefix("--") {
+                match flag {
+                    "theme" => last = Some('t'),
+                    "font" => last = Some('f'),
+                    "contains" => last = Some('c'),
+                    "nvim-config" => last = Some('0'),
                     "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
                     "font-rand" => args.font_rand = true,
@@ -106,10 +110,9 @@ impl Args {
                     "dark" => args.dark = true,
                     "light" => args.light = true,
                     "show" => args.show = true,
-                    "show-json" => args.show_json = true,
-                    "show-toml" => args.show_toml = true,
+                    "json" => args.json = true,
                     "help" => {
-                        println!("{}", HELP);
+                        println!("{}", help());
                         std::process::exit(0);
                     }
                     "version" => {
@@ -118,26 +121,17 @@ impl Args {
                     }
                     _ => (),
                 }
-            } else if i.starts_with("-") {
-                let chars = i.trim_start_matches("-").chars();
-                for c in chars {
+            } else if let Some(flags) = arg.strip_prefix('-') {
+                for c in flags.chars() {
                     match c {
-                        't' => {
-                            last.replace(c);
-                        }
-                        'f' => {
-                            last.replace(c);
-                        }
-                        'T' => {
-                            last.replace(c);
-                        }
+                        't' | 'f' => last = Some(c),
                         'r' => args.rand = true,
                         'd' => args.dark = true,
                         'l' => args.light = true,
                         'F' => args.font_rand = true,
                         's' => args.show = true,
                         'h' => {
-                            println!("{}", HELP);
+                            println!("{}", help());
                             std::process::exit(0);
                         }
                         'V' => {
@@ -148,35 +142,39 @@ impl Args {
                     }
                 }
             } else {
-                if let Some(c) = last {
-                    match c {
-                        't' => {
-                            args.theme.replace(i);
-                        }
-                        'f' => {
-                            args.font.replace(i);
-                        }
-                        '0' => {
-                            args.nvim_config.replace(i);
-                        }
-                        _ => (),
+                match last.take() {
+                    Some('t') => {
+                        args.theme.replace(arg);
                     }
-                    last = None;
-                } else {
-                    args.theme.replace(i);
+                    Some('f') => {
+                        args.font.replace(arg);
+                    }
+                    Some('с') => {
+                        args.contains.replace(arg);
+                    }
+                    Some('0') => {
+                        args.nvim_config.replace(arg);
+                    }
+                    _ => {
+                        args.theme.replace(arg);
+                    }
                 }
             }
         }
+
         args
     }
 
-    pub fn filters(&self) -> Vec<lib::ThemeFilter> {
+    pub fn filters(&self) -> Vec<lib::ThemeFilter<'_>> {
         let mut filters = Vec::new();
         if self.light {
             filters.push(lib::ThemeFilter::Light);
         }
         if self.dark {
             filters.push(lib::ThemeFilter::Dark);
+        }
+        if let Some(s) = &self.contains {
+            filters.push(lib::ThemeFilter::Contains(s));
         }
         filters
     }

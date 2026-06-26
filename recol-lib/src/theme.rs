@@ -82,6 +82,10 @@ impl Theme {
         buf.extend_from_slice(&self.colors.bytes());
         buf
     }
+
+    pub fn print_palette(&self) {
+        crate::print_palette(&self.colors.as_colors_array()[0..14]);
+    }
 }
 
 impl TryFrom<&[u8]> for Theme {

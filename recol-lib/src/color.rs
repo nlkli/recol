@@ -275,6 +275,29 @@ impl Color {
 /// both of which enforce the invariant.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct CssColor(String);
+use std::io::Write;
+
+pub fn print_palette(colors: &[Color]) {
+    print!("\x1b[48;2;90;90;90m");
+    for _ in colors {
+        print!("    ");
+    }
+    println!("\x1b[0m");
+    for _ in 0..2 {
+        for c in colors {
+            let (r, g, b) = c.rgb();
+            print!("\x1b[48;2;{};{};{}m    \x1b[0m", r, g, b);
+        }
+        println!();
+    }
+    print!("\x1b[48;2;90;90;90m");
+    for _ in colors {
+        print!("    ");
+    }
+    println!("\x1b[0m");
+
+    std::io::stdout().flush().unwrap();
+}
 
 impl Default for CssColor {
     fn default() -> Self {

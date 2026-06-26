@@ -8,27 +8,6 @@ use recol_lib as lib;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-fn apply_theme_for_targets(args: &cli::Args, t: &lib::Theme) -> Result<()> {
-    if let Some(path) = targets::config_path(targets::Target::Alacritty) {
-        targets::alacritty::write_theme_into_config(&path, t)?;
-    }
-    if let Some(path) = targets::config_path(targets::Target::Ghostty) {
-        targets::ghostty::write_theme_into_config(&path, t)?;
-    }
-    if let Some(ref path) = args.nvim_config {
-        let path = std::path::PathBuf::from(path);
-        if path.exists() && path.is_file() {
-            targets::nvim::write_theme_into_config(&path, t)?;
-        }
-    } else {
-        if let Some(path) = targets::config_path(targets::Target::Nvim) {
-            targets::nvim::write_theme_into_config(&path, t)?;
-        }
-    }
-
-    Ok(())
-}
-
 fn main() -> Result<()> {
     let args = cli::Args::parse();
 
@@ -45,7 +24,7 @@ fn main() -> Result<()> {
     }
 
     if args.font_list || args.font_rand || args.font.is_some() {
-        let mut font = None;
+        let mut font_name = None;
 
         let font_list = font::list(|_| true)?;
         if args.font_list {
@@ -54,12 +33,12 @@ fn main() -> Result<()> {
 
         if args.font_rand {
             let font_history = tmpstore::read_font_history(2);
-            font = fastrand::choice(&font_list).cloned();
+            font_name = fastrand::choice(&font_list).cloned();
             let mut n: usize = 0;
             while n < 5 {
-                if let Some(ref f) = font {
+                if let Some(ref f) = font_name {
                     if font_history.contains(f) {
-                        font = fastrand::choice(&font_list).cloned();
+                        font_name = fastrand::choice(&font_list).cloned();
                         n += 1;
                         continue;
                     }
@@ -70,12 +49,12 @@ fn main() -> Result<()> {
 
         if let Some(ref query) = args.font {
             let candidates = font_list.iter().map(|f| f.as_str()).collect::<Vec<_>>();
-            font = lib::fuzzy::search(query, &candidates).map(String::from);
+            font_name = lib::fuzzy::search(query, &candidates).map(String::from);
         }
 
-        if let Some(ref font) = font {
-            font::apply_for_targets(font)?;
-            tmpstore::append_font_history(font);
+        if let Some(ref font_name) = font_name {
+            targets::apply_font(font_name)?;
+            tmpstore::append_font_history(font_name);
         }
     }
 
@@ -113,10 +92,10 @@ fn main() -> Result<()> {
         loop {
             if args.show {
                 print_header();
-                // theme.print_palette();
+                theme.print_palette();
                 break;
             }
-            if args.show_json {
+            if args.json {
                 let json_str = serde_json::to_string_pretty(&serde_json::json!({
                     "name": &theme.name,
                     "is_light": &theme.is_light,
@@ -126,7 +105,7 @@ fn main() -> Result<()> {
                 break;
             }
             print_header();
-            apply_theme_for_targets(&args, theme)?;
+            targets::apply_theme(&args, theme)?;
             tmpstore::append_theme_history(&theme.name);
             break;
         }

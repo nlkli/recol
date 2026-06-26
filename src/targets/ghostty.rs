@@ -5,6 +5,7 @@ use std::{
     path::Path,
 };
 
+#[derive(Debug)]
 enum ConfigLine {
     KeyValue((String, String)),
     Palette((isize, String)),
@@ -65,16 +66,16 @@ fn write_config(path: impl AsRef<Path>, lines: &[ConfigLine]) -> io::Result<()> 
 }
 
 #[inline(always)]
-fn replace_or_add_palette(lines: &mut Vec<ConfigLine>, n: isize, c: String) {
+fn replace_or_add_palette(lines: &mut Vec<ConfigLine>, index: isize, color: String) {
     if let Some(ConfigLine::Palette((_, pc))) = lines.iter_mut().rev().find(|e| {
         if let ConfigLine::Palette((pn, _)) = e {
-            return *pn == n;
+            return *pn == index;
         }
         false
     }) {
-        *pc = c;
+        *pc = color;
     } else {
-        lines.push(ConfigLine::Palette((n, c)));
+        lines.push(ConfigLine::Palette((index, color)));
     };
 }
 
