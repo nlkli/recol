@@ -66,8 +66,7 @@ CLI utility for changing the color scheme
   {blue}-d{reset}, {blue}--dark{reset}
   {blue}-l{reset}, {blue}--light{reset}
   {blue}-c{reset}, {blue}--contains <STR>{reset}
-      Filter to dark or light themes
-      Filter themes by name substring
+      Filter themes by dark, light or name substring
       (used with --rand, --theme or --theme-list)
   {blue}--nvim-config <PATH>{reset}
       default: ~/.config/nvim/init.lua

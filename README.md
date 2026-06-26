@@ -68,8 +68,7 @@ Options:
   -d, --dark
   -l, --light
   -c, --contains <STR>
-      Filter to dark or light themes
-      Filter themes by name substring
+      Filter themes by dark, light or name substring
       (used with --rand, --theme or --theme-list)
   --nvim-config <PATH>
       default: ~/.config/nvim/init.lua
