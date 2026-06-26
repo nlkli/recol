@@ -65,7 +65,7 @@ CLI utility for changing the color scheme
       Apply a random theme
   {blue}-d{reset}, {blue}--dark{reset}
   {blue}-l{reset}, {blue}--light{reset}
-  {blue}--contains <STR>{reset}
+  {blue}-c{reset}, {blue}--contains <STR>{reset}
       Filter to dark or light themes
       Filter themes by name substring
       (used with --rand, --theme or --theme-list)
@@ -124,7 +124,7 @@ impl Args {
             } else if let Some(flags) = arg.strip_prefix('-') {
                 for c in flags.chars() {
                     match c {
-                        't' | 'f' => last = Some(c),
+                        't' | 'f' | 'c' => last = Some(c),
                         'r' => args.rand = true,
                         'd' => args.dark = true,
                         'l' => args.light = true,
@@ -149,7 +149,7 @@ impl Args {
                     Some('f') => {
                         args.font.replace(arg);
                     }
-                    Some('с') => {
+                    Some('c') => {
                         args.contains.replace(arg);
                     }
                     Some('0') => {
