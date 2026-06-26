@@ -15,7 +15,7 @@ fn to_u8(v: f32) -> u8 {
 }
 
 /// An RGB color stored as linear floats in `[0.0, 1.0]`.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Color {
     r: f32,
     g: f32,
@@ -295,6 +295,12 @@ impl CssColor {
 
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+}
+
+impl Into<String> for CssColor {
+    fn into(self) -> String {
+        self.0
     }
 }
 

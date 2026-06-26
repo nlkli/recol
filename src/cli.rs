@@ -1,3 +1,5 @@
+use recol_lib as lib;
+
 #[derive(Clone, Debug, Default)]
 pub struct Args {
     /// Apply a theme by name (fuzzy matching)
@@ -166,5 +168,16 @@ impl Args {
             }
         }
         args
+    }
+
+    pub fn filters(&self) -> Vec<lib::ThemeFilter> {
+        let mut filters = Vec::new();
+        if self.light {
+            filters.push(lib::ThemeFilter::Light);
+        }
+        if self.dark {
+            filters.push(lib::ThemeFilter::Dark);
+        }
+        filters
     }
 }

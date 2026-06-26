@@ -1,13 +1,12 @@
-use crate::collection::Theme;
 use crate::utils;
+use recol_lib as lib;
 use std::{io, path::Path};
 
-pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &mut Theme) -> io::Result<()> {
-    let c = &mut theme.colors;
-    let comment = c.comment(None).to_string();
-    let dim = c.dim(None).clone();
-    let code_selection = c.code_selection(None).clone();
-    let diff = c.diff().clone();
+pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
+    let c = theme
+        .colors
+        .clone()
+        .into_advanced(lib::AdvancedColorSchemeParam::default());
 
     const HEAD: &str = r###"
 local function applyRecol()
@@ -47,53 +46,53 @@ local function applyRecol()
 "###,
         black_base = c.base.black,
         black_bright = c.bright.black,
-        black_dim = dim.black,
+        black_dim = c.dim.black,
         red_base = c.base.red,
         red_bright = c.bright.red,
-        red_dim = dim.red,
+        red_dim = c.dim.red,
         green_base = c.base.green,
         green_bright = c.bright.green,
-        green_dim = dim.green,
+        green_dim = c.dim.green,
         yellow_base = c.base.yellow,
         yellow_bright = c.bright.yellow,
-        yellow_dim = dim.yellow,
+        yellow_dim = c.dim.yellow,
         blue_base = c.base.blue,
         blue_bright = c.bright.blue,
-        blue_dim = dim.blue,
+        blue_dim = c.dim.blue,
         magenta_base = c.base.magenta,
         magenta_bright = c.bright.magenta,
-        magenta_dim = dim.magenta,
+        magenta_dim = c.dim.magenta,
         cyan_base = c.base.cyan,
         cyan_bright = c.bright.cyan,
-        cyan_dim = dim.cyan,
+        cyan_dim = c.dim.cyan,
         white_base = c.base.white,
         white_bright = c.bright.white,
-        white_dim = dim.white,
+        white_dim = c.dim.white,
         orange_base = c.base.orange,
         orange_bright = c.bright.orange,
-        orange_dim = dim.orange,
+        orange_dim = c.dim.orange,
         pink_base = c.base.pink,
         pink_bright = c.bright.pink,
-        pink_dim = dim.pink,
-        comment = comment,
-        status_line = c.background[0],
-        bg0 = c.background[0],
-        bg1 = c.background[1],
-        bg2 = c.background[2],
-        bg3 = c.background[3],
-        bg4 = c.background[4],
-        fg0 = c.foreground[0],
-        fg1 = c.foreground[1],
-        fg2 = c.foreground[2],
-        fg3 = c.foreground[3],
-        sel0 = code_selection[0],
-        sel1 = code_selection[1],
+        pink_dim = c.dim.pink,
+        comment = c.comment,
+        status_line = c.bg[0],
+        bg0 = c.bg[0],
+        bg1 = c.bg[1],
+        bg2 = c.bg[2],
+        bg3 = c.bg[3],
+        bg4 = c.bg[4],
+        fg0 = c.fg[0],
+        fg1 = c.fg[1],
+        fg2 = c.fg[2],
+        fg3 = c.fg[3],
+        sel0 = c.alt_selection[0],
+        sel1 = c.alt_selection[1],
         cur_bg = c.cursor.bg,
         cur_fg = c.cursor.fg,
-        diff_add = diff.add,
-        diff_delete = diff.delete,
-        diff_change = diff.change,
-        diff_text = diff.text,
+        diff_add = c.diff.add,
+        diff_delete = c.diff.delete,
+        diff_change = c.diff.change,
+        diff_text = c.diff.text,
     );
 
     let spec = format!(

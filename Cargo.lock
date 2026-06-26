@@ -65,10 +65,19 @@ name = "recol"
 version = "0.1.6"
 dependencies = [
  "fastrand",
+ "recol-lib",
  "serde",
  "serde_json",
- "strsim",
  "toml",
+]
+
+[[package]]
+name = "recol-lib"
+version = "0.1.0"
+dependencies = [
+ "fastrand",
+ "serde",
+ "strsim",
 ]
 
 [[package]]

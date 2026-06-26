@@ -1,7 +1,5 @@
-use crate::{
-    collection::{AnsiColors as CsAnsiColors, ColorScheme, Theme},
-    utils,
-};
+use crate::utils;
+use recol_lib as lib;
 use serde::{Deserialize, Serialize};
 use std::{fs, io, path::Path};
 
@@ -12,13 +10,13 @@ fn write_config(path: impl AsRef<Path>, c: &Config) -> io::Result<()> {
     Ok(())
 }
 
-pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &mut Theme) -> io::Result<()> {
+pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
     let content = fs::read_to_string(&path)?;
     let mut config =
         toml::from_str::<Config>(&content).map_err(|_| utils::io_other_error("serde fail"))?;
     config
         .colors
-        .replace(Colors::from_color_scheme(&mut theme.colors));
+        .replace(Colors::from_color_scheme(&theme.colors));
 
     write_config(path, &config)
 }
@@ -88,35 +86,38 @@ pub struct Colors {
 }
 
 impl Colors {
-    pub fn from_color_scheme(cs: &mut ColorScheme) -> Self {
+    pub fn from_color_scheme(cs: &lib::ColorScheme) -> Self {
+        let cs = cs
+            .clone()
+            .into_advanced(lib::AdvancedColorSchemeParam::default());
         Self {
             primary: Some(PrimaryColors {
-                background: Some(cs.background[1].clone()),
-                foreground: Some(cs.foreground[1].clone()),
-                dim_foreground: Some(cs.foreground[2].clone()),
-                bright_foreground: Some(cs.foreground[0].clone()),
+                background: Some(cs.bg[1].to_string()),
+                foreground: Some(cs.fg[1].to_string()),
+                dim_foreground: Some(cs.fg[2].to_string()),
+                bright_foreground: Some(cs.fg[0].to_string()),
             }),
             cursor: Some(CursorColors {
-                cursor: Some(cs.cursor.bg.clone()),
-                text: Some(cs.cursor.fg.clone()),
+                cursor: Some(cs.cursor.bg.into()),
+                text: Some(cs.cursor.fg.into()),
             }),
             selection: Some(SelectionColors {
-                background: Some(cs.selection.bg.clone()),
-                text: Some(cs.selection.fg.clone()),
+                background: Some(cs.selection.bg.into()),
+                text: Some(cs.selection.fg.into()),
             }),
-            normal: Some(AnsiColors::from_color_scheme_ansi(&cs.base)),
-            bright: Some(AnsiColors::from_color_scheme_ansi(&cs.bright)),
-            dim: Some(AnsiColors::from_color_scheme_ansi(cs.dim(None))),
             indexed_colors: vec![
                 IndexedColor {
                     index: 16,
-                    color: cs.base.orange.clone(),
+                    color: cs.base.orange.to_string(),
                 },
                 IndexedColor {
                     index: 17,
-                    color: cs.base.pink.clone(),
+                    color: cs.base.pink.to_string(),
                 },
             ],
+            normal: Some(AnsiColors::from_color_scheme_ansi(cs.base)),
+            bright: Some(AnsiColors::from_color_scheme_ansi(cs.bright)),
+            dim: Some(AnsiColors::from_color_scheme_ansi(cs.dim)),
         }
     }
 }
@@ -208,16 +209,16 @@ pub struct AnsiColors {
 }
 
 impl AnsiColors {
-    pub fn from_color_scheme_ansi(ansi: &CsAnsiColors) -> Self {
+    pub fn from_color_scheme_ansi(ansi: lib::AnsiColors) -> Self {
         Self {
-            black: Some(ansi.black.clone()),
-            red: Some(ansi.red.clone()),
-            green: Some(ansi.green.clone()),
-            yellow: Some(ansi.yellow.clone()),
-            blue: Some(ansi.blue.clone()),
-            magenta: Some(ansi.magenta.clone()),
-            cyan: Some(ansi.cyan.clone()),
-            white: Some(ansi.white.clone()),
+            black: Some(ansi.black.into()),
+            red: Some(ansi.red.into()),
+            green: Some(ansi.green.into()),
+            yellow: Some(ansi.yellow.into()),
+            blue: Some(ansi.blue.into()),
+            magenta: Some(ansi.magenta.into()),
+            cyan: Some(ansi.cyan.into()),
+            white: Some(ansi.white.into()),
         }
     }
 }

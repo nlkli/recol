@@ -4,53 +4,6 @@ use std::{
     io::{self, BufRead},
     path::Path,
 };
-use strsim::{jaro_winkler, normalized_levenshtein};
-
-pub fn fuzzy_search_strings<'a>(items: &'a [String], query: &str) -> Option<&'a str> {
-    let refs: Vec<&'a str> = items.iter().map(|s| s.as_str()).collect();
-    fuzzy_search(&refs, query)
-}
-
-pub fn fuzzy_search<'a, 'v>(items: &'v [&'a str], query: &str) -> Option<&'a str> {
-    if query.len() > 512 {
-        return None;
-    }
-    let query_norm = query
-        .to_lowercase()
-        .split_whitespace()
-        .collect::<Vec<_>>()
-        .join(" ");
-
-    let mut best_score = 0.0;
-    let mut best_item = None;
-
-    for &item in items {
-        let item_norm = item.to_lowercase();
-
-        let jw = jaro_winkler(&query_norm, &item_norm);
-        let lev = normalized_levenshtein(&query_norm, &item_norm);
-
-        let mut score = 0.7 * jw + 0.3 * lev;
-
-        let query_words: Vec<&str> = query_norm.split(' ').collect();
-        let mut word_matches = 0;
-
-        for w in &query_words {
-            if item_norm.contains(w) {
-                word_matches += 1;
-            }
-        }
-
-        score += 0.05 * word_matches as f64;
-
-        if score > best_score {
-            best_score = score;
-            best_item = Some(item);
-        }
-    }
-
-    best_item
-}
 
 pub fn write_content_inside_text_block<P>(
     path: P,
@@ -104,30 +57,9 @@ where
     Ok(())
 }
 
-#[inline(always)]
-pub fn as_array_ref<T, const N: usize>(s: &[T]) -> &[T; N] {
-    assert_eq!(s.len(), N);
-    unsafe { &*(s.as_ptr() as *const [T; N]) }
-}
-
 pub fn io_other_error<E>(err: E) -> io::Error
 where
     E: Into<Box<dyn std::error::Error + Send + Sync>>,
 {
     io::Error::new(io::ErrorKind::Other, err)
-}
-
-#[allow(dead_code)]
-pub fn missing_field(path: &'static str) -> io::Error {
-    io::Error::new(
-        io::ErrorKind::InvalidData,
-        format!("required field `{}` is missing", path),
-    )
-}
-
-#[macro_export]
-macro_rules! require_field {
-    ($root:expr, $path:literal, $field:ident) => {
-        $root.$field.as_ref().ok_or_else(|| missing_field($path))
-    };
 }
