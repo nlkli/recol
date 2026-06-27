@@ -19,7 +19,7 @@ fn main() {
         recol_lib::build_colorschemes_bin(
             std::env::var("RECOL_GHOSSTY_THEMES_DIR").unwrap_or_else(|_| "./colorschemes".into()),
             &mut output,
-            |name| !name.is_empty(),
+            |name| !["<skip themes by name>"].contains(&name),
         )
         .expect("Failed to build colorschemes.bin");
     }

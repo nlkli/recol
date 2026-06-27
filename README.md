@@ -48,10 +48,11 @@ cargo build --release
 cp target/release/recol /usr/local/bin/
 ```
 
-### Fetch and build colorschemes from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
+### Fetch and rebuild color schemes
+
+To download the latest themes from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes) and recompile the binary blob:
 
 ```sh
-# cd recol
 RECOL_FETCH_GHOSSTY_THEMES=1 \
 RECOL_BUILD_COLORSCHEMES_BIN=1 \
 cargo build --release
