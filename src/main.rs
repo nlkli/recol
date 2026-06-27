@@ -8,19 +8,114 @@ use recol_lib as lib;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
+#[inline]
+fn print_theme_header(name: &str, is_light: bool) {
+    println!("{name} <{}>", if is_light { "LIGHT" } else { "DARK" });
+}
+
+#[inline]
+fn print_theme_as_json(name: &str, is_light: bool, colors: &lib::AdvancedColorScheme) {
+    let json_str = serde_json::to_string_pretty(&serde_json::json!({
+        "name": name,
+        "is_light": is_light,
+        "colors": colors,
+    }))
+    .unwrap();
+    println!("{}", json_str);
+}
+
 fn main() -> Result<()> {
     let args = cli::Args::parse();
 
     tmpstore::init();
 
     let mut collection = lib::Collection::new();
-    let filters = args.filters();
 
-    if args.theme_list {
-        collection
-            .name_list(&filters)
-            .iter()
-            .for_each(|n| println!("{n}"));
+    if args.theme.is_none()
+        && !args.rand
+        && args.contains.is_none()
+        && !args.theme_list
+        && args.font.is_none()
+        && !args.font_rand
+        && !args.font_list
+    {
+        if let Some(theme) = tmpstore::read_theme_history(1)
+            .first()
+            .and_then(|n| collection.by_name(n))
+        {
+            if args.show {
+                print_theme_header(&theme.name, theme.is_light);
+                theme.into_theme().print_palette();
+            } else if args.json {
+                print_theme_as_json(
+                    &theme.name,
+                    theme.is_light,
+                    &theme
+                        .into_theme()
+                        .colors
+                        .into_advanced(None),
+                );
+            } else {
+                print_theme_header(theme.name, theme.is_light);
+            }
+        }
+        return Ok(());
+    }
+
+    if args.theme.is_some() || args.rand || args.theme_list {
+        let filters = args.theme_filters();
+
+        if args.theme_list {
+            collection
+                .name_list(&filters)
+                .iter()
+                .for_each(|n| println!("{n}"));
+        }
+
+        let mut theme = None;
+
+        if let Some(ref query) = args.theme {
+            theme = theme.or(collection
+                .fuzzy_search(query, &filters)
+                .map(|v| v.into_theme()));
+        } else if args.rand {
+            let theme_history = tmpstore::read_theme_history(21);
+            let mut choice = collection.random(&filters);
+            let mut n = 0;
+            while let Some(ref t) = choice {
+                if !theme_history.contains(&t.name.to_string()) || n > 9 {
+                    break;
+                }
+                choice = choice.or(collection.random(&filters));
+                n += 1;
+            }
+            theme = theme.or(choice.map(|v| v.into_theme()));
+        }
+
+        if let Some(theme) = theme {
+            loop {
+                if args.show {
+                    print_theme_header(&theme.name, theme.is_light);
+                    theme.print_palette();
+                    break;
+                }
+                if args.json {
+                    print_theme_as_json(
+                        &theme.name,
+                        theme.is_light,
+                        &theme
+                            .colors
+                            .clone()
+                            .into_advanced(None),
+                    );
+                    break;
+                }
+                print_theme_header(&theme.name, theme.is_light);
+                targets::apply_theme(&args, &theme)?;
+                tmpstore::append_theme_history(&theme.name);
+                break;
+            }
+        }
     }
 
     if args.font_list || args.font_rand || args.font.is_some() {
@@ -55,59 +150,6 @@ fn main() -> Result<()> {
         if let Some(ref font_name) = font_name {
             targets::apply_font(font_name)?;
             tmpstore::append_font_history(font_name);
-        }
-    }
-
-    let mut theme = None;
-    if args.rand {
-        let theme_history = tmpstore::read_theme_history(21);
-        theme.replace(collection.random(&filters).unwrap().into_theme());
-        let mut n: usize = 0;
-        while n < 9 {
-            if let Some(ref t) = theme {
-                if theme_history.contains(&t.name) {
-                    theme.replace(collection.random(&filters).unwrap().into_theme());
-                    n += 1;
-                    continue;
-                }
-            }
-            break;
-        }
-    }
-
-    if let Some(ref query) = args.theme {
-        theme.replace(
-            collection
-                .fuzzy_search(query, &filters)
-                .unwrap_or(collection.random(&filters).unwrap())
-                .into_theme(),
-        );
-    }
-
-    if let Some(ref mut theme) = theme {
-        let print_header = || {
-            let tmod = if theme.is_light { "LIGHT" } else { "DARK" };
-            println!("{} <{tmod}>", theme.name);
-        };
-        loop {
-            if args.show {
-                print_header();
-                theme.print_palette();
-                break;
-            }
-            if args.json {
-                let json_str = serde_json::to_string_pretty(&serde_json::json!({
-                    "name": &theme.name,
-                    "is_light": &theme.is_light,
-                    "colors": &theme.colors.clone().into_advanced(lib::AdvancedColorSchemeParam::default()),
-                })).unwrap();
-                println!("{}", json_str);
-                break;
-            }
-            print_header();
-            targets::apply_theme(&args, theme)?;
-            tmpstore::append_theme_history(&theme.name);
-            break;
         }
     }
 

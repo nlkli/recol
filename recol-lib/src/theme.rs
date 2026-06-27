@@ -216,7 +216,9 @@ impl ColorScheme {
 
     /// Expand this scheme into an [`AdvancedColorScheme`] using the given
     /// brightness/blend parameters.
-    pub fn into_advanced(self, p: AdvancedColorSchemeParam) -> AdvancedColorScheme {
+    pub fn into_advanced(self, param: Option<AdvancedColorSchemeParam>) -> AdvancedColorScheme {
+        let param = param.unwrap_or_default();
+
         let bg_color = self.bg.color();
         let fg_color = self.fg.color();
         let bg_lum = bg_color.hsl().2;
@@ -231,50 +233,50 @@ impl ColorScheme {
 
         // bg[0] is always slightly *outside* the main bg to create contrast;
         // if the naive direction would clip against the boundary, flip it.
-        let bg0 = if (bg_lum + p.bg0_brighten * m - z) * (-m) - GAP < 100.0 {
-            bg_color.brighten(p.bg0_brighten * m).css()
+        let bg0 = if (bg_lum + param.bg0_brighten * m - z) * (-m) - GAP < 100.0 {
+            bg_color.brighten(param.bg0_brighten * m).css()
         } else {
-            bg_color.brighten(-p.bg0_brighten * m).css()
+            bg_color.brighten(-param.bg0_brighten * m).css()
         };
         let bg = [
             bg0,
             self.bg,
-            bg_color.brighten(p.bg2_brighten).css(),
-            bg_color.brighten(p.bg3_brighten).css(),
-            bg_color.brighten(p.bg4_brighten).css(),
+            bg_color.brighten(param.bg2_brighten).css(),
+            bg_color.brighten(param.bg3_brighten).css(),
+            bg_color.brighten(param.bg4_brighten).css(),
         ];
 
         // fg[0] applies the same boundary-aware flip logic.
-        let fg0 = if (fg_color.hsl().2 + p.fg0_brighten * m - z) * (-m) - GAP > 0.0 {
-            fg_color.brighten(p.fg0_brighten * m).css()
+        let fg0 = if (fg_color.hsl().2 + param.fg0_brighten * m - z) * (-m) - GAP > 0.0 {
+            fg_color.brighten(param.fg0_brighten * m).css()
         } else {
-            fg_color.brighten(-p.fg0_brighten * m).css()
+            fg_color.brighten(-param.fg0_brighten * m).css()
         };
         let fg = [
             fg0,
             self.fg,
-            fg_color.brighten(p.fg2_brighten).css(),
-            fg_color.brighten(p.fg3_brighten).css(),
+            fg_color.brighten(param.fg2_brighten).css(),
+            fg_color.brighten(param.fg3_brighten).css(),
         ];
 
         let alt_selection = [
-            bg_color.blend(&fg_color, p.code_selection_blend).css(),
+            bg_color.blend(&fg_color, param.code_selection_blend).css(),
             bg_color
-                .blend(&self.cursor.bg.color(), p.code_selection_blend)
+                .blend(&self.cursor.bg.color(), param.code_selection_blend)
                 .css(),
         ];
 
         let dim = AnsiColors {
-            black: self.base.black.color().shade(p.dim_shade).css(),
-            red: self.base.red.color().shade(p.dim_shade).css(),
-            green: self.base.green.color().shade(p.dim_shade).css(),
-            yellow: self.base.yellow.color().shade(p.dim_shade).css(),
-            blue: self.base.blue.color().shade(p.dim_shade).css(),
-            magenta: self.base.magenta.color().shade(p.dim_shade).css(),
-            cyan: self.base.cyan.color().shade(p.dim_shade).css(),
-            white: self.base.white.color().shade(p.dim_shade).css(),
-            orange: self.base.orange.color().shade(p.dim_shade).css(),
-            pink: self.base.pink.color().shade(p.dim_shade).css(),
+            black: self.base.black.color().shade(param.dim_shade).css(),
+            red: self.base.red.color().shade(param.dim_shade).css(),
+            green: self.base.green.color().shade(param.dim_shade).css(),
+            yellow: self.base.yellow.color().shade(param.dim_shade).css(),
+            blue: self.base.blue.color().shade(param.dim_shade).css(),
+            magenta: self.base.magenta.color().shade(param.dim_shade).css(),
+            cyan: self.base.cyan.color().shade(param.dim_shade).css(),
+            white: self.base.white.color().shade(param.dim_shade).css(),
+            orange: self.base.orange.color().shade(param.dim_shade).css(),
+            pink: self.base.pink.color().shade(param.dim_shade).css(),
         };
 
         let diff = DiffColors {
@@ -282,25 +284,25 @@ impl ColorScheme {
                 .base
                 .green
                 .color()
-                .blend(&bg_color, p.diff_add_blend)
+                .blend(&bg_color, param.diff_add_blend)
                 .css(),
             delete: self
                 .base
                 .red
                 .color()
-                .blend(&bg_color, p.diff_delete_blend)
+                .blend(&bg_color, param.diff_delete_blend)
                 .css(),
             change: self
                 .base
                 .blue
                 .color()
-                .blend(&bg_color, p.diff_change_blend)
+                .blend(&bg_color, param.diff_change_blend)
                 .css(),
             text: self
                 .base
                 .magenta
                 .color()
-                .blend(&bg_color, p.diff_text_blend)
+                .blend(&bg_color, param.diff_text_blend)
                 .css(),
         };
 
@@ -314,7 +316,7 @@ impl ColorScheme {
             bright: self.bright,
             dim,
             diff,
-            comment: fg_color.blend(&bg_color, p.comment_blend).css(),
+            comment: fg_color.blend(&bg_color, param.comment_blend).css(),
         }
     }
 }

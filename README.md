@@ -5,9 +5,9 @@ A fast CLI utility for managing color themes and fonts across your terminal and 
 ![recol-demo-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo.gif)
 
 * 550+ prebuilt color schemes from the iTerm2 Color Schemes repository:
-  [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes?utm_source=chatgpt.com)
+  [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
 * Neovim theme integration based on the Nightfox theme collection:
-  [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim?utm_source=chatgpt.com)
+  [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim)
 * Terminal support:
 
   * [Alacritty](https://alacritty.org/index.html)
@@ -48,6 +48,15 @@ cargo build --release
 cp target/release/recol /usr/local/bin/
 ```
 
+### Fetch and build colorschemes from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
+
+```sh
+# cd recol
+RECOL_FETCH_GHOSSTY_THEMES=1 \
+RECOL_BUILD_COLORSCHEMES_BIN=1 \
+cargo build --release
+```
+
 ### Help message
 
 ```text
@@ -80,7 +89,7 @@ Options:
   --font-list   List available Nerd Fonts
   -s, --show
       Show the theme color palette without applying it
-  --json        Output theme as JSON
+  -j, --json    Output theme as JSON
   -h, --help
   -V, --version
 ```

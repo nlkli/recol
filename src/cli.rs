@@ -8,7 +8,7 @@ pub struct Args {
     /// Apply a random theme
     pub rand: bool,
 
-    /// Filter to dark themes (used with --rand or --theme-list)
+    /// Filter to dark themes
     pub dark: bool,
 
     /// Filter to light themes
@@ -78,7 +78,7 @@ CLI utility for changing the color scheme
   {blue}--font-list{reset}   List available Nerd Fonts
   {blue}-s{reset}, {blue}--show{reset}
       Show the theme color palette without applying it
-  {blue}--json{reset}        Output theme as JSON
+  {blue}-j{reset}, {blue}--json{reset}    Output theme as JSON
   {blue}-h{reset}, {blue}--help{reset}
   {blue}-V{reset}, {blue}--version{reset}
 "#,
@@ -129,6 +129,7 @@ impl Args {
                         'l' => args.light = true,
                         'F' => args.font_rand = true,
                         's' => args.show = true,
+                        'j' => args.json = true,
                         'h' => {
                             println!("{}", help());
                             std::process::exit(0);
@@ -164,7 +165,7 @@ impl Args {
         args
     }
 
-    pub fn filters(&self) -> Vec<lib::ThemeFilter<'_>> {
+    pub fn theme_filters(&self) -> Vec<lib::ThemeFilter<'_>> {
         let mut filters = Vec::new();
         if self.light {
             filters.push(lib::ThemeFilter::Light);

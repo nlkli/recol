@@ -5,7 +5,7 @@ const BUILD_COLORSCHEMES_BIN: bool = false;
 
 fn main() {
     if std::env::var("RECOL_FETCH_GHOSSTY_THEMES").is_ok() || FETCH_GHOSSTY_THEMES {
-        let status = std::process::Command::new("./fetch_colorschemes.sh")
+        let status = std::process::Command::new("./fetch.sh")
             .status()
             .expect("Failed to run fetch_colorschemes.sh");
 

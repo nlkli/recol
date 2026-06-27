@@ -89,7 +89,7 @@ impl Colors {
     pub fn from_color_scheme(cs: &lib::ColorScheme) -> Self {
         let cs = cs
             .clone()
-            .into_advanced(lib::AdvancedColorSchemeParam::default());
+            .into_advanced(None);
         Self {
             primary: Some(PrimaryColors {
                 background: Some(cs.bg[1].to_string()),

@@ -330,7 +330,6 @@ fn parse_ghostty_theme(path: impl AsRef<Path>, name: &str) -> std::io::Result<Th
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::AdvancedColorSchemeParam;
 
     #[test]
     fn all_themes_decode_without_panic() {
@@ -339,7 +338,7 @@ mod tests {
             let _ = lazy
                 .into_theme()
                 .colors
-                .into_advanced(AdvancedColorSchemeParam::default());
+                .into_advanced(None);
             decoded += 1;
         }
         assert_eq!(decoded, theme_count());

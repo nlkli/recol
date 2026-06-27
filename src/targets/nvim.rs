@@ -3,10 +3,7 @@ use recol_lib as lib;
 use std::{io, path::Path};
 
 pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
-    let c = theme
-        .colors
-        .clone()
-        .into_advanced(lib::AdvancedColorSchemeParam::default());
+    let c = theme.colors.clone().into_advanced(None);
 
     const HEAD: &str = r###"
 local function applyRecol()
