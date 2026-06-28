@@ -10,15 +10,16 @@ A fast CLI utility for managing color themes and fonts across your terminal and 
   [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim)
 * Terminal support:
 
-  * [Alacritty](https://alacritty.org/index.html)
   * [Ghostty](https://ghostty.org)
+  * [Alacritty](https://alacritty.org/index.html)
+  * [WezTerm](https://wezterm.org/index.html)
 * Font switching support (macOS only)
 * Non-destructive configuration updates (only colors/fonts are modified)
 
 ### Terminal support notes
 
-- **Alacritty** supports hot configuration reload. Changes are applied immediately without restarting the terminal.
 - **Ghostty** requires a manual reload (e.g. `Ctrl + Shift + ,` on Linux or `Cmd + Shift + ,` on macOS).
+- **Alacritty**, **WezTerm** supports hot configuration reload. Changes are applied immediately without restarting the terminal.
 
 ### Neovim integration
 
@@ -66,7 +67,7 @@ https://github.com/nlkli/recol
 550+ color schemes:
 https://github.com/mbadolato/iTerm2-Color-Schemes
 
-Supported targets: alacritty, ghostty, neovim.
+Supported targets: alacritty, ghostty, wezterm, neovim.
 
 Usage: recol [OPTIONS] [THEME_NAME]
 
@@ -80,8 +81,6 @@ Options:
   -c, --contains <STR>
       Filter themes by dark, light or name substring
       (used with --rand, --theme or --theme-list)
-  --nvim-config <PATH>
-      default: ~/.config/nvim/init.lua
   -f, --font <NAME>
       Set font family by name (fuzzy matching)
   -F, --font-rand
@@ -120,5 +119,64 @@ Options:
 ![recol-demo-img-11](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-11.jpg)
 
 ![recol-demo-img-12](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-12.jpg)
+
+### Tree
+
+```text
+.
+├── build.rs
+├── Cargo.lock
+├── Cargo.toml
+├── fetch.sh
+├── LICENSE
+├── README.md
+├── recol-lib
+│   ├── Cargo.lock
+│   ├── Cargo.toml
+│   └── src
+│       ├── collection.rs
+│       ├── color.rs
+│       ├── colorschemes.bin
+│       ├── error.rs
+│       ├── fuzzy.rs
+│       ├── lib.rs
+│       └── theme.rs
+└── src
+    ├── cli.rs
+    ├── font.rs
+    ├── main.rs
+    ├── targets
+    │   ├── alacritty.rs
+    │   ├── ghostty.rs
+    │   ├── mod.rs
+    │   ├── nvim.rs
+    │   └── wezterm.rs
+    ├── tmpstore.rs
+    └── utils.rs
+
+5 directories, 25 files
+```
+
+### SCC
+
+```text
+───────────────────────────────────────────────────────────────────────────────
+Language            Files       Lines    Blanks  Comments       Code Complexity
+───────────────────────────────────────────────────────────────────────────────
+Rust                   17       2,967       321       310      2,336        225
+TOML                    2          37         4         0         33          1
+License                 1          21         4         0         17          0
+Markdown                1         161        38         0        123          0
+Shell                   1           5         1         1          3          2
+───────────────────────────────────────────────────────────────────────────────
+Total                  22       3,191       368       311      2,512        228
+───────────────────────────────────────────────────────────────────────────────
+Estimated Cost to Develop (organic) $71,058
+Estimated Schedule Effort (organic) 5.04 months
+Estimated People Required (organic) 1.25
+───────────────────────────────────────────────────────────────────────────────
+Processed 107152 bytes, 0.107 megabytes (SI)
+───────────────────────────────────────────────────────────────────────────────
+```
 
 😉👉⭐️

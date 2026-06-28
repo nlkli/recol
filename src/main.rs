@@ -50,10 +50,7 @@ fn main() -> Result<()> {
                 print_theme_as_json(
                     &theme.name,
                     theme.is_light,
-                    &theme
-                        .into_theme()
-                        .colors
-                        .into_advanced(None),
+                    &theme.into_theme().colors.into_advanced(None),
                 );
             } else {
                 print_theme_header(theme.name, theme.is_light);
@@ -103,10 +100,7 @@ fn main() -> Result<()> {
                     print_theme_as_json(
                         &theme.name,
                         theme.is_light,
-                        &theme
-                            .colors
-                            .clone()
-                            .into_advanced(None),
+                        &theme.colors.clone().into_advanced(None),
                     );
                     break;
                 }
@@ -139,6 +133,16 @@ fn main() -> Result<()> {
                     }
                 }
                 break;
+            }
+            let font_history = tmpstore::read_font_history(2);
+            font_name = fastrand::choice(&font_list).cloned();
+            let mut n = 0;
+            while let Some(ref f) = font_name {
+                if !font_history.contains(f) || n > 3 {
+                    break;
+                }
+                font_name = font_name.or(fastrand::choice(&font_list).cloned());
+                n += 1;
             }
         }
 

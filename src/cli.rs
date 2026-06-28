@@ -18,7 +18,7 @@ pub struct Args {
     pub contains: Option<String>,
 
     /// Neovim config path
-    pub nvim_config: Option<String>,
+    // pub nvim_config: Option<String>,
 
     /// List available themes
     pub theme_list: bool,
@@ -45,7 +45,7 @@ const GREEN: &str = "\x1b[32m";
 const BLUE: &str = "\x1b[34m";
 const MAGENTA: &str = "\x1b[35m";
 
-const VERSION: &str = "recol 0.1.7 [https://github.com/nlkli/recol]";
+const VERSION: &str = "recol 0.1.8 [https://github.com/nlkli/recol]";
 fn help() -> String {
     format!(
         r#"
@@ -54,7 +54,7 @@ CLI utility for changing the color scheme
 550+ color schemes:
 {magenta}https://github.com/mbadolato/iTerm2-Color-Schemes{reset}
 
-{green}Supported targets:{reset} alacritty, ghostty, neovim.
+{green}Supported targets:{reset} alacritty, ghostty, wezterm, neovim.
 
 {green}Usage:{reset} {blue}recol [OPTIONS] [THEME_NAME]{reset}
 
@@ -68,8 +68,6 @@ CLI utility for changing the color scheme
   {blue}-c{reset}, {blue}--contains <STR>{reset}
       Filter themes by dark, light or name substring
       (used with --rand, --theme or --theme-list)
-  {blue}--nvim-config <PATH>{reset}
-      default: ~/.config/nvim/init.lua
   {blue}-f{reset}, {blue}--font <NAME>{reset}
       Set font family by name (fuzzy matching)
   {blue}-F{reset}, {blue}--font-rand{reset}
@@ -101,7 +99,7 @@ impl Args {
                     "theme" => last = Some('t'),
                     "font" => last = Some('f'),
                     "contains" => last = Some('c'),
-                    "nvim-config" => last = Some('0'),
+                    // "nvim-config" => last = Some('0'),
                     "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
                     "font-rand" => args.font_rand = true,
@@ -152,9 +150,9 @@ impl Args {
                     Some('c') => {
                         args.contains.replace(arg);
                     }
-                    Some('0') => {
-                        args.nvim_config.replace(arg);
-                    }
+                    // Some('0') => {
+                    //     args.nvim_config.replace(arg);
+                    // }
                     _ => {
                         args.theme.replace(arg);
                     }

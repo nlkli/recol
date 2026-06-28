@@ -62,7 +62,7 @@ dependencies = [
 
 [[package]]
 name = "recol"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "fastrand",
  "recol-lib",

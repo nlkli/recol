@@ -30,6 +30,7 @@ use std::{
     path::Path,
 };
 
+// TODO: remove offst table
 /// Source: <https://github.com/mbadolato/iTerm2-Color-Schemes/tree/master/ghostty>
 pub const COLOR_SCHEMES: &[u8] = include_bytes!("colorschemes.bin");
 
@@ -335,10 +336,7 @@ mod tests {
     fn all_themes_decode_without_panic() {
         let mut decoded = 0;
         for lazy in Collection::new() {
-            let _ = lazy
-                .into_theme()
-                .colors
-                .into_advanced(None);
+            let _ = lazy.into_theme().colors.into_advanced(None);
             decoded += 1;
         }
         assert_eq!(decoded, theme_count());
