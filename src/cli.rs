@@ -76,7 +76,7 @@ CLI utility for changing the color scheme
   {blue}--font-list{reset}   List available Nerd Fonts
   {blue}-s{reset}, {blue}--show{reset}
       Show the theme color palette without applying it
-  {blue}-j{reset}, {blue}--json{reset}    Output theme as JSON
+  {blue}-j{reset}, {blue}--json{reset}    Output theme/list as JSON
   {blue}-h{reset}, {blue}--help{reset}
   {blue}-V{reset}, {blue}--version{reset}
 "#,

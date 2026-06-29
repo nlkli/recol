@@ -89,7 +89,7 @@ Options:
   --font-list   List available Nerd Fonts
   -s, --show
       Show the theme color palette without applying it
-  -j, --json    Output theme as JSON
+  -j, --json    Output theme/list as JSON
   -h, --help
   -V, --version
 ```

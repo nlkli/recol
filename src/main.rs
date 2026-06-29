@@ -14,13 +14,21 @@ fn print_theme_header(name: &str, is_light: bool) {
 }
 
 #[inline]
-fn print_theme_as_json(name: &str, is_light: bool, colors: &lib::AdvancedColorScheme) {
-    let json_str = serde_json::to_string_pretty(&serde_json::json!({
+fn theme_as_json(
+    name: &str,
+    is_light: bool,
+    colors: &lib::AdvancedColorScheme,
+) -> serde_json::Value {
+    serde_json::json!({
         "name": name,
         "is_light": is_light,
         "colors": colors,
-    }))
-    .unwrap();
+    })
+}
+
+#[inline]
+fn print_theme_as_json(name: &str, is_light: bool, colors: &lib::AdvancedColorScheme) {
+    let json_str = serde_json::to_string_pretty(&theme_as_json(name, is_light, colors)).unwrap();
     println!("{}", json_str);
 }
 
@@ -62,13 +70,6 @@ fn main() -> Result<()> {
     if args.theme.is_some() || args.rand || args.theme_list {
         let filters = args.theme_filters();
 
-        if args.theme_list {
-            collection
-                .name_list(&filters)
-                .iter()
-                .for_each(|n| println!("{n}"));
-        }
-
         let mut theme = None;
 
         if let Some(ref query) = args.theme {
@@ -89,7 +90,7 @@ fn main() -> Result<()> {
             theme = theme.or(choice.map(|v| v.into_theme()));
         }
 
-        if let Some(theme) = theme {
+        if let Some(ref theme) = theme {
             loop {
                 if args.show {
                     print_theme_header(&theme.name, theme.is_light);
@@ -105,9 +106,31 @@ fn main() -> Result<()> {
                     break;
                 }
                 print_theme_header(&theme.name, theme.is_light);
-                targets::apply_theme(&args, &theme)?;
+                targets::apply_theme(&args, theme)?;
                 tmpstore::append_theme_history(&theme.name);
                 break;
+            }
+        }
+
+        if args.theme_list {
+            if theme.is_none() && args.json {
+                let json_list = collection
+                    .filtered(&filters)
+                    .into_iter()
+                    .map(|v| {
+                        theme_as_json(
+                            v.name,
+                            v.is_light,
+                            &v.into_theme().colors.into_advanced(None),
+                        )
+                    })
+                    .collect::<Vec<_>>();
+                println!("{}", serde_json::to_string_pretty(&json_list)?);
+            } else {
+                collection
+                    .name_list(&filters)
+                    .iter()
+                    .for_each(|n| println!("{n}"));
             }
         }
     }

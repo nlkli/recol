@@ -206,7 +206,7 @@ impl Collection {
     }
 
     /// Iterator adapter that applies all filters in `filters`.
-    fn filtered<'a>(
+    pub fn filtered<'a>(
         &'a mut self,
         filters: &'a [ThemeFilter<'_>],
     ) -> impl Iterator<Item = LazyTheme> + 'a {
