@@ -59,6 +59,17 @@ RECOL_BUILD_COLORSCHEMES_BIN=1 \
 cargo build --release
 ```
 
+### Usage examples
+
+```sh
+recol londonsohonight         # fuzzy match - applies closest theme by name
+recol -rd --contains Gruvbox  # random dark theme with "Gruvbox" in name
+recol --theme-list -l --json  # list light themes as JSON
+recol dracula --dark --show   # preview palette without applying
+recol -t tokyo --json         # print tokyo theme as JSON
+recol                         # print current theme name (add --show or --json for more)
+```
+
 ### Help message
 
 ```text
