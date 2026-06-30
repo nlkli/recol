@@ -72,6 +72,26 @@ pub struct LazyTheme {
     color_scheme_bytes: &'static [u8],
 }
 
+impl PartialEq for LazyTheme {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
+impl Eq for LazyTheme {}
+
+impl PartialOrd for LazyTheme {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for LazyTheme {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.name.cmp(other.name)
+    }
+}
+
 impl LazyTheme {
     /// Decode a `LazyTheme` from raw bytes (see binary layout in module docs).
     fn from_bytes(b: &'static [u8]) -> Self {
@@ -119,6 +139,12 @@ pub enum ThemeFilter<'a> {
     Dark,
     /// Themes whose name contains the given substring.
     Contains(&'a str),
+    /// Theme whose name start with
+    StartWith(&'a str),
+
+    ContainsLower(&'a str),
+    StartWithLower(&'a str),
+
     /// Arbitrary predicate.
     Custom(fn(&LazyTheme) -> bool),
 }
@@ -131,6 +157,9 @@ impl<'a> ThemeFilter<'a> {
             Self::Light => t.is_light,
             Self::Dark => !t.is_light,
             Self::Contains(s) => t.name.contains(s),
+            Self::StartWith(s) => t.name.starts_with(s),
+            Self::ContainsLower(s) => t.name.to_lowercase().contains(s),
+            Self::StartWithLower(s) => t.name.to_lowercase().starts_with(s),
             Self::Custom(f) => f(t),
         }
     }
@@ -200,9 +229,24 @@ impl Collection {
     }
 
     /// Find the best fuzzy match for `query` among themes matching `filters`.
-    pub fn fuzzy_search(&mut self, query: &str, filters: &[ThemeFilter<'_>]) -> Option<LazyTheme> {
+    pub fn fuzzy_search(&mut self, query: &str, filters: &[ThemeFilter<'_>], min_score: Option<f64>) -> Option<LazyTheme> {
         let candidates = self.name_list(filters);
-        crate::fuzzy::search(query, &candidates).and_then(|name| self.by_name(name))
+        crate::fuzzy::search(query, &candidates, min_score).and_then(|name| self.by_name(name))
+    }
+
+    /// Find the best tip n fuzzy match for `query` among themes matching `filters`.
+    pub fn fuzzy_search_top_n(
+        &mut self,
+        query: &str,
+        filters: &[ThemeFilter<'_>],
+        limit: usize,
+        min_score: Option<f64>,
+    ) -> Vec<LazyTheme> {
+        let candidates = self.name_list(filters);
+        crate::fuzzy::search_top_n(query, &candidates, limit, min_score)
+            .into_iter()
+            .map(|name| self.by_name(name).unwrap())
+            .collect()
     }
 
     /// Iterator adapter that applies all filters in `filters`.

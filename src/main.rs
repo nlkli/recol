@@ -1,5 +1,6 @@
 mod cli;
 mod font;
+mod interactive;
 mod targets;
 mod tmpstore;
 mod utils;
@@ -46,6 +47,7 @@ fn main() -> Result<()> {
         && args.font.is_none()
         && !args.font_rand
         && !args.font_list
+        && !args.interactive
     {
         if let Some(theme) = tmpstore::read_theme_history(1)
             .first()
@@ -74,7 +76,7 @@ fn main() -> Result<()> {
 
         if let Some(ref query) = args.theme {
             theme = theme.or(collection
-                .fuzzy_search(query, &filters)
+                .fuzzy_search(query, &filters, None)
                 .map(|v| v.into_theme()));
         } else if args.rand {
             let theme_history = tmpstore::read_theme_history(21);
@@ -171,13 +173,17 @@ fn main() -> Result<()> {
 
         if let Some(ref query) = args.font {
             let candidates = font_list.iter().map(|f| f.as_str()).collect::<Vec<_>>();
-            font_name = lib::fuzzy::search(query, &candidates).map(String::from);
+            font_name = lib::fuzzy::search(query, &candidates, None).map(String::from);
         }
 
         if let Some(ref font_name) = font_name {
             targets::apply_font(font_name)?;
             tmpstore::append_font_history(font_name);
         }
+    }
+
+    if args.interactive {
+        interactive::run(&args)?;
     }
 
     Ok(())

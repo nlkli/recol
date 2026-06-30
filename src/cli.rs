@@ -37,6 +37,9 @@ pub struct Args {
 
     /// Output theme as JSON
     pub json: bool,
+
+    /// Interactive mode
+    pub interactive: bool,
 }
 
 // Standard ANSI color codes
@@ -108,6 +111,7 @@ impl Args {
                     "light" => args.light = true,
                     "show" => args.show = true,
                     "json" => args.json = true,
+                    "interactive" => args.interactive = true,
                     "help" => {
                         println!("{}", help());
                         std::process::exit(0);
@@ -128,6 +132,7 @@ impl Args {
                         'F' => args.font_rand = true,
                         's' => args.show = true,
                         'j' => args.json = true,
+                        'i' => args.interactive = true,
                         'h' => {
                             println!("{}", help());
                             std::process::exit(0);

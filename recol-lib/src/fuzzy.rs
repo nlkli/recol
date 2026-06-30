@@ -1,5 +1,44 @@
 use strsim::{jaro_winkler, normalized_damerau_levenshtein, sorensen_dice};
 
+/// Finds the top-N best matching strings from `candidates` for the given `query`.
+///
+/// Returns candidates sorted from most to least relevant, capped at `limit`.
+/// Results below the minimum confidence threshold are excluded entirely.
+/// Returns an empty `Vec` if no candidates clear the threshold.
+pub fn search_top_n<'a>(
+    query: &str,
+    candidates: &[&'a str],
+    limit: usize,
+    min_score: Option<f64>,
+) -> Vec<&'a str> {
+    if limit == 0 {
+        return vec![];
+    }
+
+    const DEFAULT_MIN_SCORE: f64 = 0.333333;
+
+    let min_score = min_score.unwrap_or(DEFAULT_MIN_SCORE);
+
+    let query_lower = query.to_lowercase();
+
+    let mut scored: Vec<(&str, f64)> = candidates
+        .iter()
+        .filter_map(|&candidate| {
+            let score = combined_score(&query_lower, &candidate.to_lowercase());
+            if score >= min_score {
+                Some((candidate, score))
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    // Sort descending by score; break ties alphabetically for determinism.
+    scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap().then_with(|| a.0.cmp(b.0)));
+
+    scored.into_iter().take(limit).map(|(c, _)| c).collect()
+}
+
 /// Finds the best matching string from `candidates` for the given `query`.
 ///
 /// Combines multiple similarity metrics to handle typos, case differences,
@@ -7,8 +46,10 @@ use strsim::{jaro_winkler, normalized_damerau_levenshtein, sorensen_dice};
 ///
 /// Returns `None` if `candidates` is empty or no match clears the minimum
 /// confidence threshold.
-pub fn search<'a>(query: &str, candidates: &[&'a str]) -> Option<&'a str> {
-    const MIN_SCORE: f64 = 0.333333;
+pub fn search<'a>(query: &str, candidates: &[&'a str], min_score: Option<f64>) -> Option<&'a str> {
+    const DEFAULT_MIN_SCORE: f64 = 0.333333;
+
+    let min_score = min_score.unwrap_or(DEFAULT_MIN_SCORE);
 
     let query_lower = query.to_lowercase();
 
@@ -16,7 +57,7 @@ pub fn search<'a>(query: &str, candidates: &[&'a str]) -> Option<&'a str> {
         .iter()
         .filter_map(|&candidate| {
             let score = combined_score(&query_lower, &candidate.to_lowercase());
-            if score >= MIN_SCORE {
+            if score >= min_score {
                 Some((candidate, score))
             } else {
                 None
@@ -88,7 +129,7 @@ mod tests {
     ];
 
     fn find(query: &str) -> Option<&'static str> {
-        search(query, FRUITS)
+        search(query, FRUITS, None)
     }
 
     #[test]
@@ -130,11 +171,11 @@ mod tests {
 
     #[test]
     fn empty_candidates_returns_none() {
-        assert_eq!(search("apple", &[]), None);
+        assert_eq!(search("apple", &[], None), None);
     }
 
     #[test]
     fn single_candidate() {
-        assert_eq!(search("aple", &["apple"]), Some("apple"));
+        assert_eq!(search("aple", &["apple"], None), Some("apple"));
     }
 }
