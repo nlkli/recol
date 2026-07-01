@@ -15,6 +15,7 @@ A fast CLI utility for managing color themes and fonts across your terminal and 
   * [WezTerm](https://wezterm.org/index.html)
 * Font switching support (macOS only)
 * Non-destructive configuration updates (only colors/fonts are modified)
+* Minimal dependency footprint: [Cargo.toml](Cargo.toml)
 
 ### Terminal support notes
 
@@ -59,7 +60,7 @@ RECOL_BUILD_COLORSCHEMES_BIN=1 \
 cargo build --release
 ```
 
-### Help message
+### Help Message
 
 ```text
 CLI utility for changing the color scheme
@@ -96,7 +97,7 @@ Options:
   -V, --version
 ```
 
-### Usage examples
+### Usage Examples
 
 ```sh
 recol londonsohonight         # fuzzy match - applies closest theme by name
@@ -104,7 +105,6 @@ recol -rd --contains Gruvbox  # random dark theme with "Gruvbox" in name
 recol --theme-list -l --json  # list light themes as JSON
 recol dracula --dark --show   # preview palette without applying
 recol -t tokyo --json         # print tokyo theme as JSON
-recol -i                      # browse and apply themes interactively
 recol                         # print current theme name (add --show or --json for more)
 ```
 
@@ -131,7 +131,7 @@ typing      filter
 
 ![recol-demo-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo.gif)
 
----
+### Screenshots
 
 ![recol-demo-img-1](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-1.jpg)
 
@@ -157,7 +157,7 @@ typing      filter
 
 ![recol-demo-img-12](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-12.jpg)
 
-### Tree
+### Project Tree
 
 ```text
 .
@@ -181,6 +181,7 @@ typing      filter
 └── src
     ├── cli.rs
     ├── font.rs
+    ├── interactive.rs
     ├── main.rs
     ├── targets
     │   ├── alacritty.rs
@@ -191,7 +192,7 @@ typing      filter
     ├── tmpstore.rs
     └── utils.rs
 
-5 directories, 25 files
+5 directories, 26 files
 ```
 
 ### SCC
@@ -200,19 +201,19 @@ typing      filter
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   17       2,967       321       310      2,336        225
-TOML                    2          37         4         0         33          1
+Rust                   18       3,640       393       335      2,912        301
+TOML                    2          46         5         0         41          1
 License                 1          21         4         0         17          0
-Markdown                1         161        38         0        123          0
+Markdown                1         221        47         0        174          0
 Shell                   1           5         1         1          3          2
 ───────────────────────────────────────────────────────────────────────────────
-Total                  22       3,191       368       311      2,512        228
+Total                  23       3,933       450       336      3,147        304
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $71,058
-Estimated Schedule Effort (organic) 5.04 months
-Estimated People Required (organic) 1.25
+Estimated Cost to Develop (organic) $90,029
+Estimated Schedule Effort (organic) 5.51 months
+Estimated People Required (organic) 1.45
 ───────────────────────────────────────────────────────────────────────────────
-Processed 107152 bytes, 0.107 megabytes (SI)
+Processed 132353 bytes, 0.132 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
