@@ -59,18 +59,6 @@ RECOL_BUILD_COLORSCHEMES_BIN=1 \
 cargo build --release
 ```
 
-### Usage examples
-
-```sh
-recol londonsohonight         # fuzzy match - applies closest theme by name
-recol -rd --contains Gruvbox  # random dark theme with "Gruvbox" in name
-recol --theme-list -l --json  # list light themes as JSON
-recol dracula --dark --show   # preview palette without applying
-recol -t tokyo --json         # print tokyo theme as JSON
-recol -i                      # browse and apply themes interactively
-recol                         # print current theme name (add --show or --json for more)
-```
-
 ### Help message
 
 ```text
@@ -108,9 +96,42 @@ Options:
   -V, --version
 ```
 
----
+### Usage examples
+
+```sh
+recol londonsohonight         # fuzzy match - applies closest theme by name
+recol -rd --contains Gruvbox  # random dark theme with "Gruvbox" in name
+recol --theme-list -l --json  # list light themes as JSON
+recol dracula --dark --show   # preview palette without applying
+recol -t tokyo --json         # print tokyo theme as JSON
+recol -i                      # browse and apply themes interactively
+recol                         # print current theme name (add --show or --json for more)
+```
+
+### Interactive Mode Keybindings
+
+```text
+Normal Mode
+Enter       apply theme
+j / ↓       down
+k / ↑       up
+gg / G      top/bottom
+Ctrl+d/u    half page up/down
+/ or :      search
+q / Ctrl+c  quit
+
+Input Mode
+Enter / Esc back
+Backspace   delete
+Ctrl+c      quit
+typing      filter
+```
+
+### Demo
 
 ![recol-demo-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo.gif)
+
+---
 
 ![recol-demo-img-1](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-1.jpg)
 
