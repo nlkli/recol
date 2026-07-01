@@ -2,7 +2,7 @@
 
 A fast CLI utility for managing color themes and fonts across your terminal and [Neovim](https://neovim.io).
 
-![recol-demo-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo.gif)
+![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
 * 550+ prebuilt color schemes from the iTerm2 Color Schemes repository:
   [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
@@ -67,6 +67,7 @@ recol -rd --contains Gruvbox  # random dark theme with "Gruvbox" in name
 recol --theme-list -l --json  # list light themes as JSON
 recol dracula --dark --show   # preview palette without applying
 recol -t tokyo --json         # print tokyo theme as JSON
+recol -i                      # browse and apply themes interactively
 recol                         # print current theme name (add --show or --json for more)
 ```
 
@@ -92,6 +93,8 @@ Options:
   -c, --contains <STR>
       Filter themes by dark, light or name substring
       (used with --rand, --theme or --theme-list)
+  -i, --interactive
+      Browse and apply themes interactively
   -f, --font <NAME>
       Set font family by name (fuzzy matching)
   -F, --font-rand
@@ -106,6 +109,8 @@ Options:
 ```
 
 ---
+
+![recol-demo-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo.gif)
 
 ![recol-demo-img-1](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-1.jpg)
 

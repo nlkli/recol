@@ -1,6 +1,6 @@
 [package]
 name = "recol"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2021"
 license = "MIT"
 description = "CLI utility for terminal and Neovim theme switching"
@@ -16,6 +16,14 @@ lto = "fat"
 codegen-units = 1
 panic = "abort"
 strip = true
+
+[profile.dev]
+opt-level = 1
+debug = true
+incremental = true
+codegen-units = 256
+overflow-checks = true
+debug-assertions = true
 
 [dependencies]
 recol-lib = { path = "./recol-lib" }

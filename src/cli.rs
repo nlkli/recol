@@ -38,7 +38,7 @@ pub struct Args {
     /// Output theme as JSON
     pub json: bool,
 
-    /// Interactive mode
+    /// Run interactive mode
     pub interactive: bool,
 }
 
@@ -48,7 +48,7 @@ const GREEN: &str = "\x1b[32m";
 const BLUE: &str = "\x1b[34m";
 const MAGENTA: &str = "\x1b[35m";
 
-const VERSION: &str = "recol 0.1.8 [https://github.com/nlkli/recol]";
+const VERSION: &str = "recol 0.1.9 [https://github.com/nlkli/recol]";
 fn help() -> String {
     format!(
         r#"
@@ -71,6 +71,8 @@ CLI utility for changing the color scheme
   {blue}-c{reset}, {blue}--contains <STR>{reset}
       Filter themes by dark, light or name substring
       (used with --rand, --theme or --theme-list)
+  {blue}-i{reset}, {blue}--interactive{reset}
+      Browse and apply themes interactively
   {blue}-f{reset}, {blue}--font <NAME>{reset}
       Set font family by name (fuzzy matching)
   {blue}-F{reset}, {blue}--font-rand{reset}
