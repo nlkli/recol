@@ -4,7 +4,7 @@ A fast CLI utility for managing color themes and fonts across your terminal and 
 
 ![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
-* 550+ prebuilt color schemes from the iTerm2 Color Schemes repository:
+* *570+* prebuilt color schemes from the iTerm2 Color Schemes repository:
   [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
 * Neovim theme integration based on the Nightfox theme collection:
   [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim)
@@ -24,13 +24,13 @@ A fast CLI utility for managing color themes and fonts across your terminal and 
 
 ### Neovim integration
 
-**Neovim** does not support hot theme reloading. To apply the new theme, either restart Neovim or use a keybinding to reload your config:
+**Neovim** does not support hot theme reloading. To apply the new theme, either restart *Neovim* or use a keybinding to reload your config:
 
 ```lua
 vim.keymap.set("n", "<leader>R", ":source ~/.config/nvim/init.lua<CR>")
 ```
 
-Add a simple command to apply themes from within Neovim:
+Add a simple command to apply themes from within *Neovim*:
 
 ```lua
 if vim.fn.executable("recol") == 1 then
@@ -41,12 +41,12 @@ if vim.fn.executable("recol") == 1 then
 end
 ```
 
-### Full Neovim Integration (interactive mode)
+### Neovim Interactive Mode
 
 ![recol-nvim-integration-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-nvim-integration.gif)
 
-- `:RecolOpen` to start Recol in interactive floating mode inside Neovim.
-- `:Recol <args>` to run Recol directly from Neovim.
+- `:RecolOpen` to start *Recol* in interactive floating mode inside *Neovim*.
+- `:Recol <args>` to run *Recol* directly from *Neovim*.
 
 ```lua
 if vim.fn.executable("recol") == 1 then
@@ -84,10 +84,12 @@ if vim.fn.executable("recol") == 1 then
     end
 
     vim.api.nvim_create_user_command("Recol", function(opts)
-        local is_interactive_mode = vim.tbl_contains(vim.split(opts.args, "%s+", { trimempty = true }), "-i")
+        local args = vim.split(opts.args, "%s+", { trimempty = true })
+        local is_interactive_mode = vim.tbl_contains(args, "-i") or vim.tbl_contains(args, "--interactive")
 
         if is_interactive_mode then
             launch_interactive_mode()
+            return
         end
         vim.cmd("!recol " .. opts.args)
         vim.cmd("source ~/.config/nvim/init.lua")
@@ -169,7 +171,7 @@ recol terafox --target nvim   # apply theme for specific target
 recol                         # print current theme name (add --show or --json for more)
 ```
 
-### Interactive Mode Keybindings
+### TUI Keybindings
 
 ```text
 Normal Mode
@@ -209,14 +211,6 @@ typing      filter
 ![recol-demo-img-7](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-7.jpg)
 
 ![recol-demo-img-8](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-8.jpg)
-
-![recol-demo-img-9](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-9.jpg)
-
-![recol-demo-img-10](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-10.jpg)
-
-![recol-demo-img-11](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-11.jpg)
-
-![recol-demo-img-12](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-12.jpg)
 
 ### Project Tree
 

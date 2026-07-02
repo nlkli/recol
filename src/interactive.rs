@@ -507,7 +507,7 @@ pub fn run(args: &Args) -> io::Result<()> {
                                 if s.current_theme
                                     .as_ref()
                                     .map(|n| n != &theme.name)
-                                    .unwrap_or(false)
+                                    .unwrap_or(true)
                                 {
                                     if targets::apply_theme(args, &theme).is_ok() {
                                         tmpstore::append_theme_history(&theme.name);
