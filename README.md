@@ -2,7 +2,7 @@
 
 **Switch your terminal and Neovim color theme from one command - no manual config editing.**
 
-**recol** changes your theme across terminal emulators and Neovim with a single command. Pick from 570+ prebuilt schemes with instant fuzzy search - from your shell or an interactive picker.
+Pick from 570+ prebuilt schemes with instant fuzzy search - from your shell or an interactive picker.
 
 ![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
@@ -43,8 +43,6 @@ end
  
 ![recol-nvim-integration-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-nvim-integration.gif)
  
-<details>
-<summary>Full interactive-mode Lua snippet</summary>
 ```lua
 if vim.fn.executable("recol") == 1 then
     local launch_interactive_mode = function()
@@ -97,7 +95,6 @@ if vim.fn.executable("recol") == 1 then
     end, { nargs = 0 })
 end
 ```
-</details>
 
 ## Install
  
