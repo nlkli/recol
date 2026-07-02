@@ -8,133 +8,167 @@ mod ghostty;
 mod nvim;
 mod wezterm;
 
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+const ALL_TARGETS: [Target; 4] = [
+    Target::Ghostty,
+    Target::Alacritty,
+    Target::Wezterm,
+    Target::Nvim,
+];
+
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum Target {
-    Alacritty,
+    #[default]
+    None,
     Ghostty,
-    Nvim,
+    Alacritty,
     Wezterm,
+    Nvim,
 }
 
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+impl std::str::FromStr for Target {
+    type Err = ();
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "ghostty" | "ghostt" | "ghost" | "gt" | "g" => Ok(Self::Ghostty),
+            "alacritty" | "alacrit" | "alac" | "al" | "a" => Ok(Self::Alacritty),
+            "wezterm" | "wezt" | "wez" | "wt" | "w" => Ok(Self::Wezterm),
+            "neovim" | "nvim" | "neo" | "nvi" | "nv" | "n" => Ok(Self::Nvim),
+            _ => Err(()),
+        }
+    }
+}
 
 #[inline(always)]
 fn home_dir() -> std::path::PathBuf {
     std::env::home_dir().unwrap()
 }
 
-pub fn config_path(target: Target) -> Option<PathBuf> {
-    let prefix = match std::env::var("XDG_CONFIG_HOME").ok() {
-        Some(p) => PathBuf::from(p),
-        None => home_dir().join(".config"),
-    };
-    match target {
-        Target::Ghostty => {
-            let path = prefix.join("ghostty/config.ghostty");
-            if path.is_file() {
-                return Some(path);
+impl Target {
+    pub fn apply_theme(&self, t: &lib::Theme) -> Result<()> {
+        if let Some(path) = self.config_path() {
+            match self {
+                Target::Ghostty => ghostty::write_theme_to_config(&path, t)?,
+                Target::Alacritty => alacritty::write_theme_to_config(&path, t)?,
+                Target::Wezterm => wezterm::write_theme_to_config(&path, t)?,
+                Target::Nvim => nvim::write_theme_to_config(&path, t)?,
+                Target::None => {}
             }
-            let path = prefix.join("ghostty/config");
-            if path.is_file() {
-                return Some(path);
+        }
+        Ok(())
+    }
+
+    pub fn set_font(&self, font_name: impl Into<String>) -> Result<()> {
+        if let Some(path) = self.config_path() {
+            match self {
+                Target::Ghostty => ghostty::set_font_to_config(&path, font_name.into())?,
+                Target::Alacritty => alacritty::set_font_to_config(&path, font_name.into())?,
+                Target::Wezterm => {} // wezterm::set_font_to_config(&path, t)?,
+                _ => {}
             }
-            #[cfg(target_os = "macos")]
-            {
-                let path = home_dir()
-                    .join("Library/Application Support/com.mitchellh.ghostty/config.ghostty");
+        }
+        Ok(())
+    }
+
+    pub fn config_path(&self) -> Option<PathBuf> {
+        let prefix = match std::env::var("XDG_CONFIG_HOME").ok() {
+            Some(p) => PathBuf::from(p),
+            None => home_dir().join(".config"),
+        };
+        match self {
+            Target::Ghostty => {
+                let path = prefix.join("ghostty/config.ghostty");
                 if path.is_file() {
                     return Some(path);
                 }
-                let path =
-                    home_dir().join("Library/Application Support/com.mitchellh.ghostty/config");
+                let path = prefix.join("ghostty/config");
                 if path.is_file() {
                     return Some(path);
                 }
+                #[cfg(target_os = "macos")]
+                {
+                    let path = home_dir()
+                        .join("Library/Application Support/com.mitchellh.ghostty/config.ghostty");
+                    if path.is_file() {
+                        return Some(path);
+                    }
+                    let path =
+                        home_dir().join("Library/Application Support/com.mitchellh.ghostty/config");
+                    if path.is_file() {
+                        return Some(path);
+                    }
+                }
+                None
             }
-            None
-        }
-        Target::Alacritty => {
-            let path = prefix.join("alacritty/alacritty.toml");
-            if path.is_file() {
-                return Some(path);
-            }
-            let path = prefix.join("alacritty.toml");
-            if path.is_file() {
-                return Some(path);
-            }
-            let path = home_dir().join(".alacritty.toml");
-            if path.is_file() {
-                return Some(path);
-            }
-            let path = PathBuf::from("/etc/alacritty/alacritty.toml");
-            if path.is_file() {
-                return Some(path);
-            }
-            None
-        }
-        Target::Wezterm => {
-            if let Ok(var) = std::env::var("WEZTERM_CONFIG_FILE") {
-                let path = PathBuf::from(var);
+            Target::Alacritty => {
+                let path = prefix.join("alacritty/alacritty.toml");
                 if path.is_file() {
                     return Some(path);
                 }
+                let path = prefix.join("alacritty.toml");
+                if path.is_file() {
+                    return Some(path);
+                }
+                let path = home_dir().join(".alacritty.toml");
+                if path.is_file() {
+                    return Some(path);
+                }
+                let path = PathBuf::from("/etc/alacritty/alacritty.toml");
+                if path.is_file() {
+                    return Some(path);
+                }
+                None
             }
-            let path = prefix.join("wezterm/wezterm.lua");
-            if path.is_file() {
-                return Some(path);
+            Target::Wezterm => {
+                if let Ok(var) = std::env::var("WEZTERM_CONFIG_FILE") {
+                    let path = PathBuf::from(var);
+                    if path.is_file() {
+                        return Some(path);
+                    }
+                }
+                let path = prefix.join("wezterm/wezterm.lua");
+                if path.is_file() {
+                    return Some(path);
+                }
+                let path = home_dir().join(".wezterm.lua");
+                if path.is_file() {
+                    return Some(path);
+                }
+                None
             }
-            let path = home_dir().join(".wezterm.lua");
-            if path.is_file() {
-                return Some(path);
+            Target::Nvim => {
+                let path = prefix.join("nvim/init.lua");
+                if path.is_file() {
+                    return Some(path);
+                }
+                None
             }
-            None
-        }
-        Target::Nvim => {
-            let path = prefix.join("nvim/init.lua");
-            if path.is_file() {
-                return Some(path);
-            }
-            None
+            Target::None => None,
         }
     }
 }
 
-pub fn apply_theme(_args: &Args, t: &lib::Theme) -> Result<()> {
-    if let Some(path) = config_path(Target::Ghostty) {
-        ghostty::write_theme_into_config(&path, t)?;
-    }
-    if let Some(path) = config_path(Target::Alacritty) {
-        alacritty::write_theme_into_config(&path, t)?;
-    }
-    if let Some(path) = config_path(Target::Wezterm) {
-        wezterm::write_theme_into_config(&path, t)?;
-    }
-    // if let Some(ref path) = args.nvim_config {
-    //     let path = std::path::PathBuf::from(path);
-    //     if path.exists() && path.is_file() {
-    //         nvim::write_theme_into_config(&path, t)?;
-    //     }
-    // } else {
-    //     if let Some(path) = config_path(Target::Nvim) {
-    //         nvim::write_theme_into_config(&path, t)?;
-    //     }
-    // }
-    if let Some(path) = config_path(Target::Nvim) {
-        nvim::write_theme_into_config(&path, t)?;
+pub fn apply_theme(args: &Args, theme: &lib::Theme) -> Result<()> {
+    for target in if args.targets.is_empty() {
+        &ALL_TARGETS
+    } else {
+        args.targets.as_slice()
+    } {
+        target.apply_theme(&theme)?;
     }
 
     Ok(())
 }
 
-pub fn apply_font(name: &str) -> Result<()> {
-    if let Some(path) = config_path(Target::Ghostty) {
-        ghostty::set_font_into_config(&path, name.into())?;
-    }
-    if let Some(path) = config_path(Target::Alacritty) {
-        alacritty::set_font_into_config(&path, name.into())?;
-    }
-    // TODO
-    if let Some(_path) = config_path(Target::Wezterm) {
-        // wezterm::set_font_into_config(&path, name.into())?;
+pub fn set_font(args: &Args, font_name: &str) -> Result<()> {
+    for target in if args.targets.is_empty() {
+        &ALL_TARGETS
+    } else {
+        args.targets.as_slice()
+    } {
+        target.set_font(font_name)?;
     }
 
     Ok(())

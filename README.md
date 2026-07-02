@@ -41,6 +41,64 @@ if vim.fn.executable("recol") == 1 then
 end
 ```
 
+### Full Neovim Integration (interactive mode)
+
+![recol-nvim-integration-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-nvim-integration.gif)
+
+- `:RecolOpen` to start Recol in interactive floating mode inside Neovim.
+- `:Recol <args>` to run Recol directly from Neovim.
+
+```lua
+if vim.fn.executable("recol") == 1 then
+    local launch_interactive_mode = function()
+        local width = math.floor(vim.o.columns * 0.75)
+        local height = math.floor(vim.o.lines * 0.75)
+
+        local buf = vim.api.nvim_create_buf(false, true)
+
+        local win = vim.api.nvim_open_win(buf, true, {
+            relative = "editor",
+            width = width,
+            height = height,
+            row = math.floor((vim.o.lines - height - 3) / 2),
+            col = math.floor((vim.o.columns - width) / 2),
+            border = "rounded",
+            title = " Recol ",
+            title_pos = "center",
+        })
+
+        vim.bo[buf].bufhidden = "wipe"
+
+        vim.fn.termopen({ "recol", "-i", "--quit-on-select" }, {
+            on_exit = function()
+                vim.schedule(function()
+                    if vim.api.nvim_win_is_valid(win) then
+                        vim.api.nvim_win_close(win, true)
+                    end
+                    vim.cmd.source("~/.config/nvim/init.lua")
+                end)
+            end,
+        })
+
+        vim.cmd.startinsert()
+    end
+
+    vim.api.nvim_create_user_command("Recol", function(opts)
+        local is_interactive_mode = vim.tbl_contains(vim.split(opts.args, "%s+", { trimempty = true }), "-i")
+
+        if is_interactive_mode then
+            launch_interactive_mode()
+        end
+        vim.cmd("!recol " .. opts.args)
+        vim.cmd("source ~/.config/nvim/init.lua")
+    end, { nargs = "*" })
+
+    vim.api.nvim_create_user_command("RecolOpen", function()
+        launch_interactive_mode()
+    end, { nargs = 0 })
+end
+```
+
 ### Build from source
 
 ```sh
@@ -88,6 +146,8 @@ Options:
       Set font family by name (fuzzy matching)
   -F, --font-rand
       Pick a random Nerd Font
+  -T, --target <TARGET>
+      Apply for specific target
   --theme-list  List available themes
   --font-list   List available Nerd Fonts
   -s, --show
@@ -105,6 +165,7 @@ recol -rd --contains Gruvbox  # random dark theme with "Gruvbox" in name
 recol --theme-list -l --json  # list light themes as JSON
 recol dracula --dark --show   # preview palette without applying
 recol -t tokyo --json         # print tokyo theme as JSON
+recol terafox --target nvim   # apply theme for specific target
 recol                         # print current theme name (add --show or --json for more)
 ```
 
@@ -116,7 +177,7 @@ Enter       apply theme
 j / ↓       down
 k / ↑       up
 gg / G      top/bottom
-Ctrl+d/u    half page up/down
+Ctrl+d/u    half page down/up
 / or :      search
 q / Ctrl+c  quit
 
@@ -201,20 +262,22 @@ typing      filter
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   18       3,640       393       335      2,912        301
+Rust                   18       3,728       403       321      3,004        318
 TOML                    2          46         5         0         41          1
 License                 1          21         4         0         17          0
-Markdown                1         221        47         0        174          0
+Markdown                1         283        60         0        223          0
 Shell                   1           5         1         1          3          2
 ───────────────────────────────────────────────────────────────────────────────
-Total                  23       3,933       450       336      3,147        304
+Total                  23       4,083       473       322      3,288        321
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $90,029
-Estimated Schedule Effort (organic) 5.51 months
-Estimated People Required (organic) 1.45
+Estimated Cost to Develop (organic) $94,270
+Estimated Schedule Effort (organic) 5.61 months
+Estimated People Required (organic) 1.49
 ───────────────────────────────────────────────────────────────────────────────
-Processed 132353 bytes, 0.132 megabytes (SI)
+Processed 137686 bytes, 0.138 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
 😉👉⭐️
+
+![star-history](https://api.star-history.com/svg?repos=nlkli/recol)

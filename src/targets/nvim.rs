@@ -2,7 +2,7 @@ use crate::utils;
 use recol_lib as lib;
 use std::{io, path::Path};
 
-pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
+pub fn write_theme_to_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
     let c = theme.colors.clone().into_advanced(None);
 
     let content = format!(

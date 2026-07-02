@@ -1,10 +1,12 @@
-use crate::{cli::Args, targets};
+use crate::{cli::Args, targets, tmpstore};
 use crossterm::{cursor, event, execute, style, terminal as term};
 use recol_lib as lib;
 use std::{
     fmt::Debug,
     io::{self, Write},
 };
+
+const DEFAULT_SCROLLOFF: usize = 6;
 
 /// RAII guard that enables raw mode and the alternate screen on creation,
 /// and restores the terminal on drop.
@@ -50,6 +52,7 @@ struct State {
     last_char: char,
     /// Minimum number of visible rows to keep above/below the selection.
     scrolloff: usize,
+    current_theme: Option<String>,
 }
 
 impl State {
@@ -302,6 +305,8 @@ fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
             ("[0]", &c.base.magenta),
             ("[0]", &c.base.cyan),
             ("[0]", &c.base.white),
+            ("[0]", &c.base.orange),
+            ("[0]", &c.base.pink),
         ],
         part_buf![
             ("  [0]", &c.bright.black),
@@ -312,6 +317,8 @@ fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
             ("[0]", &c.bright.magenta),
             ("[0]", &c.bright.cyan),
             ("[0]", &c.bright.white),
+            ("[0]", &c.bright.orange),
+            ("[0]", &c.bright.pink),
         ],
         part_buf![
             ("  [0]", &c.dim.black),
@@ -322,6 +329,8 @@ fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
             ("[0]", &c.dim.magenta),
             ("[0]", &c.dim.cyan),
             ("[0]", &c.dim.white),
+            ("[0]", &c.dim.orange),
+            ("[0]", &c.dim.pink),
         ],
         part_buf![("Selection:", &c.fg[1])],
         part_buf![("  [0]", &c.selection.bg), ("[0]", &c.selection.fg)],
@@ -356,7 +365,7 @@ fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
 }
 
 fn draw_screen(s: &State) -> io::Result<()> {
-    const MIN_SIZE: Point = (12, 4);
+    const MIN_SIZE: Point = (14, 6);
 
     let mut stdout = io::stdout();
 
@@ -423,6 +432,13 @@ fn draw_screen(s: &State) -> io::Result<()> {
             row_text.pop();
         }
 
+        if s.current_theme
+            .as_ref()
+            .map(|n| n == theme.name)
+            .unwrap_or(false)
+        {
+            execute!(stdout, style::SetForegroundColor(style::Color::Cyan))?;
+        }
         let is_selected = row_idx + s.list_offset == s.list_index;
         if is_selected {
             execute!(
@@ -430,17 +446,16 @@ fn draw_screen(s: &State) -> io::Result<()> {
                 style::SetAttribute(style::Attribute::Reverse),
                 style::Print(row_text),
                 style::SetAttribute(style::Attribute::NoReverse),
-                cursor::MoveDown(1),
-                cursor::MoveToColumn(0)
             )?;
         } else {
-            execute!(
-                stdout,
-                style::Print(row_text),
-                cursor::MoveDown(1),
-                cursor::MoveToColumn(0)
-            )?;
+            execute!(stdout, style::Print(row_text),)?;
         }
+        execute!(
+            stdout,
+            cursor::MoveDown(1),
+            cursor::MoveToColumn(0),
+            style::ResetColor
+        )?;
 
         if row_idx >= s.size.1.saturating_sub(2) as usize {
             break;
@@ -453,6 +468,14 @@ fn draw_screen(s: &State) -> io::Result<()> {
     }
 
     if s.mode == Mode::Normal {
+        let status = format!("{}/{}/{}", s.list_offset, s.list_index, s.list.len());
+        if status.len() < s.size.0 as usize - 8 {
+            execute!(
+                stdout,
+                cursor::MoveTo(s.size.0 / 2 - status.len() as u16 / 2 - 4, s.size.1),
+                style::Print(status),
+            )?;
+        }
         execute!(stdout, cursor::MoveTo(s.cursor.0, s.cursor.1), cursor::Hide)?;
     }
 
@@ -462,90 +485,108 @@ fn draw_screen(s: &State) -> io::Result<()> {
 pub fn run(args: &Args) -> io::Result<()> {
     let _terminal_guard = TerminalGuard::new();
 
-    let mut state = State {
+    let mut s = State {
         size: term::size()?,
         list: lib::Collection::new().collect(),
-        scrolloff: 6,
+        scrolloff: DEFAULT_SCROLLOFF,
+        current_theme: tmpstore::read_theme_history(1).into_iter().next(),
         ..Default::default()
     };
 
-    draw_screen(&state)?;
+    draw_screen(&s)?;
 
     loop {
         match event::read()? {
             event::Event::Key(key) => {
                 let ctrl = key.modifiers.contains(event::KeyModifiers::CONTROL);
-                match (key.code, &state.mode) {
+                match (key.code, &s.mode) {
                     // ── Normal mode ──────────────────────────────────────────
                     (event::KeyCode::Enter, Mode::Normal) => {
-                        if !state.list.is_empty() {
-                            let _ = targets::apply_theme(
-                                args,
-                                &state.list[state.list_index].into_theme(),
-                            );
+                        if !s.list.is_empty() {
+                            if let Some(theme) = s.list.get(s.list_index).map(|v| v.into_theme()) {
+                                if s.current_theme
+                                    .as_ref()
+                                    .map(|n| n != &theme.name)
+                                    .unwrap_or(false)
+                                {
+                                    if targets::apply_theme(args, &theme).is_ok() {
+                                        tmpstore::append_theme_history(&theme.name);
+                                        s.current_theme.replace(theme.name);
+                                        if args.quit_on_select {
+                                            break;
+                                        }
+                                    };
+                                }
+                            }
                         }
                     }
-                    (event::KeyCode::Up, Mode::Normal) => state.scroll_list_up(1),
-                    (event::KeyCode::Down, Mode::Normal) => state.scroll_list_down(1),
+                    (event::KeyCode::Up, Mode::Normal) => s.scroll_list_up(1),
+                    (event::KeyCode::Down, Mode::Normal) => s.scroll_list_down(1),
 
                     (event::KeyCode::Char('q'), Mode::Normal) => break,
                     (event::KeyCode::Char('c'), Mode::Normal) if ctrl => break,
 
                     (event::KeyCode::Char('/' | ':'), Mode::Normal) => {
-                        state.mode = Mode::Input;
-                        state.input_buf.clear();
-                        state.list_offset = 0;
-                        state.list_index = 0;
-                        state.cursor.1 = 0;
-                        state.filter_list_by_input();
+                        s.mode = Mode::Input;
+                        s.input_buf.clear();
+                        s.list_offset = 0;
+                        s.list_index = 0;
+                        s.cursor.1 = 0;
+                        s.filter_list_by_input();
                     }
-                    (event::KeyCode::Char('j'), Mode::Normal) => state.scroll_list_down(1),
-                    (event::KeyCode::Char('k'), Mode::Normal) => state.scroll_list_up(1),
-                    (event::KeyCode::Char('g'), Mode::Normal) if state.last_char == 'g' => {
-                        state.list_offset = 0;
-                        state.list_index = 0;
-                        state.cursor.1 = 0;
+                    (event::KeyCode::Char('j'), Mode::Normal) => s.scroll_list_down(1),
+                    (event::KeyCode::Char('k'), Mode::Normal) => s.scroll_list_up(1),
+                    (event::KeyCode::Char('g'), Mode::Normal) if s.last_char == 'g' => {
+                        s.list_offset = 0;
+                        s.list_index = 0;
+                        s.cursor.1 = 0;
                     }
                     (event::KeyCode::Char('G'), Mode::Normal) => {
-                        state.scroll_list_down(state.list.len());
+                        s.scroll_list_down(s.list.len());
                     }
                     (event::KeyCode::Char('d'), Mode::Normal) if ctrl => {
-                        let half = (state.size.1 as usize / 2).max(1);
-                        state.scroll_list_down(half);
+                        let half = (s.size.1 as usize / 2).max(1);
+                        s.scroll_list_down(half);
                     }
                     (event::KeyCode::Char('u'), Mode::Normal) if ctrl => {
-                        let half = (state.size.1 as usize / 2).max(1);
-                        state.scroll_list_up(half);
+                        let half = (s.size.1 as usize / 2).max(1);
+                        s.scroll_list_up(half);
                     }
 
                     // ── Input mode ───────────────────────────────────────────
                     (event::KeyCode::Enter | event::KeyCode::Esc, Mode::Input) => {
-                        state.mode = Mode::Normal;
+                        s.mode = Mode::Normal;
                     }
                     (event::KeyCode::Backspace, Mode::Input) => {
-                        state.input_buf.pop();
-                        state.filter_list_by_input();
+                        s.input_buf.pop();
+                        s.filter_list_by_input();
                     }
                     (event::KeyCode::Char('c'), Mode::Input) if ctrl => break,
                     (event::KeyCode::Char(c), Mode::Input) => {
-                        state.input_buf.push(c);
-                        state.filter_list_by_input();
+                        s.input_buf.push(c);
+                        s.filter_list_by_input();
                     }
 
                     _ => {}
                 }
 
                 if let event::KeyCode::Char(c) = key.code {
-                    state.last_char = c;
+                    s.last_char = c;
                 }
             }
 
-            event::Event::Resize(cols, rows) => state.size = (cols, rows),
+            event::Event::Resize(cols, rows) => s.size = (cols, rows),
 
             _ => {}
         }
 
-        draw_screen(&state)?;
+        if s.size.1 < 12 {
+            s.scrolloff = DEFAULT_SCROLLOFF.saturating_sub(2);
+        } else {
+            s.scrolloff = DEFAULT_SCROLLOFF;
+        }
+
+        draw_screen(&s)?;
     }
 
     Ok(())

@@ -177,7 +177,7 @@ fn main() -> Result<()> {
         }
 
         if let Some(ref font_name) = font_name {
-            targets::apply_font(font_name)?;
+            targets::set_font(&args, font_name)?;
             tmpstore::append_font_history(font_name);
         }
     }

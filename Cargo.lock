@@ -176,7 +176,7 @@ dependencies = [
 
 [[package]]
 name = "recol"
-version = "0.1.9"
+version = "0.2.0"
 dependencies = [
  "crossterm",
  "fastrand",

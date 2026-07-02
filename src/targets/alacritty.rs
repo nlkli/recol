@@ -10,7 +10,7 @@ fn write_config(path: impl AsRef<Path>, c: &Config) -> io::Result<()> {
     Ok(())
 }
 
-pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
+pub fn write_theme_to_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
     let content = fs::read_to_string(&path)?;
     let mut config =
         toml::from_str::<Config>(&content).map_err(|_| utils::io_other_error("serde fail"))?;
@@ -21,7 +21,7 @@ pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io
     write_config(path, &config)
 }
 
-pub fn set_font_into_config(path: impl AsRef<Path>, font: String) -> io::Result<()> {
+pub fn set_font_to_config(path: impl AsRef<Path>, font: String) -> io::Result<()> {
     let content = fs::read_to_string(&path)?;
     let mut config =
         toml::from_str::<Config>(&content).map_err(|_| utils::io_other_error("serde fail"))?;

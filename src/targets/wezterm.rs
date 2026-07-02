@@ -2,7 +2,7 @@ use recol_lib as lib;
 use std::io::{self, BufRead, Write};
 use std::{fs, path::Path};
 
-pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
+pub fn write_theme_to_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
     let path = path.as_ref();
 
     // --- Parse existing config ---

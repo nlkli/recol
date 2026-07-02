@@ -1,5 +1,7 @@
 use recol_lib as lib;
 
+use crate::targets::Target;
+
 #[derive(Clone, Debug, Default)]
 pub struct Args {
     /// Apply a theme by name (fuzzy matching)
@@ -38,8 +40,14 @@ pub struct Args {
     /// Output theme as JSON
     pub json: bool,
 
+    /// Apply for specific target
+    pub targets: Vec<Target>,
+
     /// Run interactive mode
     pub interactive: bool,
+
+    /// Interactive mode (hidden flag)
+    pub quit_on_select: bool,
 }
 
 // Standard ANSI color codes
@@ -48,11 +56,10 @@ const GREEN: &str = "\x1b[32m";
 const BLUE: &str = "\x1b[34m";
 const MAGENTA: &str = "\x1b[35m";
 
-const VERSION: &str = "recol 0.1.9 [https://github.com/nlkli/recol]";
+const VERSION: &str = "recol 0.2.0 [https://github.com/nlkli/recol]";
 fn help() -> String {
     format!(
-        r#"
-CLI utility for changing the color scheme
+        r#"CLI utility for changing the color scheme
 {magenta}https://github.com/nlkli/recol{reset}
 550+ color schemes:
 {magenta}https://github.com/mbadolato/iTerm2-Color-Schemes{reset}
@@ -77,14 +84,15 @@ CLI utility for changing the color scheme
       Set font family by name (fuzzy matching)
   {blue}-F{reset}, {blue}--font-rand{reset}
       Pick a random Nerd Font
+  {blue}-T{reset}, {blue}--target <TARGET>{reset}
+      Apply for specific target
   {blue}--theme-list{reset}  List available themes
   {blue}--font-list{reset}   List available Nerd Fonts
   {blue}-s{reset}, {blue}--show{reset}
       Show the theme color palette without applying it
   {blue}-j{reset}, {blue}--json{reset}    Output theme/list as JSON
   {blue}-h{reset}, {blue}--help{reset}
-  {blue}-V{reset}, {blue}--version{reset}
-"#,
+  {blue}-V{reset}, {blue}--version{reset}"#,
         reset = RESET,
         green = GREEN,
         blue = BLUE,
@@ -104,7 +112,7 @@ impl Args {
                     "theme" => last = Some('t'),
                     "font" => last = Some('f'),
                     "contains" => last = Some('c'),
-                    // "nvim-config" => last = Some('0'),
+                    "target" => last = Some('c'),
                     "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
                     "font-rand" => args.font_rand = true,
@@ -114,6 +122,7 @@ impl Args {
                     "show" => args.show = true,
                     "json" => args.json = true,
                     "interactive" => args.interactive = true,
+                    "quit-on-select" => args.quit_on_select = true,
                     "help" => {
                         println!("{}", help());
                         std::process::exit(0);
@@ -127,7 +136,7 @@ impl Args {
             } else if let Some(flags) = arg.strip_prefix('-') {
                 for c in flags.chars() {
                     match c {
-                        't' | 'f' | 'c' => last = Some(c),
+                        't' | 'f' | 'c' | 'T' => last = Some(c),
                         'r' => args.rand = true,
                         'd' => args.dark = true,
                         'l' => args.light = true,
@@ -157,9 +166,13 @@ impl Args {
                     Some('c') => {
                         args.contains.replace(arg);
                     }
-                    // Some('0') => {
-                    //     args.nvim_config.replace(arg);
-                    // }
+                    Some('T') => {
+                        if let Ok(t) = arg.parse::<Target>() {
+                            if !args.targets.contains(&t) {
+                                args.targets.push(t);
+                            }
+                        }
+                    }
                     _ => {
                         args.theme.replace(arg);
                     }

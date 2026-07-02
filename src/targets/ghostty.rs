@@ -93,7 +93,7 @@ fn replace_or_add_key_value(lines: &mut Vec<ConfigLine>, k: &str, v: String) {
     };
 }
 
-pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
+pub fn write_theme_to_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
     let mut lines = read_config(&path)?;
 
     replace_or_add_palette(&mut lines, 0, theme.colors.base.black.to_string());
@@ -143,7 +143,7 @@ pub fn write_theme_into_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io
     write_config(path, &lines)
 }
 
-pub fn set_font_into_config(path: impl AsRef<Path>, font: String) -> io::Result<()> {
+pub fn set_font_to_config(path: impl AsRef<Path>, font: String) -> io::Result<()> {
     let mut lines = read_config(&path)?;
 
     replace_or_add_key_value(&mut lines, "font-family", font);
