@@ -1,37 +1,33 @@
 # recol
 
-A fast CLI utility for managing color themes and fonts across your terminal and [Neovim](https://neovim.io).
+**Switch your terminal and Neovim color theme from one command - no manual config editing.**
+
+**recol** changes your theme across terminal emulators and Neovim with a single command. Pick from 570+ prebuilt schemes with instant fuzzy search - from your shell or an interactive picker.
 
 ![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
-* *570+* prebuilt color schemes from the iTerm2 Color Schemes repository:
-  [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
-* Neovim theme integration based on the Nightfox theme collection:
-  [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim)
-* Terminal support:
-
-  * [Ghostty](https://ghostty.org)
-  * [Alacritty](https://alacritty.org/index.html)
-  * [WezTerm](https://wezterm.org/index.html)
-* Font switching support (macOS only)
-* Non-destructive configuration updates (only colors/fonts are modified)
-* Minimal dependency footprint: [Cargo.toml](Cargo.toml)
+- **570+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
+- **Neovim theme integration** based on [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim)
+- **Terminal support:** [Ghostty](https://ghostty.org), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org)
+- **Font switching** (macOS only)
+- **Non-destructive** — only color/font values are modified, nothing else in your config
+- **Minimal dependencies** — see [Cargo.toml](Cargo.toml)
 
 ### Terminal support notes
 
 - **Ghostty** requires a manual reload (e.g. `Ctrl + Shift + ,` on Linux or `Cmd + Shift + ,` on macOS).
 - **Alacritty**, **WezTerm** supports hot configuration reload. Changes are applied immediately without restarting the terminal.
 
-### Neovim integration
-
-**Neovim** does not support hot theme reloading. To apply the new theme, either restart *Neovim* or use a keybinding to reload your config:
-
+## Neovim integration
+ 
+Neovim doesn't support hot theme reload, so add a keybinding or command to re-source your config after switching:
+ 
 ```lua
 vim.keymap.set("n", "<leader>R", ":source ~/.config/nvim/init.lua<CR>")
 ```
-
-Add a simple command to apply themes from within *Neovim*:
-
+ 
+Run `recol` directly from Neovim:
+ 
 ```lua
 if vim.fn.executable("recol") == 1 then
     vim.api.nvim_create_user_command("Recol", function(opts)
@@ -40,22 +36,23 @@ if vim.fn.executable("recol") == 1 then
     end, { nargs = "*" })
 end
 ```
-
-### Neovim Interactive Mode
-
+ 
+### Interactive mode inside Neovim
+ 
+`:RecolOpen` launches `recol` in a floating window; `:Recol <args>` runs it directly.
+ 
 ![recol-nvim-integration-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-nvim-integration.gif)
-
-- `:RecolOpen` to start *Recol* in interactive floating mode inside *Neovim*.
-- `:Recol <args>` to run *Recol* directly from *Neovim*.
-
+ 
+<details>
+<summary>Full interactive-mode Lua snippet</summary>
 ```lua
 if vim.fn.executable("recol") == 1 then
     local launch_interactive_mode = function()
         local width = math.floor(vim.o.columns * 0.75)
         local height = math.floor(vim.o.lines * 0.75)
-
+ 
         local buf = vim.api.nvim_create_buf(false, true)
-
+ 
         local win = vim.api.nvim_open_win(buf, true, {
             relative = "editor",
             width = width,
@@ -66,9 +63,9 @@ if vim.fn.executable("recol") == 1 then
             title = " Recol ",
             title_pos = "center",
         })
-
+ 
         vim.bo[buf].bufhidden = "wipe"
-
+ 
         vim.fn.termopen({ "recol", "-i", "--quit-on-select" }, {
             on_exit = function()
                 vim.schedule(function()
@@ -79,14 +76,14 @@ if vim.fn.executable("recol") == 1 then
                 end)
             end,
         })
-
+ 
         vim.cmd.startinsert()
     end
-
+ 
     vim.api.nvim_create_user_command("Recol", function(opts)
         local args = vim.split(opts.args, "%s+", { trimempty = true })
         local is_interactive_mode = vim.tbl_contains(args, "-i") or vim.tbl_contains(args, "--interactive")
-
+ 
         if is_interactive_mode then
             launch_interactive_mode()
             return
@@ -94,21 +91,22 @@ if vim.fn.executable("recol") == 1 then
         vim.cmd("!recol " .. opts.args)
         vim.cmd("source ~/.config/nvim/init.lua")
     end, { nargs = "*" })
-
+ 
     vim.api.nvim_create_user_command("RecolOpen", function()
         launch_interactive_mode()
     end, { nargs = 0 })
 end
 ```
+</details>
 
-### Cargo Install
-
+## Install
+ 
+**Cargo:**
 ```sh
 cargo install --git https://github.com/nlkli/recol --branch main --force
 ```
-
-### Build from source
-
+ 
+**From source:**
 ```sh
 git clone https://github.com/nlkli/recol
 cd recol
@@ -118,7 +116,7 @@ cp target/release/recol /usr/local/bin/
 
 ### Fetch and rebuild color schemes
 
-To download the latest themes from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes) and recompile the binary blob:
+Fetch the latest themes from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes) and rebuild the embedded binary:
 
 ```sh
 RECOL_FETCH_GHOSSTY_THEMES=1 \
