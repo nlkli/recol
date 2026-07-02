@@ -46,8 +46,14 @@ pub struct Args {
     /// Run interactive mode
     pub interactive: bool,
 
-    /// Interactive mode (hidden flag)
+    /// Interactive mode flag
     pub quit_on_select: bool,
+
+    /// Interactive mode flag
+    pub init_input: bool,
+
+    /// Interactive mode flag
+    pub init_help: bool,
 }
 
 // Standard ANSI color codes
@@ -61,7 +67,7 @@ fn help() -> String {
     format!(
         r#"CLI utility for changing the color scheme
 {magenta}https://github.com/nlkli/recol{reset}
-550+ color schemes:
+570+ color schemes:
 {magenta}https://github.com/mbadolato/iTerm2-Color-Schemes{reset}
 
 {green}Supported targets:{reset} alacritty, ghostty, wezterm, neovim.
@@ -123,6 +129,8 @@ impl Args {
                     "json" => args.json = true,
                     "interactive" => args.interactive = true,
                     "quit-on-select" => args.quit_on_select = true,
+                    "init-input" => args.init_input = true,
+                    "init-help" => args.init_help = true,
                     "help" => {
                         println!("{}", help());
                         std::process::exit(0);

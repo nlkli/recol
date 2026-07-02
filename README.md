@@ -101,6 +101,12 @@ if vim.fn.executable("recol") == 1 then
 end
 ```
 
+### Cargo Install
+
+```sh
+cargo install --git https://github.com/nlkli/recol --branch main --force
+```
+
 ### Build from source
 
 ```sh
@@ -174,20 +180,32 @@ recol                         # print current theme name (add --show or --json f
 ### TUI Keybindings
 
 ```text
-Normal Mode
-Enter       apply theme
-j / ↓       down
-k / ↑       up
-gg / G      top/bottom
-Ctrl+d/u    half page down/up
-/ or :      search
-q / Ctrl+c  quit
+NAVIGATION
+  ↑ / k / -    Move selection up
+  ↓ / j / +    Move selection down
+  g            Jump to first theme
+  G            Jump to last theme
+  Ctrl+u       Scroll up half a page
+  Ctrl+d       Scroll down half a page
 
-Input Mode
-Enter / Esc back
-Backspace   delete
-Ctrl+c      quit
-typing      filter
+FILTER & SEARCH
+  / : i        Enter filter/search mode
+  Esc / Enter  Leave filter mode
+  Backspace    Delete last filter character
+  f            Filter by selected theme (match 1st word)
+
+LIST ACTIONS
+  d / l        Keep only dark themes
+  s            Shuffle the list
+  r            Reverse the list
+  Space        Reset list (show all themes)
+
+GENERAL
+  Enter        Apply selected theme
+  ? / h        Toggle this help screen
+  q / Ctrl+c   Quit
+
+Press any key to return · q to quit
 ```
 
 ### Demo
@@ -256,19 +274,19 @@ typing      filter
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   18       3,728       403       321      3,004        318
+Rust                   18       3,878       417       322      3,139        322
 TOML                    2          46         5         0         41          1
 License                 1          21         4         0         17          0
-Markdown                1         283        60         0        223          0
-Shell                   1           5         1         1          3          2
+Markdown                1         297        62         0        235          0
+Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  23       4,083       473       322      3,288        321
+Total                  23       4,250       490       323      3,437        323
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $94,270
-Estimated Schedule Effort (organic) 5.61 months
-Estimated People Required (organic) 1.49
+Estimated Cost to Develop (organic) $98,760
+Estimated Schedule Effort (organic) 5.71 months
+Estimated People Required (organic) 1.54
 ───────────────────────────────────────────────────────────────────────────────
-Processed 137686 bytes, 0.138 megabytes (SI)
+Processed 143335 bytes, 0.143 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 

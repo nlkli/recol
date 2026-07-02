@@ -7,9 +7,9 @@ fn main() {
     if std::env::var("RECOL_FETCH_GHOSSTY_THEMES").is_ok() || FETCH_GHOSSTY_THEMES {
         let status = std::process::Command::new("./fetch.sh")
             .status()
-            .expect("Failed to run fetch_colorschemes.sh");
+            .expect("Failed to run fetch.sh");
 
-        assert!(status.success(), "fetch_colorschemes.sh failed");
+        assert!(status.success(), "fetch.sh failed");
     }
 
     if std::env::var("RECOL_BUILD_COLORSCHEMES_BIN").is_ok() || BUILD_COLORSCHEMES_BIN {
@@ -19,7 +19,7 @@ fn main() {
         recol_lib::build_colorschemes_bin(
             std::env::var("RECOL_GHOSSTY_THEMES_DIR").unwrap_or_else(|_| "./colorschemes".into()),
             &mut output,
-            |name| !["<skip themes by name>"].contains(&name),
+            |name| !["<filter theme by name>"].contains(&name),
         )
         .expect("Failed to build colorschemes.bin");
     }

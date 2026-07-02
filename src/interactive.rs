@@ -32,6 +32,7 @@ enum Mode {
     #[default]
     Normal,
     Input,
+    Help,
 }
 
 type Point = (u16, u16);
@@ -49,7 +50,6 @@ struct State {
     list_offset: usize,
     /// Absolute index of the selected entry in `list`.
     list_index: usize,
-    last_char: char,
     /// Minimum number of visible rows to keep above/below the selection.
     scrolloff: usize,
     current_theme: Option<String>,
@@ -209,7 +209,7 @@ fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
     let c = theme.colors.clone().into_advanced(None);
 
     vec![
-        part_buf![("// k | j | / | : | Enter | q", &c.comment)],
+        part_buf![("// Press ?/h for help", &c.comment)],
         part_buf![
             ("use ", &c.base.magenta),
             ("std", &c.base.cyan),
@@ -365,7 +365,7 @@ fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
 }
 
 fn draw_screen(s: &State) -> io::Result<()> {
-    const MIN_SIZE: Point = (14, 6);
+    const MIN_SIZE: Point = (15, 7);
 
     let mut stdout = io::stdout();
 
@@ -376,14 +376,127 @@ fn draw_screen(s: &State) -> io::Result<()> {
     )?;
 
     if s.size.0 < MIN_SIZE.0 || s.size.1 < MIN_SIZE.1 {
+        let msg = format!(
+            "Window too small ({}x{}), need {}x{}",
+            s.size.0, s.size.1, MIN_SIZE.0, MIN_SIZE.1
+        );
+
+        let col = (s.size.0.saturating_sub(msg.len() as u16)) / 2;
+        let row = s.size.1 / 2;
+
+        execute!(
+            stdout,
+            cursor::MoveTo(col, row),
+            style::SetForegroundColor(style::Color::Red),
+            style::Print(msg),
+            style::ResetColor,
+        )?;
+        stdout.flush()?;
+        return Ok(());
+    }
+
+    if s.mode == Mode::Help {
+        let sections: &[(&str, &[(&str, &str)])] = &[
+            (
+                "NAVIGATION",
+                &[
+                    ("↑ / k / -", "Move selection up"),
+                    ("↓ / j / +", "Move selection down"),
+                    ("g", "Jump to first theme"),
+                    ("G", "Jump to last theme"),
+                    ("Ctrl+u", "Scroll up half a page"),
+                    ("Ctrl+d", "Scroll down half a page"),
+                ],
+            ),
+            (
+                "FILTER & SEARCH",
+                &[
+                    ("/ : i", "Enter filter/search mode"),
+                    ("Esc / Enter", "Leave filter mode"),
+                    ("Backspace", "Delete last filter character"),
+                    ("f", "Filter by selected theme (match 1st word)"),
+                ],
+            ),
+            (
+                "LIST ACTIONS",
+                &[
+                    ("d / l", "Keep only dark themes"),
+                    ("s", "Shuffle the list"),
+                    ("r", "Reverse the list"),
+                    ("Space", "Reset list (show all themes)"),
+                ],
+            ),
+            (
+                "GENERAL",
+                &[
+                    ("Enter", "Apply selected theme"),
+                    ("? / h", "Toggle this help screen"),
+                    ("q / Ctrl+c", "Quit"),
+                ],
+            ),
+        ];
+
+        let width = s.size.0 as usize;
+        let title = " RECOL —  HELP ";
+        let pad_left = width.saturating_sub(title.len()) / 2;
+        let pad_right = width.saturating_sub(pad_left + title.len());
+
         execute!(
             stdout,
             cursor::MoveTo(0, 0),
-            style::Print(format!(
-                "Window too small ({}x{}), need {}x{}",
-                s.size.0, s.size.1, MIN_SIZE.0, MIN_SIZE.1
-            ))
+            style::SetAttribute(style::Attribute::Bold),
+            style::SetForegroundColor(style::Color::Black),
+            style::SetBackgroundColor(style::Color::Cyan),
+            style::Print(" ".repeat(pad_left)),
+            style::Print(title),
+            style::Print(" ".repeat(pad_right)),
+            style::ResetColor,
+            style::SetAttribute(style::Attribute::Reset),
         )?;
+
+        let mut row: u16 = 2;
+        let max_row = s.size.1.saturating_sub(1);
+
+        for (heading, entries) in sections {
+            if row >= max_row {
+                break;
+            }
+            execute!(
+                stdout,
+                cursor::MoveTo(2, row),
+                style::SetAttribute(style::Attribute::Bold),
+                style::SetForegroundColor(style::Color::Yellow),
+                style::Print(*heading),
+                style::ResetColor,
+                style::SetAttribute(style::Attribute::Reset),
+            )?;
+            row += 1;
+
+            for (key, desc) in *entries {
+                if row >= max_row {
+                    break;
+                }
+                execute!(
+                    stdout,
+                    cursor::MoveTo(4, row),
+                    style::SetForegroundColor(style::Color::Green),
+                    style::Print(format!("{:<14}", key)),
+                    style::ResetColor,
+                    style::Print(*desc),
+                )?;
+                row += 1;
+            }
+            row += 1;
+        }
+
+        execute!(
+            stdout,
+            cursor::MoveTo(0, s.size.1),
+            style::SetForegroundColor(style::Color::DarkGrey),
+            style::Print("Press any key to return · q to quit"),
+            style::ResetColor,
+        )?;
+
         stdout.flush()?;
         return Ok(());
     }
@@ -493,6 +606,12 @@ pub fn run(args: &Args) -> io::Result<()> {
         ..Default::default()
     };
 
+    if args.init_input {
+        s.mode = Mode::Input
+    } else if args.init_help {
+        s.mode = Mode::Help
+    }
+
     draw_screen(&s)?;
 
     loop {
@@ -500,33 +619,36 @@ pub fn run(args: &Args) -> io::Result<()> {
             event::Event::Key(key) => {
                 let ctrl = key.modifiers.contains(event::KeyModifiers::CONTROL);
                 match (key.code, &s.mode) {
-                    // ── Normal mode ──────────────────────────────────────────
+                    // Normal mode
                     (event::KeyCode::Enter, Mode::Normal) => {
                         if !s.list.is_empty() {
-                            if let Some(theme) = s.list.get(s.list_index).map(|v| v.into_theme()) {
-                                if s.current_theme
-                                    .as_ref()
-                                    .map(|n| n != &theme.name)
-                                    .unwrap_or(true)
-                                {
-                                    if targets::apply_theme(args, &theme).is_ok() {
-                                        tmpstore::append_theme_history(&theme.name);
-                                        s.current_theme.replace(theme.name);
-                                        if args.quit_on_select {
-                                            break;
-                                        }
-                                    };
+                            continue;
+                        }
+
+                        let Some(theme) = s.list.get(s.list_index).map(|v| v.into_theme()) else {
+                            continue;
+                        };
+
+                        if s.current_theme
+                            .as_ref()
+                            .map(|n| n != &theme.name)
+                            .unwrap_or(true)
+                        {
+                            if targets::apply_theme(args, &theme).is_ok() {
+                                tmpstore::append_theme_history(&theme.name);
+                                s.current_theme.replace(theme.name);
+                                if args.quit_on_select {
+                                    break;
                                 }
-                            }
+                            };
                         }
                     }
                     (event::KeyCode::Up, Mode::Normal) => s.scroll_list_up(1),
                     (event::KeyCode::Down, Mode::Normal) => s.scroll_list_down(1),
 
                     (event::KeyCode::Char('q'), Mode::Normal) => break,
-                    (event::KeyCode::Char('c'), Mode::Normal) if ctrl => break,
 
-                    (event::KeyCode::Char('/' | ':'), Mode::Normal) => {
+                    (event::KeyCode::Char('/' | ':' | 'i'), Mode::Normal) => {
                         s.mode = Mode::Input;
                         s.input_buf.clear();
                         s.list_offset = 0;
@@ -534,9 +656,12 @@ pub fn run(args: &Args) -> io::Result<()> {
                         s.cursor.1 = 0;
                         s.filter_list_by_input();
                     }
-                    (event::KeyCode::Char('j'), Mode::Normal) => s.scroll_list_down(1),
-                    (event::KeyCode::Char('k'), Mode::Normal) => s.scroll_list_up(1),
-                    (event::KeyCode::Char('g'), Mode::Normal) if s.last_char == 'g' => {
+                    (event::KeyCode::Char('?' | 'h'), Mode::Normal) => {
+                        s.mode = Mode::Help;
+                    }
+                    (event::KeyCode::Char('j' | '+'), Mode::Normal) => s.scroll_list_down(1),
+                    (event::KeyCode::Char('k' | '-'), Mode::Normal) => s.scroll_list_up(1),
+                    (event::KeyCode::Char('g'), Mode::Normal) => {
                         s.list_offset = 0;
                         s.list_index = 0;
                         s.cursor.1 = 0;
@@ -552,8 +677,36 @@ pub fn run(args: &Args) -> io::Result<()> {
                         let half = (s.size.1 as usize / 2).max(1);
                         s.scroll_list_up(half);
                     }
+                    (event::KeyCode::Char('d'), Mode::Normal) => {
+                        s.list = s.list.into_iter().filter(|t| !t.is_light).collect();
+                    }
+                    (event::KeyCode::Char('l'), Mode::Normal) => {
+                        s.list = s.list.into_iter().filter(|t| !t.is_light).collect();
+                    }
+                    (event::KeyCode::Char('s'), Mode::Normal) => {
+                        fastrand::shuffle(&mut s.list);
+                    }
+                    (event::KeyCode::Char('r'), Mode::Normal) => {
+                        s.list.reverse();
+                    }
+                    (event::KeyCode::Char('f'), Mode::Normal) => {
+                        if s.list.is_empty() {
+                            continue;
+                        }
 
-                    // ── Input mode ───────────────────────────────────────────
+                        if let Some(theme) = s.list.get(s.list_index) {
+                            s.input_buf = theme.name.splitn(2, " ").next().unwrap_or("").into();
+                            s.list_offset = 0;
+                            s.list_index = 0;
+                            s.cursor.1 = 0;
+                            s.filter_list_by_input();
+                        };
+                    }
+                    (event::KeyCode::Char(' '), Mode::Normal) => {
+                        s.list = lib::Collection::new().collect();
+                    }
+
+                    // Input mode
                     (event::KeyCode::Enter | event::KeyCode::Esc, Mode::Input) => {
                         s.mode = Mode::Normal;
                     }
@@ -561,17 +714,26 @@ pub fn run(args: &Args) -> io::Result<()> {
                         s.input_buf.pop();
                         s.filter_list_by_input();
                     }
-                    (event::KeyCode::Char('c'), Mode::Input) if ctrl => break,
                     (event::KeyCode::Char(c), Mode::Input) => {
                         s.input_buf.push(c);
                         s.filter_list_by_input();
                     }
 
-                    _ => {}
-                }
+                    // Help mode
+                    (event::KeyCode::Char('q'), Mode::Help) => break,
+                    (
+                        event::KeyCode::Char(_)
+                        | event::KeyCode::Esc
+                        | event::KeyCode::Enter
+                        | event::KeyCode::Backspace,
+                        Mode::Help,
+                    ) => {
+                        s.mode = Mode::Normal;
+                    }
 
-                if let event::KeyCode::Char(c) = key.code {
-                    s.last_char = c;
+                    (event::KeyCode::Char('c'), _) if ctrl => break,
+
+                    _ => {}
                 }
             }
 
@@ -580,8 +742,8 @@ pub fn run(args: &Args) -> io::Result<()> {
             _ => {}
         }
 
-        if s.size.1 < 12 {
-            s.scrolloff = DEFAULT_SCROLLOFF.saturating_sub(2);
+        if s.size.1 as usize <= DEFAULT_SCROLLOFF * 2 + 2 {
+            s.scrolloff = DEFAULT_SCROLLOFF / 2 + 1;
         } else {
             s.scrolloff = DEFAULT_SCROLLOFF;
         }
