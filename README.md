@@ -48,9 +48,7 @@ if vim.fn.executable("recol") == 1 then
     local launch_interactive_mode = function()
         local width = math.floor(vim.o.columns * 0.75)
         local height = math.floor(vim.o.lines * 0.75)
- 
         local buf = vim.api.nvim_create_buf(false, true)
- 
         local win = vim.api.nvim_open_win(buf, true, {
             relative = "editor",
             width = width,
@@ -61,9 +59,7 @@ if vim.fn.executable("recol") == 1 then
             title = " Recol ",
             title_pos = "center",
         })
- 
         vim.bo[buf].bufhidden = "wipe"
- 
         vim.fn.termopen({ "recol", "-i", "--quit-on-select" }, {
             on_exit = function()
                 vim.schedule(function()
@@ -74,14 +70,13 @@ if vim.fn.executable("recol") == 1 then
                 end)
             end,
         })
- 
         vim.cmd.startinsert()
     end
  
     vim.api.nvim_create_user_command("Recol", function(opts)
         local args = vim.split(opts.args, "%s+", { trimempty = true })
-        local is_interactive_mode = vim.tbl_contains(args, "-i") or vim.tbl_contains(args, "--interactive")
- 
+        local is_interactive_mode = vim.tbl_contains(args, "-i") or 
+            vim.tbl_contains(args, "--interactive")
         if is_interactive_mode then
             launch_interactive_mode()
             return
@@ -180,14 +175,13 @@ NAVIGATION
   ↓ / j / +    Move selection down
   g            Jump to first theme
   G            Jump to last theme
-  Ctrl+u       Scroll up half a page
-  Ctrl+d       Scroll down half a page
+  Ctrl+u/d     Scroll up/down half a page
 
 FILTER & SEARCH
   / : i        Enter filter/search mode
   Esc / Enter  Leave filter mode
   Backspace    Delete last filter character
-  f            Filter by selected theme (match 1st word)
+  f            Filter by selected theme
 
 LIST ACTIONS
   d / l        Keep only dark themes
@@ -199,8 +193,6 @@ GENERAL
   Enter        Apply selected theme
   ? / h        Toggle this help screen
   q / Ctrl+c   Quit
-
-Press any key to return · q to quit
 ```
 
 ### Demo
