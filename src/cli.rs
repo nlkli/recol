@@ -20,7 +20,7 @@ pub struct Args {
     pub contains: Option<String>,
 
     /// Neovim config path
-    // pub nvim_config: Option<String>,
+    pub nvim_config: Option<String>,
 
     /// List available themes
     pub theme_list: bool,
@@ -119,6 +119,7 @@ impl Args {
                     "font" => last = Some('f'),
                     "contains" => last = Some('c'),
                     "target" => last = Some('c'),
+                    "nvim_config" => last = Some('0'),
                     "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
                     "font-rand" => args.font_rand = true,
@@ -173,6 +174,9 @@ impl Args {
                     }
                     Some('c') => {
                         args.contains.replace(arg);
+                    }
+                    Some('0') => {
+                        args.nvim_config.replace(arg);
                     }
                     Some('T') => {
                         if let Ok(t) = arg.parse::<Target>() {

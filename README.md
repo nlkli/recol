@@ -1,8 +1,6 @@
 # recol
 
-**Switch your terminal and Neovim color theme from one command - no manual config editing.**
-
-Pick from 570+ prebuilt schemes with instant fuzzy search - from your shell or an interactive picker.
+**Switch your terminal and Neovim color theme from one command - no manual config editing.** Pick from 570+ prebuilt schemes with instant fuzzy search - from your shell or an interactive picker.
 
 ![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
@@ -18,7 +16,7 @@ Pick from 570+ prebuilt schemes with instant fuzzy search - from your shell or a
 - **Ghostty** requires a manual reload (e.g. `Ctrl + Shift + ,` on Linux or `Cmd + Shift + ,` on macOS).
 - **Alacritty**, **WezTerm** supports hot configuration reload. Changes are applied immediately without restarting the terminal.
 
-## Neovim integration
+### Neovim integration
  
 Neovim doesn't support hot theme reload, so add a keybinding or command to re-source your config after switching:
  
@@ -39,9 +37,9 @@ end
  
 ### Interactive mode inside Neovim
  
-`:RecolOpen` launches `recol` in a floating window; `:Recol <args>` runs it directly.
- 
 ![recol-nvim-integration-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-nvim-integration.gif)
+
+`:RecolOpen` launches `recol` in a floating window; `:Recol <args>` runs it directly.
  
 ```lua
 if vim.fn.executable("recol") == 1 then
@@ -91,7 +89,7 @@ if vim.fn.executable("recol") == 1 then
 end
 ```
 
-## Install
+### Install
  
 **Cargo:**
 ```sh
@@ -195,11 +193,9 @@ GENERAL
   q / Ctrl+c   Quit
 ```
 
-### Demo
+### Demo & Screenshots
 
 ![recol-demo-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo.gif)
-
-### Screenshots
 
 ![recol-demo-img-1](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-1.jpg)
 
@@ -280,3 +276,5 @@ Processed 143335 bytes, 0.143 megabytes (SI)
 😉👉⭐️
 
 ![star-history](https://api.star-history.com/svg?repos=nlkli/recol)
+
+[LICENSE](LICENSE)

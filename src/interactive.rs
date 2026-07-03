@@ -53,6 +53,7 @@ struct State {
     /// Minimum number of visible rows to keep above/below the selection.
     scrolloff: usize,
     current_theme: Option<String>,
+    // last_char: Option<char>,
 }
 
 impl State {
@@ -144,6 +145,12 @@ impl State {
                     None,
                 ));
         }
+    }
+
+    fn reset_pos(&mut self) {
+        self.list_offset = 0;
+        self.list_index = 0;
+        self.cursor.1 = 0;
     }
 }
 
@@ -589,6 +596,13 @@ fn draw_screen(s: &State) -> io::Result<()> {
                 style::Print(status),
             )?;
         }
+        execute!(
+            stdout,
+            cursor::MoveTo(s.size.0.saturating_sub(3), s.size.1),
+            style::SetForegroundColor(style::Color::DarkGrey),
+            style::Print("h/?"),
+            style::ResetColor,
+        )?;
         execute!(stdout, cursor::MoveTo(s.cursor.0, s.cursor.1), cursor::Hide)?;
     }
 
@@ -651,9 +665,7 @@ pub fn run(args: &Args) -> io::Result<()> {
                     (event::KeyCode::Char('/' | ':' | 'i'), Mode::Normal) => {
                         s.mode = Mode::Input;
                         s.input_buf.clear();
-                        s.list_offset = 0;
-                        s.list_index = 0;
-                        s.cursor.1 = 0;
+                        s.reset_pos();
                         s.filter_list_by_input();
                     }
                     (event::KeyCode::Char('?' | 'h'), Mode::Normal) => {
@@ -662,9 +674,7 @@ pub fn run(args: &Args) -> io::Result<()> {
                     (event::KeyCode::Char('j' | '+'), Mode::Normal) => s.scroll_list_down(1),
                     (event::KeyCode::Char('k' | '-'), Mode::Normal) => s.scroll_list_up(1),
                     (event::KeyCode::Char('g'), Mode::Normal) => {
-                        s.list_offset = 0;
-                        s.list_index = 0;
-                        s.cursor.1 = 0;
+                        s.reset_pos();
                     }
                     (event::KeyCode::Char('G'), Mode::Normal) => {
                         s.scroll_list_down(s.list.len());
@@ -679,9 +689,21 @@ pub fn run(args: &Args) -> io::Result<()> {
                     }
                     (event::KeyCode::Char('d'), Mode::Normal) => {
                         s.list = s.list.into_iter().filter(|t| !t.is_light).collect();
+                        if s.list.is_empty() {
+                            s.list = lib::Collection::new().filter(|t| !t.is_light).collect();
+                        }
+                        if s.list_index >= s.list.len() {
+                            s.list_index = s.list.len() - 1;
+                        }
                     }
                     (event::KeyCode::Char('l'), Mode::Normal) => {
-                        s.list = s.list.into_iter().filter(|t| !t.is_light).collect();
+                        s.list = s.list.into_iter().filter(|t| t.is_light).collect();
+                        if s.list.is_empty() {
+                            s.list = lib::Collection::new().filter(|t| t.is_light).collect();
+                        }
+                        if s.list_index >= s.list.len() {
+                            s.list_index = s.list.len() - 1;
+                        }
                     }
                     (event::KeyCode::Char('s'), Mode::Normal) => {
                         fastrand::shuffle(&mut s.list);
@@ -696,9 +718,7 @@ pub fn run(args: &Args) -> io::Result<()> {
 
                         if let Some(theme) = s.list.get(s.list_index) {
                             s.input_buf = theme.name.splitn(2, " ").next().unwrap_or("").into();
-                            s.list_offset = 0;
-                            s.list_index = 0;
-                            s.cursor.1 = 0;
+                            s.reset_pos();
                             s.filter_list_by_input();
                         };
                     }
@@ -735,6 +755,10 @@ pub fn run(args: &Args) -> io::Result<()> {
 
                     _ => {}
                 }
+
+                // if let event::KeyCode::Char(c) = key.code {
+                //     s.last_char.replace(c);
+                // }
             }
 
             event::Event::Resize(cols, rows) => s.size = (cols, rows),
