@@ -89,19 +89,19 @@ if vim.fn.executable("recol") == 1 then
 end
 ```
 
-### Install
- 
-**Cargo:**
-```sh
-cargo install --git https://github.com/nlkli/recol --branch main --force
-```
- 
-**From source:**
+### Build From Source
+
 ```sh
 git clone https://github.com/nlkli/recol
 cd recol
 cargo build --release
 cp target/release/recol /usr/local/bin/
+```
+
+### Cargo Install
+ 
+```sh
+cargo install --git https://github.com/nlkli/recol --branch main --force
 ```
 
 ### Fetch and rebuild color schemes
