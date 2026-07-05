@@ -80,7 +80,7 @@ if vim.fn.executable("recol") == 1 then
             return
         end
         vim.cmd("!recol " .. opts.args)
-        vim.cmd("source ~/.config/nvim/init.lua")
+        vim.cmd.source("~/.config/nvim/init.lua")
     end, { nargs = "*" })
  
     vim.api.nvim_create_user_command("RecolOpen", function()

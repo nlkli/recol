@@ -688,22 +688,18 @@ pub fn run(args: &Args) -> io::Result<()> {
                         s.scroll_list_up(half);
                     }
                     (event::KeyCode::Char('d'), Mode::Normal) => {
-                        s.list = s.list.into_iter().filter(|t| !t.is_light).collect();
                         if s.list.is_empty() {
-                            s.list = lib::Collection::new().filter(|t| !t.is_light).collect();
+                            s.list = lib::Collection::new().collect();
                         }
-                        if s.list_index >= s.list.len() {
-                            s.list_index = s.list.len() - 1;
-                        }
+                        s.list = s.list.into_iter().filter(|t| !t.is_light).collect();
+                        s.reset_pos();
                     }
                     (event::KeyCode::Char('l'), Mode::Normal) => {
-                        s.list = s.list.into_iter().filter(|t| t.is_light).collect();
                         if s.list.is_empty() {
-                            s.list = lib::Collection::new().filter(|t| t.is_light).collect();
+                            s.list = lib::Collection::new().collect();
                         }
-                        if s.list_index >= s.list.len() {
-                            s.list_index = s.list.len() - 1;
-                        }
+                        s.list = s.list.into_iter().filter(|t| t.is_light).collect();
+                        s.reset_pos();
                     }
                     (event::KeyCode::Char('s'), Mode::Normal) => {
                         fastrand::shuffle(&mut s.list);
@@ -715,7 +711,6 @@ pub fn run(args: &Args) -> io::Result<()> {
                         if s.list.is_empty() {
                             continue;
                         }
-
                         if let Some(theme) = s.list.get(s.list_index) {
                             s.input_buf = theme.name.splitn(2, " ").next().unwrap_or("").into();
                             s.reset_pos();
