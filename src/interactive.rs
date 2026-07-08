@@ -584,7 +584,7 @@ fn draw_screen(s: &State) -> io::Result<()> {
 
     if s.mode == Mode::Input || !s.input_buf.is_empty() {
         execute!(stdout, cursor::MoveTo(0, s.size.1), cursor::Show)?;
-        write!(stdout, ": {}", s.input_buf)?;
+        write!(stdout, ":{}", s.input_buf)?;
     }
 
     if s.mode == Mode::Normal {
@@ -635,7 +635,7 @@ pub fn run(args: &Args) -> io::Result<()> {
                 match (key.code, &s.mode) {
                     // Normal mode
                     (event::KeyCode::Enter, Mode::Normal) => {
-                        if !s.list.is_empty() {
+                        if s.list.is_empty() {
                             continue;
                         }
 
