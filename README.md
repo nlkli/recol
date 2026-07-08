@@ -119,7 +119,7 @@ cargo build --release
 ```text
 CLI utility for changing the color scheme
 https://github.com/nlkli/recol
-550+ color schemes:
+570+ color schemes:
 https://github.com/mbadolato/iTerm2-Color-Schemes
 
 Supported targets: alacritty, ghostty, wezterm, neovim.
