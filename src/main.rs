@@ -2,7 +2,7 @@ mod cli;
 mod font;
 mod interactive;
 mod targets;
-mod tmpstore;
+mod store;
 mod utils;
 
 use recol_lib as lib;
@@ -36,7 +36,7 @@ fn print_theme_as_json(name: &str, is_light: bool, colors: &lib::AdvancedColorSc
 fn main() -> Result<()> {
     let args = cli::Args::parse();
 
-    tmpstore::init();
+    store::init();
 
     let mut collection = lib::Collection::new();
 
@@ -49,7 +49,7 @@ fn main() -> Result<()> {
         && !args.font_list
         && !args.interactive
     {
-        if let Some(theme) = tmpstore::read_theme_history(1)
+        if let Some(theme) = store::read_theme_history(1)
             .first()
             .and_then(|n| collection.by_name(n))
         {
@@ -79,7 +79,7 @@ fn main() -> Result<()> {
                 .fuzzy_search(query, &filters, None)
                 .map(|v| v.into_theme()));
         } else if args.rand {
-            let theme_history = tmpstore::read_theme_history(21);
+            let theme_history = store::read_theme_history(21);
             let mut choice = collection.random(&filters);
             let mut n = 0;
             while let Some(ref t) = choice {
@@ -109,7 +109,7 @@ fn main() -> Result<()> {
                 }
                 print_theme_header(&theme.name, theme.is_light);
                 targets::apply_theme(&args, theme)?;
-                tmpstore::append_theme_history(&theme.name);
+                store::append_theme_history(&theme.name);
                 break;
             }
         }
@@ -146,7 +146,7 @@ fn main() -> Result<()> {
         }
 
         if args.font_rand {
-            let font_history = tmpstore::read_font_history(2);
+            let font_history = store::read_font_history(2);
             font_name = fastrand::choice(&font_list).cloned();
             let mut n: usize = 0;
             while n < 5 {
@@ -159,7 +159,7 @@ fn main() -> Result<()> {
                 }
                 break;
             }
-            let font_history = tmpstore::read_font_history(2);
+            let font_history = store::read_font_history(2);
             font_name = fastrand::choice(&font_list).cloned();
             let mut n = 0;
             while let Some(ref f) = font_name {
@@ -178,7 +178,7 @@ fn main() -> Result<()> {
 
         if let Some(ref font_name) = font_name {
             targets::set_font(&args, font_name)?;
-            tmpstore::append_font_history(font_name);
+            store::append_font_history(font_name);
         }
     }
 

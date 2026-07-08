@@ -57,8 +57,6 @@ pub fn write_theme_to_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io::
         preamble.push(b'\n');
     }
 
-    // TODO: tab_bar
-
     // --- Build theme block ---
     let colors = theme.colors.clone().into_advanced(None);
     let theme_block = format!(
@@ -90,10 +88,40 @@ config.colors.brights = {{
     "{magenta_bright}",
     "{cyan_bright}",
     "{white_bright}",
+}}
+config.colors.split = "{fg2}"
+config.colors.scrollbar_thumb = "{bg2}"
+config.colors.tab_bar = {{
+    background = "{bg0}",
+    active_tab = {{
+        bg_color = "{bg3}",
+        fg_color = "{fg}",
+    }},
+    inactive_tab = {{
+        bg_color = "{bg}",
+        fg_color = "{fg2}",
+    }},
+    inactive_tab_hover = {{
+        bg_color = "{bg2}",
+        fg_color = "{fg0}",
+    }},
+    new_tab = {{
+        bg_color = "{bg}",
+        fg_color = "{fg2}",
+    }},
+    new_tab_hover = {{
+        bg_color = "{bg2}",
+        fg_color = "{fg0}",
+    }},
 }}"###,
         theme_name = theme.name,
         bg = colors.bg[1],
         fg = colors.fg[1],
+        bg0 = colors.bg[0],
+        fg0 = colors.fg[0],
+        bg2 = colors.bg[2],
+        fg2 = colors.fg[2],
+        bg3 = colors.bg[3],
         cur_bg = colors.cursor.bg,
         cur_fg = colors.cursor.fg,
         sel_bg = colors.selection.bg,
@@ -116,7 +144,6 @@ config.colors.brights = {{
         white_bright = colors.bright.white,
     );
 
-    // --- Write output ---
     let mut file = fs::File::create(path)?;
 
     // Preamble (strip trailing newline added by the loop).

@@ -169,28 +169,27 @@ recol                         # print current theme name (add --show or --json f
 
 ```text
 NAVIGATION
-  ↑ / k / -    Move selection up
-  ↓ / j / +    Move selection down
-  g            Jump to first theme
-  G            Jump to last theme
-  Ctrl+u/d     Scroll up/down half a page
+  ↑ / k / -      Move selection up
+  ↓ / j / +      Move selection down
+  g / G          Jump to first / last
+  Ctrl+ u / d    Half page up / down
 
 FILTER & SEARCH
-  / : i        Enter filter/search mode
-  Esc / Enter  Leave filter mode
-  Backspace    Delete last filter character
-  f            Filter by selected theme
+  / : i          Enter filter mode
+  Esc / Enter    Exit filter mode
+  Backspace      Delete last character
+  f              Filter by first word (family)
 
 LIST ACTIONS
-  d / l        Keep only dark themes
-  s            Shuffle the list
-  r            Reverse the list
-  Space        Reset list (show all themes)
+  s / r          Shuffle / Reverse order
+  d / l          Dark / Light only
+  h              Recently applied (history)
+  Space          Reset filters (show all)
 
 GENERAL
-  Enter        Apply selected theme
-  ? / h        Toggle this help screen
-  q / Ctrl+c   Quit
+  Enter          Apply theme
+  ? / H          Open this help
+  q / Ctrl+c     Quit
 ```
 
 ### Demo & Screenshots
@@ -239,13 +238,13 @@ GENERAL
     ├── font.rs
     ├── interactive.rs
     ├── main.rs
+    ├── store.rs
     ├── targets
     │   ├── alacritty.rs
     │   ├── ghostty.rs
     │   ├── mod.rs
     │   ├── nvim.rs
     │   └── wezterm.rs
-    ├── tmpstore.rs
     └── utils.rs
 
 5 directories, 26 files
@@ -257,19 +256,19 @@ GENERAL
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   18       3,878       417       322      3,139        322
+Rust                   18       4,068       439       341      3,288        341
 TOML                    2          46         5         0         41          1
 License                 1          21         4         0         17          0
-Markdown                1         297        62         0        235          0
+Markdown                1         279        53         0        226          0
 Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  23       4,250       490       323      3,437        323
+Total                  23       4,422       503       342      3,577        342
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $98,760
-Estimated Schedule Effort (organic) 5.71 months
-Estimated People Required (organic) 1.54
+Estimated Cost to Develop (organic) $102,988
+Estimated Schedule Effort (organic) 5.80 months
+Estimated People Required (organic) 1.58
 ───────────────────────────────────────────────────────────────────────────────
-Processed 143335 bytes, 0.143 megabytes (SI)
+Processed 148560 bytes, 0.149 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 

@@ -1,6 +1,6 @@
-use crate::{cli::Args, targets, tmpstore};
+use crate::{cli::Args, store, targets};
 use crossterm::{cursor, event, execute, style, terminal as term};
-use recol_lib as lib;
+use recol_lib::{self as lib, Collection};
 use std::{
     fmt::Debug,
     io::{self, Write},
@@ -147,10 +147,16 @@ impl State {
         }
     }
 
+    #[inline]
     fn reset_pos(&mut self) {
         self.list_offset = 0;
         self.list_index = 0;
         self.cursor.1 = 0;
+    }
+
+    #[inline]
+    fn reset_list(&mut self) {
+        self.list = Collection::new().collect();
     }
 }
 
@@ -216,7 +222,7 @@ fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
     let c = theme.colors.clone().into_advanced(None);
 
     vec![
-        part_buf![("// Press ?/h for help", &c.comment)],
+        part_buf![("// Press ?/H for help", &c.comment)],
         part_buf![
             ("use ", &c.base.magenta),
             ("std", &c.base.cyan),
@@ -409,35 +415,33 @@ fn draw_screen(s: &State) -> io::Result<()> {
                 &[
                     ("↑ / k / -", "Move selection up"),
                     ("↓ / j / +", "Move selection down"),
-                    ("g", "Jump to first theme"),
-                    ("G", "Jump to last theme"),
-                    ("Ctrl+u", "Scroll up half a page"),
-                    ("Ctrl+d", "Scroll down half a page"),
+                    ("g / G", "Jump to first / last"),
+                    ("Ctrl+ u / d", "Half page up / down"),
                 ],
             ),
             (
                 "FILTER & SEARCH",
                 &[
-                    ("/ : i", "Enter filter/search mode"),
-                    ("Esc / Enter", "Leave filter mode"),
-                    ("Backspace", "Delete last filter character"),
-                    ("f", "Filter by selected theme (match 1st word)"),
+                    ("/ : i", "Enter filter mode"),
+                    ("Esc / Enter", "Exit filter mode"),
+                    ("Backspace", "Delete last character"),
+                    ("f", "Filter by first word (family)"),
                 ],
             ),
             (
                 "LIST ACTIONS",
                 &[
-                    ("d / l", "Keep only dark themes"),
-                    ("s", "Shuffle the list"),
-                    ("r", "Reverse the list"),
-                    ("Space", "Reset list (show all themes)"),
+                    ("s / r", "Shuffle / Reverse order"),
+                    ("d / l", "Dark / Light only"),
+                    ("h", "Recently applied (history)"),
+                    ("Space", "Reset filters (show all)"),
                 ],
             ),
             (
                 "GENERAL",
                 &[
-                    ("Enter", "Apply selected theme"),
-                    ("? / h", "Toggle this help screen"),
+                    ("Enter", "Apply theme"),
+                    ("? / H", "Open this help"),
                     ("q / Ctrl+c", "Quit"),
                 ],
             ),
@@ -588,7 +592,7 @@ fn draw_screen(s: &State) -> io::Result<()> {
     }
 
     if s.mode == Mode::Normal {
-        let status = format!("{}/{}/{}", s.list_offset, s.list_index, s.list.len());
+        let status = format!("{}/{}", s.list_index, s.list.len());
         if status.len() < s.size.0 as usize - 8 {
             execute!(
                 stdout,
@@ -600,7 +604,7 @@ fn draw_screen(s: &State) -> io::Result<()> {
             stdout,
             cursor::MoveTo(s.size.0.saturating_sub(3), s.size.1),
             style::SetForegroundColor(style::Color::DarkGrey),
-            style::Print("h/?"),
+            style::Print("?/H"),
             style::ResetColor,
         )?;
         execute!(stdout, cursor::MoveTo(s.cursor.0, s.cursor.1), cursor::Hide)?;
@@ -616,7 +620,7 @@ pub fn run(args: &Args) -> io::Result<()> {
         size: term::size()?,
         list: lib::Collection::new().collect(),
         scrolloff: DEFAULT_SCROLLOFF,
-        current_theme: tmpstore::read_theme_history(1).into_iter().next(),
+        current_theme: store::read_theme_history(1).into_iter().next(),
         ..Default::default()
     };
 
@@ -649,7 +653,7 @@ pub fn run(args: &Args) -> io::Result<()> {
                             .unwrap_or(true)
                         {
                             if targets::apply_theme(args, &theme).is_ok() {
-                                tmpstore::append_theme_history(&theme.name);
+                                store::append_theme_history(&theme.name);
                                 s.current_theme.replace(theme.name);
                                 if args.quit_on_select {
                                     break;
@@ -668,7 +672,7 @@ pub fn run(args: &Args) -> io::Result<()> {
                         s.reset_pos();
                         s.filter_list_by_input();
                     }
-                    (event::KeyCode::Char('?' | 'h'), Mode::Normal) => {
+                    (event::KeyCode::Char('?' | 'H'), Mode::Normal) => {
                         s.mode = Mode::Help;
                     }
                     (event::KeyCode::Char('j' | '+'), Mode::Normal) => s.scroll_list_down(1),
@@ -689,20 +693,23 @@ pub fn run(args: &Args) -> io::Result<()> {
                     }
                     (event::KeyCode::Char('d'), Mode::Normal) => {
                         if s.list.is_empty() {
-                            s.list = lib::Collection::new().collect();
+                            s.reset_list();
                         }
                         s.list = s.list.into_iter().filter(|t| !t.is_light).collect();
                         s.reset_pos();
                     }
                     (event::KeyCode::Char('l'), Mode::Normal) => {
                         if s.list.is_empty() {
-                            s.list = lib::Collection::new().collect();
+                            s.reset_list();
                         }
                         s.list = s.list.into_iter().filter(|t| t.is_light).collect();
                         s.reset_pos();
                     }
                     (event::KeyCode::Char('s'), Mode::Normal) => {
                         fastrand::shuffle(&mut s.list);
+                    }
+                    (event::KeyCode::Char('S'), Mode::Normal) => {
+                        s.list.sort();
                     }
                     (event::KeyCode::Char('r'), Mode::Normal) => {
                         s.list.reverse();
@@ -717,8 +724,25 @@ pub fn run(args: &Args) -> io::Result<()> {
                             s.filter_list_by_input();
                         };
                     }
+                    (event::KeyCode::Char('h'), Mode::Normal) => {
+                        let history = store::read_theme_history(store::THEME_HISTORY_CAP);
+                        if !history.is_empty() {
+                            let mut collection = Collection::new();
+                            s.list = history
+                                .into_iter()
+                                .map(|t| collection.by_name(&t))
+                                .filter(Option::is_some)
+                                .map(Option::unwrap)
+                                .collect();
+                            if s.list.is_empty() {
+                                s.reset_list();
+                            }
+                            s.list.dedup();
+                            s.reset_pos();
+                        }
+                    }
                     (event::KeyCode::Char(' '), Mode::Normal) => {
-                        s.list = lib::Collection::new().collect();
+                        s.reset_list();
                     }
 
                     // Input mode
