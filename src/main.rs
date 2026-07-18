@@ -1,8 +1,8 @@
 mod cli;
 mod font;
 mod interactive;
-mod targets;
 mod store;
+mod targets;
 mod utils;
 
 use recol_lib as lib;

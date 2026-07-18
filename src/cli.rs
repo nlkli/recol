@@ -67,7 +67,7 @@ fn help() -> String {
     format!(
         r#"CLI utility for changing the color scheme
 {magenta}https://github.com/nlkli/recol{reset}
-570+ color schemes:
+590+ color schemes:
 {magenta}https://github.com/mbadolato/iTerm2-Color-Schemes{reset}
 
 {green}Supported targets:{reset} alacritty, ghostty, wezterm, neovim.
