@@ -1,6 +1,6 @@
 use crate::{cli::Args, store, targets};
 use crossterm::{cursor, event, execute, style, terminal as term};
-use recol_lib::{self as lib, Collection};
+use recol_lib::{self as lib, Collection, ThemeAdjustment};
 use std::{
     fmt::Debug,
     io::{self, Write},
@@ -32,6 +32,7 @@ enum Mode {
     #[default]
     Normal,
     Input,
+    AdjustInput,
     Help,
 }
 
@@ -54,6 +55,8 @@ struct State {
     scrolloff: usize,
     current_theme: Option<String>,
     // last_char: Option<char>,
+    adjust: Vec<ThemeAdjustment>,
+    adjust_input_buf: String,
 }
 
 impl State {
@@ -144,6 +147,35 @@ impl State {
                     10,
                     None,
                 ));
+        }
+    }
+
+    fn process_adjust_input(&mut self) {
+        if self.adjust_input_buf.is_empty() {
+            return;
+        }
+        let mut input = self.adjust_input_buf.clone();
+        let path = std::path::PathBuf::from(&input);
+        if path.is_file() {
+            input = std::fs::read_to_string(path).expect("read adjust file error");
+        }
+        if input == "_" {
+            self.adjust.clear();
+            return;
+        }
+        let mut clear_flag = true;
+        for adjust_str in input.split(",") {
+            let trimmed = adjust_str.trim();
+            match trimmed.parse::<ThemeAdjustment>() {
+                Ok(a) => {
+                    if clear_flag {
+                        self.adjust.clear();
+                        clear_flag = false;
+                    }
+                    self.adjust.push(a);
+                }
+                _ => {}
+            }
         }
     }
 
@@ -420,11 +452,12 @@ fn draw_screen(s: &State) -> io::Result<()> {
                 ],
             ),
             (
-                "FILTER & SEARCH",
+                "FILTER & INPUT",
                 &[
-                    ("/ : i", "Enter filter mode"),
-                    ("Esc / Enter", "Exit filter mode"),
+                    ("/ : i", "Enter input mode"),
+                    ("a", "Enter adjust input mode"),
                     ("Backspace", "Delete last character"),
+                    ("Esc / Enter", "Exit input mode"),
                     ("f", "Filter by first word (family)"),
                 ],
             ),
@@ -443,6 +476,14 @@ fn draw_screen(s: &State) -> io::Result<()> {
                     ("Enter", "Apply theme"),
                     ("? / H", "Open this help"),
                     ("q / Ctrl+c", "Quit"),
+                ],
+            ),
+            (
+                "CLI ARGS",
+                &[
+                    ("--quit_on_select", ""),
+                    ("--init_input", ""),
+                    ("--init_help", ""),
                 ],
             ),
         ];
@@ -520,7 +561,10 @@ fn draw_screen(s: &State) -> io::Result<()> {
     let preview_col_width = s.size.0.saturating_sub(list_col_width as u16) as usize + 1;
 
     if preview_col_width > 0 && !s.list.is_empty() {
-        let selected_theme = s.list[s.list_index].into_theme();
+        let mut selected_theme = s.list[s.list_index].into_theme();
+        if !s.adjust.is_empty() {
+            selected_theme.colors.apply_adjustments(&s.adjust);
+        }
         let mut preview_lines = gen_preview(&selected_theme, preview_col_width).into_iter();
         let bg = selected_theme.colors.bg.color().rgb();
 
@@ -591,6 +635,11 @@ fn draw_screen(s: &State) -> io::Result<()> {
         write!(stdout, ":{}", s.input_buf)?;
     }
 
+    if s.mode == Mode::AdjustInput {
+        execute!(stdout, cursor::MoveTo(0, s.size.1), cursor::Show)?;
+        write!(stdout, "Adjust:{}", s.adjust_input_buf)?;
+    }
+
     if s.mode == Mode::Normal {
         let status = format!("{}/{}", s.list_index, s.list.len());
         if status.len() < s.size.0 as usize - 8 {
@@ -621,6 +670,7 @@ pub fn run(args: &Args) -> io::Result<()> {
         list: lib::Collection::new().collect(),
         scrolloff: DEFAULT_SCROLLOFF,
         current_theme: store::read_theme_history(1).into_iter().next(),
+        adjust: args.adjust.clone(),
         ..Default::default()
     };
 
@@ -643,15 +693,19 @@ pub fn run(args: &Args) -> io::Result<()> {
                             continue;
                         }
 
-                        let Some(theme) = s.list.get(s.list_index).map(|v| v.into_theme()) else {
+                        let Some(mut theme) = s.list.get(s.list_index).map(|v| v.into_theme())
+                        else {
                             continue;
                         };
 
                         if s.current_theme
                             .as_ref()
-                            .map(|n| n != &theme.name)
+                            .map(|n| n != &theme.name || !s.adjust.is_empty())
                             .unwrap_or(true)
                         {
+                            if !s.adjust.is_empty() {
+                                theme.colors.apply_adjustments(&s.adjust);
+                            }
                             if targets::apply_theme(args, &theme).is_ok() {
                                 store::append_theme_history(&theme.name);
                                 s.current_theme.replace(theme.name);
@@ -671,6 +725,10 @@ pub fn run(args: &Args) -> io::Result<()> {
                         s.input_buf.clear();
                         s.reset_pos();
                         s.filter_list_by_input();
+                    }
+                    (event::KeyCode::Char('a'), Mode::Normal) => {
+                        s.mode = Mode::AdjustInput;
+                        s.adjust_input_buf.clear();
                     }
                     (event::KeyCode::Char('?' | 'H'), Mode::Normal) => {
                         s.mode = Mode::Help;
@@ -756,6 +814,19 @@ pub fn run(args: &Args) -> io::Result<()> {
                     (event::KeyCode::Char(c), Mode::Input) => {
                         s.input_buf.push(c);
                         s.filter_list_by_input();
+                    }
+
+                    // Adjust input mode
+                    (event::KeyCode::Enter | event::KeyCode::Esc, Mode::AdjustInput) => {
+                        s.mode = Mode::Normal;
+                    }
+                    (event::KeyCode::Backspace, Mode::AdjustInput) => {
+                        s.adjust_input_buf.pop();
+                        s.process_adjust_input();
+                    }
+                    (event::KeyCode::Char(c), Mode::AdjustInput) => {
+                        s.adjust_input_buf.push(c);
+                        s.process_adjust_input();
                     }
 
                     // Help mode

@@ -136,6 +136,9 @@ Options:
   -c, --contains <STR>
       Filter themes by dark, light or name substring
       (used with --rand, --theme or --theme-list)
+  -a, --adjust <SPEC|PATH>
+      Apply color adjustments (see --adjust help)
+      Format: "group.adjustment=value,..."
   -i, --interactive
       Browse and apply themes interactively
   -f, --font <NAME>
@@ -175,9 +178,10 @@ NAVIGATION
   Ctrl+ u / d    Half page up / down
 
 FILTER & SEARCH
-  / : i          Enter filter mode
-  Esc / Enter    Exit filter mode
+  / : i          Enter input mode
+  a              Enter adjust input mode
   Backspace      Delete last character
+  Esc / Enter    Exit filter mode
   f              Filter by first word (family)
 
 LIST ACTIONS
@@ -190,6 +194,81 @@ GENERAL
   Enter          Apply theme
   ? / H          Open this help
   q / Ctrl+c     Quit
+
+CLI ARGS
+  --quit_on_select
+  --init_input
+  --init_help
+```
+
+### Color Adjustments
+
+![recol-demo-adjust-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-adjust.gif)
+
+Adjust theme colors with `--adjust "group.adjustment=value,..."`. Supports lightness, contrast, saturation, hue, exposure, gamma, temperature, tint, black/white points and more. Apply to UI elements, specific colors, or the full ANSI palette using short group names (e.g. pal, bg, red).
+
+In interactive mode you can change adjustments live and see the preview update instantly.
+
+Help Message:
+
+```text
+Color adjustments: --adjust "group.adjustment=value,..."
+  Apply one or more transformations to theme colors.
+
+Quick start:
+  --adjust "brightness=-10"  Darken whole theme slightly
+  --adjust "saturation=20"   Boost all colors
+  --adjust "pal.hue=180"     Shift palette to complementary hues
+  --adjust "bg.exposure=-15,fg.contrast=10"  Darker bg, punchier text
+  --adjust "blue.hue=30,saturation=-50"      Turn blues into muted teals
+  --adjust "sel-bg.brightness=20,cursor.sat=50" Bright sel bg, vivid cursor
+
+Groups (optional, defaults to All):
+  u/ui          All UI colors
+  b/bg         Backgrounds (base, sel, cursor)
+  f/fg         Foregrounds (base, sel, cursor)
+  s/sel        Selection colors
+  c/cur        Cursor colors
+  bb/base-bg   Base background only
+  bf/base-fg   Base foreground only
+  sb/sel-bg    Selection background
+  sf/sel-fg    Selection foreground
+  cb/cur-bg    Cursor background
+  cf/cur-fg    Cursor foreground
+  p/pal        All ANSI palette colors
+  t/text       Foregrounds + palette
+  black        Black (normal + bright)
+  red          Red (normal + bright)
+  green        Green (normal + bright)
+  yellow       Yellow (normal + bright)
+  blue         Blue (normal + bright)
+  magenta      Magenta (normal + bright)
+  cyan         Cyan (normal + bright)
+  white        White (normal + bright)
+  orange       Orange (normal + bright)
+  pink         Pink (normal + bright)
+
+Adjustments:
+  b/br/brightness=N     HSL lightness shift (-100..100)
+  e/exposure=N          Linear-light scale (-100..100, ±1 stop)
+  c/contrast=N          HSL contrast (-100..100)
+  cc/channel-contrast=N RGB channel contrast (-100..100)
+  s/sat/saturation=N    HSV saturation (-100..100)
+  v/vib/vibrance=N      Smart saturation (-100..100)
+  h/hue=N               Hue rotation (-180..180°)
+  t/temp/temperature=N  Blue↔Orange white balance (-100..100)
+  ti/tint=N             Green↔Magenta white balance (-100..100)
+  g/gamma=N             Gamma correction (0.25..4.0)
+  bp/black-point=N      Lift shadows (-100..100)
+  wp/white-point=N      Crush highlights (-100..100)
+  i/invert=1            Invert HSL lightness (value ignored)
+
+More examples:
+  --adjust "temperature=40,tint=-10"  Warm amber tint
+  --adjust "pal.gamma=0.8,black.brightness=5"  Softer palette, lifted blacks
+  --adjust "red.hue=-20,saturation=30,temperature=60"  Rich warm reds
+  --adjust "preset.txt"  Load adjustments from file
+  --adjust "_"           Reset all adjustments
 ```
 
 ### Demo & Screenshots
@@ -226,6 +305,7 @@ GENERAL
 │   ├── Cargo.lock
 │   ├── Cargo.toml
 │   └── src
+│       ├── adjustments.rs
 │       ├── collection.rs
 │       ├── color.rs
 │       ├── colorschemes.bin
@@ -247,7 +327,7 @@ GENERAL
     │   └── wezterm.rs
     └── utils.rs
 
-5 directories, 26 files
+5 directories, 27 files
 ```
 
 ### SCC
@@ -256,19 +336,19 @@ GENERAL
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   18       4,068       439       341      3,288        341
+Rust                   19       4,815       487       468      3,860        386
 TOML                    2          46         5         0         41          1
 License                 1          21         4         0         17          0
-Markdown                1         279        53         0        226          0
+Markdown                1         358        64         0        294          0
 Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  23       4,422       503       342      3,577        342
+Total                  24       5,248       562       469      4,217        387
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $102,988
-Estimated Schedule Effort (organic) 5.80 months
-Estimated People Required (organic) 1.58
+Estimated Cost to Develop (organic) $122,419
+Estimated Schedule Effort (organic) 6.19 months
+Estimated People Required (organic) 1.76
 ───────────────────────────────────────────────────────────────────────────────
-Processed 148560 bytes, 0.149 megabytes (SI)
+Processed 180345 bytes, 0.180 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 

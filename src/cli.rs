@@ -1,4 +1,4 @@
-use recol_lib as lib;
+use recol_lib::{self as lib, ThemeAdjustment};
 
 use crate::targets::Target;
 
@@ -18,6 +18,8 @@ pub struct Args {
 
     /// Filter themes by name substring
     pub contains: Option<String>,
+
+    pub adjust: Vec<ThemeAdjustment>,
 
     /// Neovim config path
     pub nvim_config: Option<String>,
@@ -62,7 +64,7 @@ const GREEN: &str = "\x1b[32m";
 const BLUE: &str = "\x1b[34m";
 const MAGENTA: &str = "\x1b[35m";
 
-const VERSION: &str = "recol 0.2.0 [https://github.com/nlkli/recol]";
+const VERSION: &str = "recol 0.2.1 [https://github.com/nlkli/recol]";
 fn help() -> String {
     format!(
         r#"CLI utility for changing the color scheme
@@ -84,6 +86,9 @@ fn help() -> String {
   {blue}-c{reset}, {blue}--contains <STR>{reset}
       Filter themes by dark, light or name substring
       (used with --rand, --theme or --theme-list)
+  {blue}-a{reset}, {blue}--adjust <SPEC|PATH>{reset} [env: RECOL_ADJUST]
+      Apply color adjustments (see --adjust help)
+      Format: "group.adjustment=value,..."
   {blue}-i{reset}, {blue}--interactive{reset}
       Browse and apply themes interactively
   {blue}-f{reset}, {blue}--font <NAME>{reset}
@@ -105,11 +110,79 @@ fn help() -> String {
         magenta = MAGENTA,
     )
 }
+fn adjust_help() -> String {
+    format!(
+        r#"Color adjustments: {blue}--adjust "group.adjustment=value,..."{reset}
+  Apply one or more transformations to theme colors.
+
+{green}Quick start:{reset}
+  {blue}--adjust "brightness=-10"{reset}  Darken whole theme slightly
+  {blue}--adjust "saturation=20"{reset}   Boost all colors
+  {blue}--adjust "pal.hue=180"{reset}     Shift palette to complementary hues
+  {blue}--adjust "bg.exposure=-15,fg.contrast=10"{reset}  Darker bg, punchier text
+  {blue}--adjust "blue.hue=30,saturation=-50"{reset}      Turn blues into muted teals
+  {blue}--adjust "sel-bg.brightness=20,cursor.sat=50"{reset} Bright sel bg, vivid cursor
+
+{green}Groups (optional, defaults to All):{reset}
+  {blue}u/ui{reset}          All UI colors
+  {blue}b/bg{reset}         Backgrounds (base, sel, cursor)
+  {blue}f/fg{reset}         Foregrounds (base, sel, cursor)
+  {blue}s/sel{reset}        Selection colors
+  {blue}c/cur{reset}        Cursor colors
+  {blue}bb/base-bg{reset}   Base background only
+  {blue}bf/base-fg{reset}   Base foreground only
+  {blue}sb/sel-bg{reset}    Selection background
+  {blue}sf/sel-fg{reset}    Selection foreground
+  {blue}cb/cur-bg{reset}    Cursor background
+  {blue}cf/cur-fg{reset}    Cursor foreground
+  {blue}p/pal{reset}        All ANSI palette colors
+  {blue}t/text{reset}       Foregrounds + palette
+  {blue}black{reset}        Black (normal + bright)
+  {blue}red{reset}          Red (normal + bright)
+  {blue}green{reset}        Green (normal + bright)
+  {blue}yellow{reset}       Yellow (normal + bright)
+  {blue}blue{reset}         Blue (normal + bright)
+  {blue}magenta{reset}      Magenta (normal + bright)
+  {blue}cyan{reset}         Cyan (normal + bright)
+  {blue}white{reset}        White (normal + bright)
+  {blue}orange{reset}       Orange (normal + bright)
+  {blue}pink{reset}         Pink (normal + bright)
+
+{green}Adjustments:{reset}
+  {blue}b/br/brightness{reset}=N     HSL lightness shift (-100..100)
+  {blue}e/exposure{reset}=N          Linear-light scale (-100..100, ±1 stop)
+  {blue}c/contrast{reset}=N          HSL contrast (-100..100)
+  {blue}cc/channel-contrast{reset}=N RGB channel contrast (-100..100)
+  {blue}s/sat/saturation{reset}=N    HSV saturation (-100..100)
+  {blue}v/vib/vibrance{reset}=N      Smart saturation (-100..100)
+  {blue}h/hue{reset}=N               Hue rotation (-180..180°)
+  {blue}t/temp/temperature{reset}=N  Blue↔Orange white balance (-100..100)
+  {blue}ti/tint{reset}=N             Green↔Magenta white balance (-100..100)
+  {blue}g/gamma{reset}=N             Gamma correction (0.25..4.0)
+  {blue}bp/black-point{reset}=N      Lift shadows (-100..100)
+  {blue}wp/white-point{reset}=N      Crush highlights (-100..100)
+  {blue}i/invert{reset}=1            Invert HSL lightness (value ignored)
+
+{green}More examples:{reset}
+  {blue}--adjust "temperature=40,tint=-10"{reset}  Warm amber tint
+  {blue}--adjust "pal.gamma=0.8,black.brightness=5"{reset}  Softer palette, lifted blacks
+  {blue}--adjust "red.hue=-20,saturation=30,temperature=60"{reset}  Rich warm reds
+  {blue}--adjust "preset.txt"{reset}  Load adjustments from file
+  {blue}--adjust "_"{reset}           Reset all adjustments"#,
+        reset = RESET,
+        green = GREEN,
+        blue = BLUE,
+    )
+}
 
 impl Args {
     pub fn parse() -> Self {
         let mut args = Self::default();
         let mut last: Option<char> = None;
+
+        if let Some(arg) = std::env::var("RECOL_ADJUST").ok() {
+            args.adjust_arg(arg);
+        }
 
         let mut iter = std::env::args().skip(1);
         while let Some(arg) = iter.next() {
@@ -120,6 +193,7 @@ impl Args {
                     "contains" => last = Some('c'),
                     "target" => last = Some('c'),
                     "nvim_config" => last = Some('0'),
+                    "adjust" => last = Some('a'),
                     "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
                     "font-rand" => args.font_rand = true,
@@ -145,7 +219,7 @@ impl Args {
             } else if let Some(flags) = arg.strip_prefix('-') {
                 for c in flags.chars() {
                     match c {
-                        't' | 'f' | 'c' | 'T' => last = Some(c),
+                        't' | 'f' | 'c' | 'T' | 'a' => last = Some(c),
                         'r' => args.rand = true,
                         'd' => args.dark = true,
                         'l' => args.light = true,
@@ -185,6 +259,9 @@ impl Args {
                             }
                         }
                     }
+                    Some('a') => {
+                        args.adjust_arg(arg);
+                    }
                     _ => {
                         args.theme.replace(arg);
                     }
@@ -207,5 +284,30 @@ impl Args {
             filters.push(lib::ThemeFilter::Contains(s));
         }
         filters
+    }
+
+    fn adjust_arg(&mut self, mut arg: String) {
+        if arg == "help" {
+            println!("{}", adjust_help());
+            std::process::exit(0);
+        }
+        let path = std::path::PathBuf::from(&arg);
+        if path.is_file() {
+            arg = std::fs::read_to_string(path).expect("read adjust file error");
+        }
+        if arg == "_" {
+            self.adjust.clear();
+            self.adjust.push(ThemeAdjustment::None);
+            return;
+        }
+        for adjust_str in arg.split(",") {
+            let trimmed = adjust_str.trim();
+            match trimmed.parse::<ThemeAdjustment>() {
+                Ok(a) => {
+                    self.adjust.push(a);
+                }
+                Err(e) => panic!("{}", e),
+            }
+        }
     }
 }

@@ -40,7 +40,7 @@
 //! `orange` and `pink` in [`AnsiColors`] are **derived** (blended at runtime)
 //! and are not stored in the binary.
 
-use crate::{COLOR_SIZE, Color, CssColor, Error, Result};
+use crate::{COLOR_SIZE, Color, CssColor, Error, Result, ThemeAdjustment};
 use serde::{Deserialize, Serialize};
 
 /// Number of colors stored per [`ColorScheme`]: 2 terminal + 2 selection +
@@ -318,6 +318,15 @@ impl ColorScheme {
             diff,
             comment: fg_color.blend(&bg_color, param.comment_blend).css(),
         }
+    }
+
+    #[inline]
+    pub fn apply_adjustment(&mut self, adjust: &ThemeAdjustment) {
+        adjust.apply(self);
+    }
+
+    pub fn apply_adjustments(&mut self, adjusts: &[ThemeAdjustment]) {
+        adjusts.iter().for_each(|a| self.apply_adjustment(a));
     }
 }
 

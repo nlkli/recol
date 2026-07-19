@@ -49,21 +49,26 @@ fn main() -> Result<()> {
         && !args.font_list
         && !args.interactive
     {
-        if let Some(theme) = store::read_theme_history(1)
+        if let Some(lazy_theme) = store::read_theme_history(1)
             .first()
             .and_then(|n| collection.by_name(n))
         {
+            let mut theme = lazy_theme.into_theme();
+            if !args.adjust.is_empty() {
+                theme.colors.apply_adjustments(&args.adjust);
+                targets::apply_theme(&args, &theme)?;
+            }
             if args.show {
                 print_theme_header(&theme.name, theme.is_light);
-                theme.into_theme().print_palette();
+                theme.print_palette();
             } else if args.json {
                 print_theme_as_json(
                     &theme.name,
                     theme.is_light,
-                    &theme.into_theme().colors.into_advanced(None),
+                    &theme.colors.into_advanced(None),
                 );
             } else {
-                print_theme_header(theme.name, theme.is_light);
+                print_theme_header(&theme.name, theme.is_light);
             }
         }
         return Ok(());
@@ -92,7 +97,10 @@ fn main() -> Result<()> {
             theme = theme.or(choice.map(|v| v.into_theme()));
         }
 
-        if let Some(ref theme) = theme {
+        if let Some(ref mut theme) = theme {
+            if !args.adjust.is_empty() {
+                theme.colors.apply_adjustments(&args.adjust);
+            }
             loop {
                 if args.show {
                     print_theme_header(&theme.name, theme.is_light);

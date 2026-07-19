@@ -251,8 +251,8 @@ impl Color {
 
     /// Adjusts HSL *lightness* by `v` percentage points.
     pub fn lighten(&self, v: f32) -> Color {
-        let (h, s, l) = self.hsl();
-        Color::from_hsl(h, s, clamp(l + v, 0.0, 100.0))
+        let (h, s, val) = self.hsl();
+        Color::from_hsl(h, s, clamp(val + v, 0.0, 100.0))
     }
 
     /// Adjusts HSV *saturation* by `v` percentage points.
@@ -262,9 +262,9 @@ impl Color {
     }
 
     /// Rotates the hue by `v` degrees.
-    pub fn rotate(&self, v: f32) -> Color {
+    pub fn rotate(&self, v: f32, rhs: f32) -> Color {
         let (h, s, val) = self.hsv();
-        Color::from_hsv((h + v).rem_euclid(360.0), s, val)
+        Color::from_hsv((h + v).rem_euclid(rhs), s, val)
     }
 }
 
