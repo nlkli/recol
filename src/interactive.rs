@@ -1,6 +1,6 @@
 use crate::{cli::Args, store, targets};
 use crossterm::{cursor, event, execute, style, terminal as term};
-use recol_lib::{self as lib, Collection, ThemeAdjustment};
+use recol_lib::{self as lib, parse_theme_adjustments, Collection, ThemeAdjustment};
 use std::{
     fmt::Debug,
     io::{self, Write},
@@ -152,6 +152,7 @@ impl State {
 
     fn process_adjust_input(&mut self) {
         if self.adjust_input_buf.is_empty() {
+            self.adjust.clear();
             return;
         }
         let mut input = self.adjust_input_buf.clone();
@@ -159,24 +160,10 @@ impl State {
         if path.is_file() {
             input = std::fs::read_to_string(path).expect("read adjust file error");
         }
-        if input == "_" {
-            self.adjust.clear();
+        let Ok(adjust) = parse_theme_adjustments(&input) else {
             return;
-        }
-        let mut clear_flag = true;
-        for adjust_str in input.split(",") {
-            let trimmed = adjust_str.trim();
-            match trimmed.parse::<ThemeAdjustment>() {
-                Ok(a) => {
-                    if clear_flag {
-                        self.adjust.clear();
-                        clear_flag = false;
-                    }
-                    self.adjust.push(a);
-                }
-                _ => {}
-            }
-        }
+        };
+        self.adjust = adjust;
     }
 
     #[inline]
@@ -481,9 +468,9 @@ fn draw_screen(s: &State) -> io::Result<()> {
             (
                 "CLI ARGS",
                 &[
-                    ("--quit_on_select", ""),
-                    ("--init_input", ""),
-                    ("--init_help", ""),
+                    ("--quit-on-select", ""),
+                    ("--init-input", ""),
+                    ("--init-help", ""),
                 ],
             ),
         ];
@@ -687,6 +674,8 @@ pub fn run(args: &Args) -> io::Result<()> {
             event::Event::Key(key) => {
                 let ctrl = key.modifiers.contains(event::KeyModifiers::CONTROL);
                 match (key.code, &s.mode) {
+                    (event::KeyCode::Char('c'), _) if ctrl => break,
+
                     // Normal mode
                     (event::KeyCode::Enter, Mode::Normal) => {
                         if s.list.is_empty() {
@@ -728,7 +717,7 @@ pub fn run(args: &Args) -> io::Result<()> {
                     }
                     (event::KeyCode::Char('a'), Mode::Normal) => {
                         s.mode = Mode::AdjustInput;
-                        s.adjust_input_buf.clear();
+                        // s.adjust_input_buf.clear();
                     }
                     (event::KeyCode::Char('?' | 'H'), Mode::Normal) => {
                         s.mode = Mode::Help;
@@ -840,8 +829,6 @@ pub fn run(args: &Args) -> io::Result<()> {
                     ) => {
                         s.mode = Mode::Normal;
                     }
-
-                    (event::KeyCode::Char('c'), _) if ctrl => break,
 
                     _ => {}
                 }

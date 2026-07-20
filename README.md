@@ -104,6 +104,10 @@ cp target/release/recol /usr/local/bin/
 cargo install --git https://github.com/nlkli/recol --branch main --force
 ```
 
+### Pre-built binaries
+
+Download the latest release binary for your platform from the [Releases](https://github.com/nlkli/recol/releases) page.
+
 ### Fetch and rebuild color schemes
 
 Fetch the latest themes from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes) and rebuild the embedded binary:
@@ -137,7 +141,7 @@ Options:
       Filter themes by dark, light or name substring
       (used with --rand, --theme or --theme-list)
   -a, --adjust <SPEC|PATH>
-      Apply color adjustments (see --adjust help)
+      Apply color adjustments (see --adjust help) [env: RECOL_ADJUST]
       Format: "group.adjustment=value,..."
   -i, --interactive
       Browse and apply themes interactively
@@ -196,9 +200,9 @@ GENERAL
   q / Ctrl+c     Quit
 
 CLI ARGS
-  --quit_on_select
-  --init_input
-  --init_help
+  --quit-on-select
+  --init-input
+  --init-help
 ```
 
 ### Color Adjustments
@@ -336,19 +340,20 @@ More examples:
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   19       4,815       487       468      3,860        386
+Rust                   19       4,717       489       385      3,843        393
 TOML                    2          46         5         0         41          1
 License                 1          21         4         0         17          0
-Markdown                1         358        64         0        294          0
+Markdown                1         363        66         0        297          0
+Plain Text              1         205        63         0        142          0
 Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  24       5,248       562       469      4,217        387
+Total                  25       5,360       629       386      4,345        394
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $122,419
-Estimated Schedule Effort (organic) 6.19 months
-Estimated People Required (organic) 1.76
+Estimated Cost to Develop (organic) $126,323
+Estimated Schedule Effort (organic) 6.27 months
+Estimated People Required (organic) 1.79
 ───────────────────────────────────────────────────────────────────────────────
-Processed 180345 bytes, 0.180 megabytes (SI)
+Processed 191144 bytes, 0.191 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 

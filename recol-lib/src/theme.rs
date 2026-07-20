@@ -470,20 +470,20 @@ pub struct AdvancedColorSchemeParam {
 impl Default for AdvancedColorSchemeParam {
     fn default() -> Self {
         Self {
-            bg0_brighten: -4.3,
+            bg0_brighten: -4.31,
             bg2_brighten: 6.0,
-            bg3_brighten: 12.0,
-            bg4_brighten: 23.0,
+            bg3_brighten: 12.1,
+            bg4_brighten: 23.2,
             fg0_brighten: 6.0,
-            fg2_brighten: -23.0,
-            fg3_brighten: -44.0,
-            code_selection_blend: 0.15,
-            dim_shade: 0.15,
-            diff_add_blend: 0.33,
-            diff_delete_blend: 0.33,
-            diff_change_blend: 0.33,
-            diff_text_blend: 0.40,
-            comment_blend: 0.40,
+            fg2_brighten: -23.2,
+            fg3_brighten: -44.44,
+            code_selection_blend: 0.155,
+            dim_shade: 0.155,
+            diff_add_blend: 0.333,
+            diff_delete_blend: 0.333,
+            diff_change_blend: 0.333,
+            diff_text_blend: 0.4,
+            comment_blend: 0.4,
         }
     }
 }

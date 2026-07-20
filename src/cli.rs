@@ -1,4 +1,4 @@
-use recol_lib::{self as lib, ThemeAdjustment};
+use recol_lib::{self as lib, parse_theme_adjustments, ThemeAdjustment};
 
 use crate::targets::Target;
 
@@ -110,21 +110,24 @@ fn help() -> String {
         magenta = MAGENTA,
     )
 }
+
 fn adjust_help() -> String {
     format!(
-        r#"Color adjustments: {blue}--adjust "group.adjustment=value,..."{reset}
+        r#"Color adjustments: {blue}--adjust "group.adjustment=value,..."{reset}  [env: RECOL_ADJUST]
   Apply one or more transformations to theme colors.
-
 {green}Quick start:{reset}
-  {blue}--adjust "brightness=-10"{reset}  Darken whole theme slightly
-  {blue}--adjust "saturation=20"{reset}   Boost all colors
-  {blue}--adjust "pal.hue=180"{reset}     Shift palette to complementary hues
-  {blue}--adjust "bg.exposure=-15,fg.contrast=10"{reset}  Darker bg, punchier text
-  {blue}--adjust "blue.hue=30,saturation=-50"{reset}      Turn blues into muted teals
-  {blue}--adjust "sel-bg.brightness=20,cursor.sat=50"{reset} Bright sel bg, vivid cursor
-
+  {blue}--adjust "brightness=-10"{reset}       Darken whole theme slightly
+  {blue}--adjust "saturation=20"{reset}        Boost all colors
+  {blue}--adjust "pal.hue=180"{reset}          Rotate ANSI palette hues
+  {blue}--adjust "ui.exposure=-15,text.contrast=10"{reset}
+  {blue}--adjust "sel-bg.brightness=10,cur-bg.sat=30"{reset}
+  {blue}--adjust "temperature=20,tint=-10"{reset}
+  {blue}--adjust "pal.gamma=0.8,bb.fade=-20"{reset}
+  {blue}--adjust "pal.saturation-cap=30"{reset}  Tame overly vivid ANSI colors
+  {blue}--adjust "preset.txt"{reset}           Load adjustments from file
+  {blue}--adjust "_"{reset}                    Reset all adjustments
 {green}Groups (optional, defaults to All):{reset}
-  {blue}u/ui{reset}          All UI colors
+  {blue}u/ui{reset}         UI colors (fg, bg)
   {blue}b/bg{reset}         Backgrounds (base, sel, cursor)
   {blue}f/fg{reset}         Foregrounds (base, sel, cursor)
   {blue}s/sel{reset}        Selection colors
@@ -137,38 +140,23 @@ fn adjust_help() -> String {
   {blue}cf/cur-fg{reset}    Cursor foreground
   {blue}p/pal{reset}        All ANSI palette colors
   {blue}t/text{reset}       Foregrounds + palette
-  {blue}black{reset}        Black (normal + bright)
-  {blue}red{reset}          Red (normal + bright)
-  {blue}green{reset}        Green (normal + bright)
-  {blue}yellow{reset}       Yellow (normal + bright)
-  {blue}blue{reset}         Blue (normal + bright)
-  {blue}magenta{reset}      Magenta (normal + bright)
-  {blue}cyan{reset}         Cyan (normal + bright)
-  {blue}white{reset}        White (normal + bright)
-  {blue}orange{reset}       Orange (normal + bright)
-  {blue}pink{reset}         Pink (normal + bright)
-
-{green}Adjustments:{reset}
-  {blue}b/br/brightness{reset}=N     HSL lightness shift (-100..100)
-  {blue}e/exposure{reset}=N          Linear-light scale (-100..100, ±1 stop)
-  {blue}c/contrast{reset}=N          HSL contrast (-100..100)
-  {blue}cc/channel-contrast{reset}=N RGB channel contrast (-100..100)
-  {blue}s/sat/saturation{reset}=N    HSV saturation (-100..100)
-  {blue}v/vib/vibrance{reset}=N      Smart saturation (-100..100)
-  {blue}h/hue{reset}=N               Hue rotation (-180..180°)
-  {blue}t/temp/temperature{reset}=N  Blue↔Orange white balance (-100..100)
-  {blue}ti/tint{reset}=N             Green↔Magenta white balance (-100..100)
-  {blue}g/gamma{reset}=N             Gamma correction (0.25..4.0)
-  {blue}bp/black-point{reset}=N      Lift shadows (-100..100)
-  {blue}wp/white-point{reset}=N      Crush highlights (-100..100)
-  {blue}i/invert{reset}=1            Invert HSL lightness (value ignored)
-
-{green}More examples:{reset}
-  {blue}--adjust "temperature=40,tint=-10"{reset}  Warm amber tint
-  {blue}--adjust "pal.gamma=0.8,black.brightness=5"{reset}  Softer palette, lifted blacks
-  {blue}--adjust "red.hue=-20,saturation=30,temperature=60"{reset}  Rich warm reds
-  {blue}--adjust "preset.txt"{reset}  Load adjustments from file
-  {blue}--adjust "_"{reset}           Reset all adjustments"#,
+  {blue}black,red,green,yellow,blue,magenta,cyan,white,orange,pink{reset}
+  Named ANSI colors (normal + bright)
+{green}Color/Tone adjustments:{reset}
+  {blue}b/br/brightness{reset}=N     HSL lightness shift, toward white/black (-100..100)
+  {blue}e/exposure{reset}=N         Linear-light scale (-100..100)
+  like a camera: highlights move more than shadows
+  {blue}c/contrast{reset}=N         HSL contrast around midpoint (-100..100)
+  {blue}g/gamma{reset}=N            Gamma correction (0.25..4.0, 1.0 = unchanged)
+  {blue}f/fade{reset}=N             Blend toward black/white (-100..100)
+  negative shades darker, positive whitens
+  {blue}i/invert{reset}=1           Flip light/dark (value ignored)
+  {blue}s/sat/saturation{reset}=N   HSV saturation, toward full/gray (-100..100, -100 = grayscale)
+  {blue}sc/saturation-cap{reset}=N  Cap the most saturated colors only (0..100)
+  {blue}v/vib/vibrance{reset}=N     Saturation that spares already-vivid colors (-100..100)
+  {blue}h/hue{reset}=N              Hue rotation, degrees (-180..180)
+  {blue}t/temp/temperature{reset}=N Blue ↔ Orange white balance (-100..100)
+  {blue}ti/tint{reset}=N            Green ↔ Magenta white balance (-100..100)"#,
         reset = RESET,
         green = GREEN,
         blue = BLUE,
@@ -300,14 +288,9 @@ impl Args {
             self.adjust.push(ThemeAdjustment::None);
             return;
         }
-        for adjust_str in arg.split(",") {
-            let trimmed = adjust_str.trim();
-            match trimmed.parse::<ThemeAdjustment>() {
-                Ok(a) => {
-                    self.adjust.push(a);
-                }
-                Err(e) => panic!("{}", e),
-            }
+        match parse_theme_adjustments(&arg) {
+            Ok(adjust) => self.adjust.extend_from_slice(&adjust),
+            Err(e) => panic!("{e}"),
         }
     }
 }
