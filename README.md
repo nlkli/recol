@@ -216,19 +216,21 @@ In interactive mode you can change adjustments live and see the preview update i
 Help Message:
 
 ```text
-Color adjustments: --adjust "group.adjustment=value,..."
+Color adjustments: --adjust "group.adjustment=value,..."  [env: RECOL_ADJUST]
   Apply one or more transformations to theme colors.
-
 Quick start:
-  --adjust "brightness=-10"  Darken whole theme slightly
-  --adjust "saturation=20"   Boost all colors
-  --adjust "pal.hue=180"     Shift palette to complementary hues
-  --adjust "bg.exposure=-15,fg.contrast=10"  Darker bg, punchier text
-  --adjust "blue.hue=30,saturation=-50"      Turn blues into muted teals
-  --adjust "sel-bg.brightness=20,cursor.sat=50" Bright sel bg, vivid cursor
-
+  --adjust "brightness=-10"       Darken whole theme slightly
+  --adjust "saturation=20"        Boost all colors
+  --adjust "pal.hue=180"          Rotate ANSI palette hues
+  --adjust "ui.exposure=-15,text.contrast=10"
+  --adjust "sel-bg.brightness=10,cur-bg.sat=30"
+  --adjust "temperature=20,tint=-10"
+  --adjust "pal.gamma=0.8,bb.fade=-20"
+  --adjust "pal.saturation-cap=30"  Tame overly vivid ANSI colors
+  --adjust "preset.txt"           Load adjustments from file
+  --adjust "_"                    Reset all adjustments
 Groups (optional, defaults to All):
-  u/ui          All UI colors
+  u/ui         UI colors (fg, bg)
   b/bg         Backgrounds (base, sel, cursor)
   f/fg         Foregrounds (base, sel, cursor)
   s/sel        Selection colors
@@ -241,38 +243,23 @@ Groups (optional, defaults to All):
   cf/cur-fg    Cursor foreground
   p/pal        All ANSI palette colors
   t/text       Foregrounds + palette
-  black        Black (normal + bright)
-  red          Red (normal + bright)
-  green        Green (normal + bright)
-  yellow       Yellow (normal + bright)
-  blue         Blue (normal + bright)
-  magenta      Magenta (normal + bright)
-  cyan         Cyan (normal + bright)
-  white        White (normal + bright)
-  orange       Orange (normal + bright)
-  pink         Pink (normal + bright)
-
-Adjustments:
-  b/br/brightness=N     HSL lightness shift (-100..100)
-  e/exposure=N          Linear-light scale (-100..100, ±1 stop)
-  c/contrast=N          HSL contrast (-100..100)
-  cc/channel-contrast=N RGB channel contrast (-100..100)
-  s/sat/saturation=N    HSV saturation (-100..100)
-  v/vib/vibrance=N      Smart saturation (-100..100)
-  h/hue=N               Hue rotation (-180..180°)
-  t/temp/temperature=N  Blue↔Orange white balance (-100..100)
-  ti/tint=N             Green↔Magenta white balance (-100..100)
-  g/gamma=N             Gamma correction (0.25..4.0)
-  bp/black-point=N      Lift shadows (-100..100)
-  wp/white-point=N      Crush highlights (-100..100)
-  i/invert=1            Invert HSL lightness (value ignored)
-
-More examples:
-  --adjust "temperature=40,tint=-10"  Warm amber tint
-  --adjust "pal.gamma=0.8,black.brightness=5"  Softer palette, lifted blacks
-  --adjust "red.hue=-20,saturation=30,temperature=60"  Rich warm reds
-  --adjust "preset.txt"  Load adjustments from file
-  --adjust "_"           Reset all adjustments
+  black,red,green,yellow,blue,magenta,cyan,white,orange,pink
+  Named ANSI colors (normal + bright)
+Color/Tone adjustments:
+  b/br/brightness=N     HSL lightness shift, toward white/black (-100..100)
+  e/exposure=N         Linear-light scale (-100..100)
+  like a camera: highlights move more than shadows
+  c/contrast=N         HSL contrast around midpoint (-100..100)
+  g/gamma=N            Gamma correction (0.25..4.0, 1.0 = unchanged)
+  f/fade=N             Blend toward black/white (-100..100)
+  negative shades darker, positive whitens
+  i/invert=1           Flip light/dark (value ignored)
+  s/sat/saturation=N   HSV saturation, toward full/gray (-100..100, -100 = grayscale)
+  sc/saturation-cap=N  Cap the most saturated colors only (0..100)
+  v/vib/vibrance=N     Saturation that spares already-vivid colors (-100..100)
+  h/hue=N              Hue rotation, degrees (-180..180)
+  t/temp/temperature=N Blue ↔ Orange white balance (-100..100)
+  ti/tint=N            Green ↔ Magenta white balance (-100..100)
 ```
 
 ### Demo & Screenshots
