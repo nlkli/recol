@@ -32,10 +32,10 @@ impl std::str::FromStr for Target {
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-            "ghostty" | "ghostt" | "ghost" | "gt" | "g" => Ok(Self::Ghostty),
-            "alacritty" | "alacrit" | "alac" | "al" | "a" => Ok(Self::Alacritty),
-            "wezterm" | "wezt" | "wez" | "wt" | "w" => Ok(Self::Wezterm),
-            "neovim" | "nvim" | "neo" | "nvi" | "nv" | "n" => Ok(Self::Nvim),
+            "g" | "gt" | "ghostty" => Ok(Self::Ghostty),
+            "a" | "at" | "alacritty" => Ok(Self::Alacritty),
+            "w" | "wt" | "wezterm" => Ok(Self::Wezterm),
+            "neovim" | "nvim" | "nvi" | "nv" | "n" => Ok(Self::Nvim),
             _ => Err(()),
         }
     }

@@ -14,12 +14,14 @@ fn to_u8(v: f32) -> u8 {
     (v * 255.0).round() as u8
 }
 
-/// An RGB color stored as linear floats in `[0.0, 1.0]`.
+/// An RGB color stored as sRGB-encoded (gamma-corrected) floats in `[0.0, 1.0]`.
+/// Use `lab()`/`from_lab()` (or the internal `srgb_to_linear`/`linear_to_srgb`
+/// helpers) to work in linear light.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Color {
-    r: f32,
-    g: f32,
-    b: f32,
+    pub r: f32,
+    pub g: f32,
+    pub b: f32,
 }
 
 impl TryFrom<&[u8]> for Color {
@@ -132,6 +134,27 @@ impl Color {
         Self::new(channel(0.0), channel(8.0), channel(4.0))
     }
 
+    /// Converts CIE L*a*b* back to a `Color`, clamping to the sRGB gamut.
+    pub fn from_lab(l: f32, a: f32, b: f32) -> Self {
+        let fy = (l + 16.0) / 116.0;
+        let fx = a / 500.0 + fy;
+        let fz = fy - b / 200.0;
+
+        let x = D65_XN * lab_f_inv(fx);
+        let y = D65_YN * lab_f_inv(fy);
+        let z = D65_ZN * lab_f_inv(fz);
+
+        let r = 3.2404542 * x - 1.5371385 * y - 0.4985314 * z;
+        let g = -0.9692660 * x + 1.8760108 * y + 0.0415560 * z;
+        let bl = 0.0556434 * x - 0.2040259 * y + 1.0572252 * z;
+
+        Color::new(
+            linear_to_srgb(r.clamp(0.0, 1.0)),
+            linear_to_srgb(g.clamp(0.0, 1.0)),
+            linear_to_srgb(bl.clamp(0.0, 1.0)),
+        )
+    }
+
     #[inline]
     pub fn try_from_bytes(b: &[u8]) -> Result<Self> {
         Self::try_from(b)
@@ -168,8 +191,7 @@ impl Color {
         CssColor(format!("#{:06x}", self.hex()))
     }
 
-    /// Returns `(hue °, saturation %, value %)`.
-    pub fn hsv(&self) -> (f32, f32, f32) {
+    fn hue(&self) -> f32 {
         let max = self.r.max(self.g).max(self.b);
         let min = self.r.min(self.g).min(self.b);
         let delta = max - min;
@@ -184,10 +206,17 @@ impl Color {
             60.0 * ((self.r - self.g) / delta + 4.0)
         };
 
-        let h = h.rem_euclid(360.0);
-        let s = if max == 0.0 { 0.0 } else { delta / max };
+        h.rem_euclid(360.0)
+    }
 
-        (h, s * 100.0, max * 100.0)
+    /// Returns `(hue °, saturation %, value %)`.
+    pub fn hsv(&self) -> (f32, f32, f32) {
+        let max = self.r.max(self.g).max(self.b);
+        let min = self.r.min(self.g).min(self.b);
+        let delta = max - min;
+
+        let s = if max == 0.0 { 0.0 } else { delta / max };
+        (self.hue(), s * 100.0, max * 100.0)
     }
 
     /// Returns `(hue °, saturation %, lightness %)`.
@@ -203,21 +232,30 @@ impl Color {
             delta / (1.0 - (2.0 * l - 1.0).abs())
         };
 
-        let (h, _, _) = self.hsv();
-        (h, s * 100.0, l * 100.0)
+        (self.hue(), s * 100.0, l * 100.0)
     }
 
     /// Returns the relative luminance as defined by WCAG 2.x.
     pub fn luminance(&self) -> f32 {
-        let linearise = |c: f32| {
-            if c > 0.04045 {
-                ((c + 0.055) / 1.055).powf(2.4)
-            } else {
-                c / 12.92
-            }
-        };
+        0.2126 * srgb_to_linear(self.r)
+            + 0.7152 * srgb_to_linear(self.g)
+            + 0.0722 * srgb_to_linear(self.b)
+    }
 
-        0.2126 * linearise(self.r) + 0.7152 * linearise(self.g) + 0.0722 * linearise(self.b)
+    /// Converts a `Color` to CIE L*a*b* (D65 white point).
+    pub fn lab(self) -> (f32, f32, f32) {
+        let (r, g, b) = (
+            srgb_to_linear(self.r),
+            srgb_to_linear(self.g),
+            srgb_to_linear(self.b),
+        );
+
+        let x = (0.4124564 * r + 0.3575761 * g + 0.1804375 * b) / D65_XN;
+        let y = (0.2126729 * r + 0.7151522 * g + 0.0721750 * b) / D65_YN;
+        let z = (0.0193339 * r + 0.1191920 * g + 0.9503041 * b) / D65_ZN;
+
+        let (fx, fy, fz) = (lab_f(x), lab_f(y), lab_f(z));
+        (116.0 * fy - 16.0, 500.0 * (fx - fy), 200.0 * (fy - fz))
     }
 
     /// Linearly interpolates between `self` and `other`.
@@ -338,5 +376,42 @@ impl std::str::FromStr for CssColor {
 impl std::fmt::Display for CssColor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.0)
+    }
+}
+
+const D65_XN: f32 = 0.95047;
+const D65_YN: f32 = 1.00000;
+const D65_ZN: f32 = 1.08883;
+
+fn srgb_to_linear(c: f32) -> f32 {
+    if c <= 0.04045 {
+        c / 12.92
+    } else {
+        ((c + 0.055) / 1.055).powf(2.4)
+    }
+}
+
+fn linear_to_srgb(c: f32) -> f32 {
+    if c <= 0.0031308 {
+        c * 12.92
+    } else {
+        1.055 * c.powf(1.0 / 2.4) - 0.055
+    }
+}
+
+fn lab_f(t: f32) -> f32 {
+    if t > 0.008856 {
+        t.powf(1.0 / 3.0)
+    } else {
+        7.787 * t + 16.0 / 116.0
+    }
+}
+
+fn lab_f_inv(t: f32) -> f32 {
+    let t3 = t * t * t;
+    if t3 > 0.008856 {
+        t3
+    } else {
+        (t - 16.0 / 116.0) / 7.787
     }
 }

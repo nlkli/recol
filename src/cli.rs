@@ -63,6 +63,29 @@ const RESET: &str = "\x1b[0m";
 const GREEN: &str = "\x1b[32m";
 const BLUE: &str = "\x1b[34m";
 const MAGENTA: &str = "\x1b[35m";
+const BRIGHT_BLACK: &str = "\x1b[90m";
+const BRIGHT_BLUE: &str = "\x1b[94m";
+const BRIGHT_MAGENTA: &str = "\x1b[95m";
+const BRIGHT_CYAN: &str = "\x1b[96m";
+
+fn logo() -> String {
+    format!(
+        "{bright_black}v0.2.1  [https://github.com/nlkli/recol]{reset}
+{bright_cyan}  ____    _____    ____    ___    _ {reset}
+{bright_blue} |  _ \\  | ____|  / ___|  / _ \\  | |{reset}
+{blue} | |_) | |  _|   | |     | | | | | |{reset}
+{magenta} |  _ <  | |___  | |___  | |_| | | |___{reset}
+{bright_magenta} |_| \\_\\ |_____|  \\____|  \\___/  |_____|{reset}
+",
+        bright_black = BRIGHT_BLACK,
+        reset = RESET,
+        bright_cyan = BRIGHT_CYAN,
+        bright_blue = BRIGHT_BLUE,
+        blue = BLUE,
+        magenta = MAGENTA,
+        bright_magenta = BRIGHT_MAGENTA,
+    )
+}
 
 const VERSION: &str = "recol 0.2.1 [https://github.com/nlkli/recol]";
 fn help() -> String {
@@ -81,8 +104,7 @@ fn help() -> String {
       Apply a theme by name (fuzzy matching)
   {blue}-r{reset}, {blue}--rand{reset}
       Apply a random theme
-  {blue}-d{reset}, {blue}--dark{reset}
-  {blue}-l{reset}, {blue}--light{reset}
+  {blue}-d{reset}, {blue}--dark{reset}; {blue}-l{reset}, {blue}--light{reset}
   {blue}-c{reset}, {blue}--contains <STR>{reset}
       Filter themes by dark, light or name substring
       (used with --rand, --theme or --theme-list)
@@ -97,13 +119,12 @@ fn help() -> String {
       Pick a random Nerd Font
   {blue}-T{reset}, {blue}--target <TARGET>{reset}
       Apply for specific target
-  {blue}--theme-list{reset}  List available themes
-  {blue}--font-list{reset}   List available Nerd Fonts
+  {blue}-L{reset}, {blue}--theme-list{reset}  List available themes
+  {blue}--font-list{reset}       List available Nerd Fonts
   {blue}-s{reset}, {blue}--show{reset}
       Show the theme color palette without applying it
-  {blue}-j{reset}, {blue}--json{reset}    Output theme/list as JSON
-  {blue}-h{reset}, {blue}--help{reset}
-  {blue}-V{reset}, {blue}--version{reset}"#,
+  {blue}-j{reset}, {blue}--json{reset}  Output theme/list as JSON
+  {blue}-h{reset}, {blue}--help{reset}; {blue}-V{reset}, {blue}--version{reset}; {blue}--logo{reset}"#,
         reset = RESET,
         green = GREEN,
         blue = BLUE,
@@ -115,48 +136,50 @@ fn adjust_help() -> String {
     format!(
         r#"Color adjustments: {blue}--adjust "group.adjustment=value,..."{reset}  [env: RECOL_ADJUST]
   Apply one or more transformations to theme colors.
+
 {green}Quick start:{reset}
-  {blue}--adjust "brightness=-10"{reset}       Darken whole theme slightly
-  {blue}--adjust "saturation=20"{reset}        Boost all colors
-  {blue}--adjust "pal.hue=180"{reset}          Rotate ANSI palette hues
-  {blue}--adjust "ui.exposure=-15,text.contrast=10"{reset}
-  {blue}--adjust "sel-bg.brightness=10,cur-bg.sat=30"{reset}
-  {blue}--adjust "temperature=20,tint=-10"{reset}
-  {blue}--adjust "pal.gamma=0.8,bb.fade=-20"{reset}
-  {blue}--adjust "pal.saturation-cap=30"{reset}  Tame overly vivid ANSI colors
-  {blue}--adjust "preset.txt"{reset}           Load adjustments from file
-  {blue}--adjust "_"{reset}                    Reset all adjustments
+  {blue}--adjust "brightness=-10"{reset}      Darken entire theme
+  {blue}--adjust "saturation=20"{reset}       Boost all colors evenly
+  {blue}--adjust "temperature=20,tint=-10"{reset}   Warmer + slight green tint
+  {blue}--adjust "pal.hue=180"{reset}         Rotate ANSI palette hues
+  {blue}--adjust "sel.invert,cur.hue=90"{reset}  Invert selection, green cursor
+  {blue}--adjust "pal.normalize=50,pal.vibrance=-20"{reset}  Unify palette, then desaturate
+  {blue}--adjust "preset.txt"{reset}          Load adjustments from file
+  {blue}--adjust "_"{reset}                   Reset all adjustments
+
 {green}Groups (optional, defaults to All):{reset}
-  {blue}u/ui{reset}         UI colors (fg, bg)
-  {blue}b/bg{reset}         Backgrounds (base, sel, cursor)
-  {blue}f/fg{reset}         Foregrounds (base, sel, cursor)
-  {blue}s/sel{reset}        Selection colors
-  {blue}c/cur{reset}        Cursor colors
-  {blue}bb/base-bg{reset}   Base background only
-  {blue}bf/base-fg{reset}   Base foreground only
-  {blue}sb/sel-bg{reset}    Selection background
-  {blue}sf/sel-fg{reset}    Selection foreground
-  {blue}cb/cur-bg{reset}    Cursor background
-  {blue}cf/cur-fg{reset}    Cursor foreground
-  {blue}p/pal{reset}        All ANSI palette colors
-  {blue}t/text{reset}       Foregrounds + palette
-  {blue}black,red,green,yellow,blue,magenta,cyan,white,orange,pink{reset}
-  Named ANSI colors (normal + bright)
-{green}Color/Tone adjustments:{reset}
-  {blue}b/br/brightness{reset}=N     HSL lightness shift, toward white/black (-100..100)
-  {blue}e/exposure{reset}=N         Linear-light scale (-100..100)
-  like a camera: highlights move more than shadows
-  {blue}c/contrast{reset}=N         HSL contrast around midpoint (-100..100)
-  {blue}g/gamma{reset}=N            Gamma correction (0.25..4.0, 1.0 = unchanged)
-  {blue}f/fade{reset}=N             Blend toward black/white (-100..100)
-  negative shades darker, positive whitens
-  {blue}i/invert{reset}=1           Flip light/dark (value ignored)
-  {blue}s/sat/saturation{reset}=N   HSV saturation, toward full/gray (-100..100, -100 = grayscale)
-  {blue}sc/saturation-cap{reset}=N  Cap the most saturated colors only (0..100)
-  {blue}v/vib/vibrance{reset}=N     Saturation that spares already-vivid colors (-100..100)
-  {blue}h/hue{reset}=N              Hue rotation, degrees (-180..180)
-  {blue}t/temp/temperature{reset}=N Blue ↔ Orange white balance (-100..100)
-  {blue}ti/tint{reset}=N            Green ↔ Magenta white balance (-100..100)"#,
+  {blue}u/ui{reset}            All UI (fg + bg + sel + cur)
+  {blue}b/bg{reset}            All backgrounds (base, sel, cursor)
+  {blue}f/fg{reset}            All foregrounds (base, sel, cursor)
+  {blue}s/sel{reset}           Selection (bg + fg)
+  {blue}c/cur{reset}           Cursor (bg + fg)
+  {blue}bb/base-bg{reset}      Base background
+  {blue}bf/base-fg{reset}      Base foreground
+  {blue}sb/sel-bg{reset}       Selection background
+  {blue}sf/sel-fg{reset}       Selection foreground
+  {blue}cb/cur-bg{reset}       Cursor background
+  {blue}cf/cur-fg{reset}       Cursor foreground
+  {blue}p/pal{reset}           All 16 ANSI colors
+  {blue}t/text{reset}          All foregrounds + palette
+  {blue}black/red/green/yellow/blue/magenta/cyan/white{reset}
+  Standard ANSI (normal + bright)
+  {blue}orange/pink{reset}     Extra named colors
+
+{green}Adjustments (all values -100..100 unless noted):{reset}
+  {blue}b/brightness{reset}=N        HSL lightness shift
+  {blue}e/exposure{reset}=N          Photographic exposure (linear light scale)
+  {blue}c/contrast{reset}=N          Contrast around midpoint
+  {blue}g/gamma{reset}=N             Gamma curve (midtones, preserves black/white)
+  {blue}f/fade{reset}=N              Blend RGB toward black (-) or white (+)
+  {blue}i/invert{reset}              Flip lightness around midpoint (value ignored)
+  {blue}s/sat/saturation{reset}=N    Uniform saturation
+  {blue}v/vib/vibrance{reset}=N      Smart saturation (protects vivid, boosts muted)
+  {blue}h/hue{reset}=N               Hue shift (maps to -180°..180°)
+  {blue}t/temp/temperature{reset}=N  Blue↔Yellow axis (negative = cooler)
+  {blue}ti/tint{reset}=N             Green↔Magenta axis (negative = greener)
+  {blue}n/norm/normalize{reset}=N    Pull lightness toward group average
+  {blue}nb/norm-both{reset}=N        Pull lightness + chroma toward average
+  {blue}nc/norm-chroma{reset}=N      Pull chroma toward group average"#,
         reset = RESET,
         green = GREEN,
         blue = BLUE,
@@ -198,6 +221,10 @@ impl Args {
                         println!("{}", help());
                         std::process::exit(0);
                     }
+                    "logo" => {
+                        println!("{}", logo());
+                        std::process::exit(0);
+                    }
                     "version" => {
                         println!("{}", VERSION);
                         std::process::exit(0);
@@ -215,6 +242,7 @@ impl Args {
                         's' => args.show = true,
                         'j' => args.json = true,
                         'i' => args.interactive = true,
+                        'L' => args.theme_list = true,
                         'h' => {
                             println!("{}", help());
                             std::process::exit(0);

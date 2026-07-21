@@ -135,13 +135,12 @@ Options:
       Apply a theme by name (fuzzy matching)
   -r, --rand
       Apply a random theme
-  -d, --dark
-  -l, --light
+  -d, --dark; -l, --light
   -c, --contains <STR>
       Filter themes by dark, light or name substring
       (used with --rand, --theme or --theme-list)
-  -a, --adjust <SPEC|PATH>
-      Apply color adjustments (see --adjust help) [env: RECOL_ADJUST]
+  -a, --adjust <SPEC|PATH> [env: RECOL_ADJUST]
+      Apply color adjustments (see --adjust help)
       Format: "group.adjustment=value,..."
   -i, --interactive
       Browse and apply themes interactively
@@ -151,13 +150,12 @@ Options:
       Pick a random Nerd Font
   -T, --target <TARGET>
       Apply for specific target
-  --theme-list  List available themes
-  --font-list   List available Nerd Fonts
+  -L, --theme-list  List available themes
+  --font-list       List available Nerd Fonts
   -s, --show
       Show the theme color palette without applying it
-  -j, --json    Output theme/list as JSON
-  -h, --help
-  -V, --version
+  -j, --json  Output theme/list as JSON
+  -h, --help; -V, --version; --logo
 ```
 
 ### Usage Examples
@@ -209,7 +207,7 @@ CLI ARGS
 
 ![recol-demo-adjust-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-adjust.gif)
 
-Adjust theme colors with `--adjust "group.adjustment=value,..."`. Supports lightness, contrast, saturation, hue, exposure, gamma, temperature, tint, black/white points and more. Apply to UI elements, specific colors, or the full ANSI palette using short group names (e.g. pal, bg, red).
+Adjust theme colors with `--adjust "group.adjustment=value,..."`. Supports brightness, contrast, saturation, hue, exposure, gamma, temperature, tint, normalize and more. Apply to UI elements, specific colors, or the full ANSI palette using short group names (e.g. pal, bg, red).
 
 In interactive mode you can change adjustments live and see the preview update instantly.
 
@@ -218,48 +216,50 @@ Help Message:
 ```text
 Color adjustments: --adjust "group.adjustment=value,..."  [env: RECOL_ADJUST]
   Apply one or more transformations to theme colors.
+
 Quick start:
-  --adjust "brightness=-10"       Darken whole theme slightly
-  --adjust "saturation=20"        Boost all colors
-  --adjust "pal.hue=180"          Rotate ANSI palette hues
-  --adjust "ui.exposure=-15,text.contrast=10"
-  --adjust "sel-bg.brightness=10,cur-bg.sat=30"
-  --adjust "temperature=20,tint=-10"
-  --adjust "pal.gamma=0.8,bb.fade=-20"
-  --adjust "pal.saturation-cap=30"  Tame overly vivid ANSI colors
-  --adjust "preset.txt"           Load adjustments from file
-  --adjust "_"                    Reset all adjustments
+  --adjust "brightness=-10"      Darken entire theme
+  --adjust "saturation=20"       Boost all colors evenly
+  --adjust "temperature=20,tint=-10"   Warmer + slight green tint
+  --adjust "pal.hue=180"         Rotate ANSI palette hues
+  --adjust "sel.invert,cur.hue=90"  Invert selection, green cursor
+  --adjust "pal.normalize=50,pal.vibrance=-20"  Unify palette, then desaturate
+  --adjust "preset.txt"          Load adjustments from file
+  --adjust "_"                   Reset all adjustments
+
 Groups (optional, defaults to All):
-  u/ui         UI colors (fg, bg)
-  b/bg         Backgrounds (base, sel, cursor)
-  f/fg         Foregrounds (base, sel, cursor)
-  s/sel        Selection colors
-  c/cur        Cursor colors
-  bb/base-bg   Base background only
-  bf/base-fg   Base foreground only
-  sb/sel-bg    Selection background
-  sf/sel-fg    Selection foreground
-  cb/cur-bg    Cursor background
-  cf/cur-fg    Cursor foreground
-  p/pal        All ANSI palette colors
-  t/text       Foregrounds + palette
-  black,red,green,yellow,blue,magenta,cyan,white,orange,pink
-  Named ANSI colors (normal + bright)
-Color/Tone adjustments:
-  b/br/brightness=N     HSL lightness shift, toward white/black (-100..100)
-  e/exposure=N         Linear-light scale (-100..100)
-  like a camera: highlights move more than shadows
-  c/contrast=N         HSL contrast around midpoint (-100..100)
-  g/gamma=N            Gamma correction (0.25..4.0, 1.0 = unchanged)
-  f/fade=N             Blend toward black/white (-100..100)
-  negative shades darker, positive whitens
-  i/invert=1           Flip light/dark (value ignored)
-  s/sat/saturation=N   HSV saturation, toward full/gray (-100..100, -100 = grayscale)
-  sc/saturation-cap=N  Cap the most saturated colors only (0..100)
-  v/vib/vibrance=N     Saturation that spares already-vivid colors (-100..100)
-  h/hue=N              Hue rotation, degrees (-180..180)
-  t/temp/temperature=N Blue ↔ Orange white balance (-100..100)
-  ti/tint=N            Green ↔ Magenta white balance (-100..100)
+  u/ui            All UI (fg + bg + sel + cur)
+  b/bg            All backgrounds (base, sel, cursor)
+  f/fg            All foregrounds (base, sel, cursor)
+  s/sel           Selection (bg + fg)
+  c/cur           Cursor (bg + fg)
+  bb/base-bg      Base background
+  bf/base-fg      Base foreground
+  sb/sel-bg       Selection background
+  sf/sel-fg       Selection foreground
+  cb/cur-bg       Cursor background
+  cf/cur-fg       Cursor foreground
+  p/pal           All 16 ANSI colors
+  t/text          All foregrounds + palette
+  black/red/green/yellow/blue/magenta/cyan/white
+  Standard ANSI (normal + bright)
+  orange/pink     Extra named colors
+
+Adjustments (all values -100..100 unless noted):
+  b/brightness=N        HSL lightness shift
+  e/exposure=N          Photographic exposure (linear light scale)
+  c/contrast=N          Contrast around midpoint
+  g/gamma=N             Gamma curve (midtones, preserves black/white)
+  f/fade=N              Blend RGB toward black (-) or white (+)
+  i/invert              Flip lightness around midpoint (value ignored)
+  s/sat/saturation=N    Uniform saturation
+  v/vib/vibrance=N      Smart saturation (protects vivid, boosts muted)
+  h/hue=N               Hue shift (maps to -180°..180°)
+  t/temp/temperature=N  Blue↔Yellow axis (negative = cooler)
+  ti/tint=N             Green↔Magenta axis (negative = greener)
+  n/norm/normalize=N    Pull lightness toward group average
+  nb/norm-both=N        Pull lightness + chroma toward average
+  nc/norm-chroma=N      Pull chroma toward group average
 ```
 
 ### Demo & Screenshots
@@ -327,20 +327,19 @@ Color/Tone adjustments:
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   19       4,717       489       385      3,843        393
+Rust                   19       4,885       512       397      3,976        391
 TOML                    2          46         5         0         41          1
 License                 1          21         4         0         17          0
-Markdown                1         363        66         0        297          0
-Plain Text              1         205        63         0        142          0
+Markdown                1         351        65         0        286          0
 Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  25       5,360       629       386      4,345        394
+Total                  24       5,311       588       398      4,325        392
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $126,323
-Estimated Schedule Effort (organic) 6.27 months
+Estimated Cost to Develop (organic) $125,713
+Estimated Schedule Effort (organic) 6.25 months
 Estimated People Required (organic) 1.79
 ───────────────────────────────────────────────────────────────────────────────
-Processed 191144 bytes, 0.191 megabytes (SI)
+Processed 182354 bytes, 0.182 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 

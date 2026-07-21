@@ -213,53 +213,11 @@ pub enum ThemeAdjustment {
     #[default]
     None,
 
-    /// HSL lightness shift, proportional toward white (+) or black (-).
-    /// Range: [-100, 100]. 0 = unchanged, +100 = white, -100 = black.
-    /// Not perceptually uniform across hues — use `Exposure` for that.
-    Brightness(ThemeColorGroup, f32),
-
-    /// Tonal contrast around the midpoint, in HSL lightness.
-    /// Range: [-100, 100]. +100 = max contrast, -100 = flat (all → L=50).
-    /// Hue and saturation are never affected.
-    Contrast(ThemeColorGroup, f32),
-
-    /// HSV saturation shift, proportional toward full (+) or gray (-).
-    /// Range: [-100, 100]. +100 = fully saturated, -100 = grayscale.
-    Saturation(ThemeColorGroup, f32),
-
-    /// Cap the most saturated colors, leaving weaker colors untouched.
-    /// Range: [0, 100]. 0 = no effect, 100 = fully desaturated.
-    /// Value = how much to shave off the saturation ceiling (ceiling = 100 - N).
-    /// Handy for taming an overly acidic ANSI palette without affecting
-    /// already-muted colors.
-    SaturationCap(ThemeColorGroup, f32),
-
-    /// Saturation shift that protects already-vivid colors.
-    /// Range: [-100, 100].
-    /// +: weak colors gain saturation fastest, vivid colors barely move.
-    /// -: vivid colors lose saturation fastest, weak colors barely move.
-    Vibrance(ThemeColorGroup, f32),
-
-    /// Hue rotation, degrees. Range: [-180, 180].
-    Hue(ThemeColorGroup, f32),
-
-    /// Blue ↔ Orange white balance. Range: [-100, 100].
-    /// +100 = orange (red up, blue down). -100 = blue (blue up, red down).
-    Temperature(ThemeColorGroup, f32),
-
-    /// Green ↔ Magenta white balance. Range: [-100, 100].
-    /// +100 = magenta (green down). -100 = green (green up).
-    Tint(ThemeColorGroup, f32),
-
     /// Photographic exposure: scales linear-light value, gamma-correct.
     /// Range: [-100, 100] (±1 stop). +100 = double linear light, -100 = half.
     /// Highlights move more than shadows in absolute terms — unlike
     /// `Brightness` (HSL offset) or `Gamma` (power curve).
     Exposure(ThemeColorGroup, f32),
-
-    /// Gamma correction. Range: [0.25, 4.0]. 1.0 = unchanged.
-    /// >1.0 brightens midtones, <1.0 darkens them.
-    Gamma(ThemeColorGroup, f32),
 
     /// Blend each RGB channel toward black or white.
     /// Range: [-100, 100]. 0 = unchanged.
@@ -269,8 +227,50 @@ pub enum ThemeAdjustment {
     /// than a perceptual lightness change.
     Fade(ThemeColorGroup, f32),
 
-    /// Flip HSL lightness (`l → 100 - l`); hue/saturation untouched.
-    /// Turns a light theme dark or vice versa.
+    /// Shifts lightness uniformly for all colors in the group.
+    /// `-100..100`: negative darkens, positive lightens.
+    Brightness(ThemeColorGroup, f32),
+
+    /// Applies a nonlinear midtone curve; endpoints (black/white) stay fixed.
+    /// `-100..100`: negative darkens midtones, positive brightens them.
+    Gamma(ThemeColorGroup, f32),
+
+    /// Spreads or compresses lightness around a pivot point.
+    /// `-100..100`: negative reduces contrast, positive increases it.
+    /// Optional pivot lightness (`0..100`, default `50`) to contrast around.
+    Contrast(ThemeColorGroup, f32, Option<f32>),
+
+    /// Scales saturation uniformly for all colors in the group.
+    /// `-100..100`: negative desaturates, positive saturates.
+    Saturation(ThemeColorGroup, f32),
+
+    /// Scales saturation non-uniformly: weakly saturated colors are boosted
+    /// more, near-neutral grays and already-vivid colors are protected.
+    /// `-100..100`: negative reduces vibrance, positive increases it.
+    Vibrance(ThemeColorGroup, f32),
+
+    /// Rotates hue by an angle for all colors in the group.
+    /// `-100..100`, mapped to `-180°..180°`.
+    Hue(ThemeColorGroup, f32),
+
+    /// Shifts colors along the blue↔yellow axis (Lab b*).
+    /// `-100..100`: negative cools (blue), positive warms (yellow).
+    Temperature(ThemeColorGroup, f32),
+
+    /// Shifts colors along the green↔magenta axis (Lab a*).
+    /// `-100..100`: negative shifts green, positive shifts magenta.
+    Tint(ThemeColorGroup, f32),
+
+    /// Pulls every color in the group toward the group's average lightness
+    /// and/or chroma, reducing visual imbalance within the palette.
+    /// `-100..100`: strength of the pull toward the mean (0 = no change).
+    /// `NormalizeChannel` selects whether lightness, chroma, or both are affected.
+    Normalize(ThemeColorGroup, f32, NormalizeChannel),
+
+    /// Flips lightness around a pivot while preserving hue and saturation,
+    /// e.g. to derive a light theme from a dark one.
+    /// `-100..100`: blend strength toward the fully inverted color (sign ignored).
+    /// Optional pivot lightness (`0..100`, default `50`) to invert around.
     Invert(ThemeColorGroup),
 }
 
@@ -305,24 +305,29 @@ impl std::str::FromStr for ThemeAdjustment {
             (ThemeColorGroup::All, first)
         };
 
-        match adjust.to_lowercase().as_str() {
-            "b" | "br" | "brightness" => Ok(Self::Brightness(group, value)),
-            "e" | "exposure" => Ok(Self::Exposure(group, value)),
-            "c" | "contrast" => Ok(Self::Contrast(group, value)),
-            "s" | "sat" | "saturation" => Ok(Self::Saturation(group, value)),
-            "sc" | "saturation-cap" => Ok(Self::SaturationCap(group, value)),
-            "v" | "vib" | "vibrance" => Ok(Self::Vibrance(group, value)),
-            "h" | "hue" => Ok(Self::Hue(group, value)),
-            "t" | "temp" | "temperature" => Ok(Self::Temperature(group, value)),
-            "ti" | "tint" => Ok(Self::Tint(group, value)),
-            "g" | "gamma" => Ok(Self::Gamma(group, value)),
-            "f" | "fade" => Ok(Self::Fade(group, value)),
-            "i" | "invert" => Ok(Self::Invert(group)),
-            _ => Err(ParseThemeAdjustmentError(format!(
-                "unknown adjustment: '{}'",
-                adjust
-            ))),
-        }
+        Ok(match adjust {
+            "b" | "brightness" => Self::Brightness(group, value),
+            "e" | "exposure" => Self::Exposure(group, value),
+            "c" | "contrast" => Self::Contrast(group, value, None),
+            "s" | "sat" | "saturation" => Self::Saturation(group, value),
+            "v" | "vib" | "vibrance" => Self::Vibrance(group, value),
+            "h" | "hue" => Self::Hue(group, value),
+            "t" | "temp" | "temperature" => Self::Temperature(group, value),
+            "ti" | "tint" => Self::Tint(group, value),
+            "g" | "gamma" => Self::Gamma(group, value),
+            "f" | "fade" => Self::Fade(group, value),
+            "i" | "invert" => Self::Invert(group),
+            "n" | "norm" | "normalize" => {
+                Self::Normalize(group, value, NormalizeChannel::Lightness)
+            }
+            "nb" | "norm-both" => Self::Normalize(group, value, NormalizeChannel::Both),
+            "nc" | "norm-chroma" => Self::Normalize(group, value, NormalizeChannel::Chroma),
+            _ => {
+                return Err(ParseThemeAdjustmentError(format!(
+                    "unknown adjustment: '{adjust}'",
+                )));
+            }
+        })
     }
 }
 
@@ -331,95 +336,16 @@ impl ThemeAdjustment {
         match self {
             ThemeAdjustment::None => {}
 
-            ThemeAdjustment::Brightness(group, v) => {
-                let v = v.clamp(-100.0, 100.0);
+            ThemeAdjustment::Fade(group, v) => {
+                let shift = pct(*v) / 100.0;
                 for css in group.select_colors(cs) {
-                    let (h, s, l) = css.color().hsl();
-                    let new_l = if v >= 0.0 {
-                        l + (100.0 - l) * (v / 100.0)
-                    } else {
-                        l + l * (v / 100.0)
-                    };
-                    *css = Color::from_hsl(h, s, new_l).css();
-                }
-            }
-
-            ThemeAdjustment::Contrast(group, v) => {
-                let factor = v.clamp(-100.0, 100.0) / 100.0;
-                for css in group.select_colors(cs) {
-                    let (h, s, l) = css.color().hsl();
-                    let new_l = (50.0 + (l - 50.0) * (1.0 + factor)).clamp(0.0, 100.0);
-                    *css = Color::from_hsl(h, s, new_l).css();
-                }
-            }
-
-            ThemeAdjustment::Saturation(group, v) => {
-                let v = v.clamp(-100.0, 100.0);
-                for css in group.select_colors(cs) {
-                    let (h, s, val) = css.color().hsv();
-                    let new_s = if v >= 0.0 {
-                        s + (100.0 - s) * (v / 100.0)
-                    } else {
-                        s + s * (v / 100.0)
-                    };
-                    *css = Color::from_hsv(h, new_s, val).css();
-                }
-            }
-
-            ThemeAdjustment::SaturationCap(group, v) => {
-                let ceiling = 100.0 - v.clamp(0.0, 100.0);
-                for css in group.select_colors(cs) {
-                    let (h, s, val) = css.color().hsv();
-                    *css = Color::from_hsv(h, s.min(ceiling), val).css();
-                }
-            }
-
-            ThemeAdjustment::Vibrance(group, v) => {
-                let amount = v.clamp(-100.0, 100.0) / 100.0;
-                for css in group.select_colors(cs) {
-                    let (h, s, val) = css.color().hsv();
-                    let scale = if amount >= 0.0 {
-                        1.0 - s / 100.0
-                    } else {
-                        s / 100.0
-                    };
-                    let new_s = (s + amount * 100.0 * scale).clamp(0.0, 100.0);
-                    *css = Color::from_hsv(h, new_s, val).css();
-                }
-            }
-
-            ThemeAdjustment::Hue(group, v) => {
-                let v = v.clamp(-180.0, 180.0);
-                for css in group.select_colors(cs) {
-                    *css = css.color().rotate(v, 360.0).css();
-                }
-            }
-
-            ThemeAdjustment::Temperature(group, v) => {
-                let factor = v.clamp(-100.0, 100.0) / 100.0;
-                for css in group.select_colors(cs) {
-                    let (r, g, b) = css.color().rgb();
-                    let new_r = (r as f32 + factor * 100.0).clamp(0.0, 255.0).round() as u8;
-                    let new_b = (b as f32 - factor * 100.0).clamp(0.0, 255.0).round() as u8;
-                    *css = Color::from_rgb(new_r, g, new_b).css();
-                }
-            }
-
-            ThemeAdjustment::Tint(group, v) => {
-                let factor = v.clamp(-100.0, 100.0) / 100.0;
-                for css in group.select_colors(cs) {
-                    let (r, g, b) = css.color().rgb();
-                    let new_g = (g as f32 - factor * 100.0).clamp(0.0, 255.0).round() as u8;
-                    let new_r = (r as f32 + factor * 50.0).clamp(0.0, 255.0).round() as u8;
-                    let new_b = (b as f32 + factor * 50.0).clamp(0.0, 255.0).round() as u8;
-                    *css = Color::from_rgb(new_r, new_g, new_b).css();
+                    *css = css.color().shade(shift).css();
                 }
             }
 
             ThemeAdjustment::Exposure(group, v) => {
-                let factor = 2f32.powf(v.clamp(-100.0, 100.0) / 100.0);
+                let factor = 2f32.powf(pct(*v) / 100.0);
 
-                // Exact sRGB transfer curve (matches Color::luminance's decode).
                 let decode = |c: f32| {
                     if c > 0.04045 {
                         ((c + 0.055) / 1.055).powf(2.4)
@@ -434,42 +360,184 @@ impl ThemeAdjustment {
                         c * 12.92
                     }
                 };
+                let adjust = |c: f32| encode((decode(c) * factor).clamp(0.0, 1.0));
 
-                for css in group.select_colors(cs) {
-                    let (r, g, b) = css.color().rgb();
-                    let adjust = |c: u8| -> u8 {
-                        let linear = decode(c as f32 / 255.0);
-                        let scaled = (linear * factor).clamp(0.0, 1.0);
-                        (encode(scaled) * 255.0).round() as u8
-                    };
-                    *css = Color::from_rgb(adjust(r), adjust(g), adjust(b)).css();
-                }
+                for_each_rgb(group, cs, |r, g, b| (adjust(r), adjust(g), adjust(b)));
+            }
+
+            ThemeAdjustment::Brightness(group, v) => {
+                let delta = pct(*v);
+                for_each_hsl(group, cs, |h, s, l| (h, s, (l + delta).clamp(0.0, 100.0)));
             }
 
             ThemeAdjustment::Gamma(group, v) => {
-                let gamma = v.clamp(0.25, 4.0);
-                for css in group.select_colors(cs) {
-                    let (r, g, b) = css.color().rgb();
-                    let adjust = |c: u8| -> u8 {
-                        ((c as f32 / 255.0).powf(1.0 / gamma) * 255.0).round() as u8
-                    };
-                    *css = Color::from_rgb(adjust(r), adjust(g), adjust(b)).css();
-                }
+                // v = 100 -> exponent 0.5 (brighten midtones)
+                // v = -100 -> exponent 2.0 (darken midtones)
+                let exponent = 2f32.powf(-pct(*v) / 100.0);
+                for_each_hsl(group, cs, |h, s, l| {
+                    let normalized = (l / 100.0).clamp(0.0, 1.0);
+                    (h, s, (normalized.powf(exponent) * 100.0).clamp(0.0, 100.0))
+                });
             }
 
-            ThemeAdjustment::Fade(group, v) => {
-                let shift = v.clamp(-100.0, 100.0) / 100.0;
-                for css in group.select_colors(cs) {
-                    *css = css.color().shade(shift).css();
+            ThemeAdjustment::Contrast(group, v, pivot) => {
+                // Maps -100..100 onto a spread factor of 0.0..2.0 around `pivot`.
+                let factor = pct(-*v) / 100.0 + 1.0;
+                let pivot = pivot.unwrap_or(50.0);
+                for_each_hsl(group, cs, |h, s, l| {
+                    (h, s, (pivot + (l - pivot) * factor).clamp(0.0, 100.0))
+                });
+            }
+
+            ThemeAdjustment::Saturation(group, v) => {
+                let v = pct(*v);
+                for_each_hsv(group, cs, |h, s, val| {
+                    let new_s = if v >= 0.0 {
+                        s + (100.0 - s) * (v / 100.0)
+                    } else {
+                        s + s * (v / 100.0)
+                    };
+                    (h, new_s, val)
+                });
+            }
+
+            ThemeAdjustment::Vibrance(group, v) => {
+                let amount = pct(*v) / 100.0;
+                for_each_hsv(group, cs, |h, s, val| {
+                    // Parabolic weight: zero at s=0 (protects grays) and
+                    // s=100 (protects already-vivid accents), peaking at s=50.
+                    let weight = 4.0 * (s / 100.0) * (1.0 - s / 100.0);
+                    let delta = if amount >= 0.0 {
+                        (100.0 - s) * amount * weight
+                    } else {
+                        s * amount * weight
+                    };
+                    (h, (s + delta).clamp(0.0, 100.0), val)
+                });
+            }
+
+            ThemeAdjustment::Hue(group, v) => {
+                let degrees = pct(*v) / 100.0 * 180.0;
+                for_each_hsv(group, cs, |h, s, val| {
+                    ((h + degrees).rem_euclid(360.0), s, val)
+                });
+            }
+
+            ThemeAdjustment::Temperature(group, v) => {
+                let shift = pct(*v) * TEMP_TINT_SCALE;
+                for_each_lab(group, cs, |l, a, b| (l, a, b + shift));
+            }
+
+            ThemeAdjustment::Tint(group, v) => {
+                // Positive shifts toward magenta, negative toward green.
+                let shift = pct(*v) * TEMP_TINT_SCALE;
+                for_each_lab(group, cs, |l, a, b| (l, a + shift, b));
+            }
+
+            ThemeAdjustment::Normalize(group, v, channel) => {
+                let strength = pct(*v) / 100.0;
+
+                let samples: Vec<(f32, f32, f32)> = group
+                    .select_colors(cs)
+                    .iter()
+                    .map(|css| css.color().hsl())
+                    .collect();
+                if samples.is_empty() {
+                    return;
+                }
+
+                let mean_l = samples.iter().map(|(_, _, l)| l).sum::<f32>() / samples.len() as f32;
+                let mean_s = samples.iter().map(|(_, s, _)| s).sum::<f32>() / samples.len() as f32;
+
+                for (css, (h, s, l)) in group.select_colors(cs).into_iter().zip(samples) {
+                    let new_l = match channel {
+                        NormalizeChannel::Lightness | NormalizeChannel::Both => {
+                            (l + (mean_l - l) * strength).clamp(0.0, 100.0)
+                        }
+                        NormalizeChannel::Chroma => l,
+                    };
+                    let new_s = match channel {
+                        NormalizeChannel::Chroma | NormalizeChannel::Both => {
+                            (s + (mean_s - s) * strength).clamp(0.0, 100.0)
+                        }
+                        NormalizeChannel::Lightness => s,
+                    };
+                    *css = Color::from_hsl(h, new_s, new_l).css();
                 }
             }
 
             ThemeAdjustment::Invert(group) => {
-                for css in group.select_colors(cs) {
-                    let (h, s, l) = css.color().hsl();
-                    *css = Color::from_hsl(h, s, 100.0 - l).css();
-                }
+                for_each_hsl(group, cs, |h, s, l| (h, s, 100.0 - l));
             }
         }
     }
+}
+
+/// Clamps an adjustment value to the standard `[-100, 100]` input range.
+#[inline]
+fn pct(v: f32) -> f32 {
+    v.clamp(-100.0, 100.0)
+}
+
+/// Applies `f` to each color's HSL components and writes the result back.
+fn for_each_hsl(
+    group: &ThemeColorGroup,
+    cs: &mut ColorScheme,
+    mut f: impl FnMut(f32, f32, f32) -> (f32, f32, f32),
+) {
+    for css in group.select_colors(cs) {
+        let (h, s, l) = css.color().hsl();
+        let (h, s, l) = f(h, s, l);
+        *css = Color::from_hsl(h, s, l).css();
+    }
+}
+
+/// Applies `f` to each color's HSV components and writes the result back.
+fn for_each_hsv(
+    group: &ThemeColorGroup,
+    cs: &mut ColorScheme,
+    mut f: impl FnMut(f32, f32, f32) -> (f32, f32, f32),
+) {
+    for css in group.select_colors(cs) {
+        let (h, s, v) = css.color().hsv();
+        let (h, s, v) = f(h, s, v);
+        *css = Color::from_hsv(h, s, v).css();
+    }
+}
+
+/// Applies `f` to each color's CIE Lab components and writes the result back.
+fn for_each_lab(
+    group: &ThemeColorGroup,
+    cs: &mut ColorScheme,
+    mut f: impl FnMut(f32, f32, f32) -> (f32, f32, f32),
+) {
+    for css in group.select_colors(cs) {
+        let (l, a, b) = css.color().lab();
+        let (l, a, b) = f(l, a, b);
+        *css = Color::from_lab(l, a, b).css();
+    }
+}
+
+/// Applies `f` to each color's raw RGB channels and writes the result back.
+fn for_each_rgb(
+    group: &ThemeColorGroup,
+    cs: &mut ColorScheme,
+    mut f: impl FnMut(f32, f32, f32) -> (f32, f32, f32),
+) {
+    for css in group.select_colors(cs) {
+        let c = css.color();
+        let (r, g, b) = f(c.r, c.g, c.b);
+        *css = Color::new(r, g, b).css();
+    }
+}
+
+/// Scales the -100..100 input range onto a perceptually reasonable
+/// Lab a*/b* excursion (empirically ~±80 covers the practical gamut).
+const TEMP_TINT_SCALE: f32 = 0.8;
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum NormalizeChannel {
+    Lightness,
+    Chroma,
+    Both,
 }
