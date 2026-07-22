@@ -1,6 +1,6 @@
 use recol_lib::{self as lib, parse_theme_adjustments, ThemeAdjustment};
 
-use crate::targets::Target;
+use crate::targets::{self, Target};
 
 #[derive(Clone, Debug, Default)]
 pub struct Args {
@@ -63,23 +63,23 @@ const RESET: &str = "\x1b[0m";
 const GREEN: &str = "\x1b[32m";
 const BLUE: &str = "\x1b[34m";
 const MAGENTA: &str = "\x1b[35m";
+const CYAN: &str = "\x1b[36m";
 const BRIGHT_BLACK: &str = "\x1b[90m";
 const BRIGHT_BLUE: &str = "\x1b[94m";
 const BRIGHT_MAGENTA: &str = "\x1b[95m";
-const BRIGHT_CYAN: &str = "\x1b[96m";
 
 fn logo() -> String {
     format!(
-        "{bright_black}v0.2.1  [https://github.com/nlkli/recol]{reset}
-{bright_cyan}  ____    _____    ____    ___    _ {reset}
+        "{bright_black}v0.2.2  [https://github.com/nlkli/recol]{reset}
+{blue}  ____    _____    ____    ___    _ {reset}
 {bright_blue} |  _ \\  | ____|  / ___|  / _ \\  | |{reset}
-{blue} | |_) | |  _|   | |     | | | | | |{reset}
-{magenta} |  _ <  | |___  | |___  | |_| | | |___{reset}
-{bright_magenta} |_| \\_\\ |_____|  \\____|  \\___/  |_____|{reset}
+{cyan} | |_) | |  _|   | |     | | | | | |{reset}
+{bright_magenta} |  _ <  | |___  | |___  | |_| | | |___{reset}
+{magenta} |_| \\_\\ |_____|  \\____|  \\___/  |_____|{reset}
 ",
         bright_black = BRIGHT_BLACK,
         reset = RESET,
-        bright_cyan = BRIGHT_CYAN,
+        cyan = CYAN,
         bright_blue = BRIGHT_BLUE,
         blue = BLUE,
         magenta = MAGENTA,
@@ -92,10 +92,9 @@ fn help() -> String {
     format!(
         r#"CLI utility for changing the color scheme
 {magenta}https://github.com/nlkli/recol{reset}
-590+ color schemes:
-{magenta}https://github.com/mbadolato/iTerm2-Color-Schemes{reset}
 
-{green}Supported targets:{reset} alacritty, ghostty, wezterm, neovim.
+{green}Supported targets:{reset}
+alacritty, ghostty, wezterm, neovim, vim.
 
 {green}Usage:{reset} {blue}recol [OPTIONS] [THEME_NAME]{reset}
 
@@ -117,8 +116,8 @@ fn help() -> String {
       Set font family by name (fuzzy matching)
   {blue}-F{reset}, {blue}--font-rand{reset}
       Pick a random Nerd Font
-  {blue}-T{reset}, {blue}--target <TARGET>{reset}
-      Apply for specific target
+  {blue}-T{reset}, {blue}--target <Name>{reset}
+      Apply for specific target (see --target list)
   {blue}-L{reset}, {blue}--theme-list{reset}  List available themes
   {blue}--font-list{reset}       List available Nerd Fonts
   {blue}-s{reset}, {blue}--show{reset}
@@ -143,7 +142,7 @@ fn adjust_help() -> String {
   {blue}--adjust "temperature=20,tint=-10"{reset}   Warmer + slight green tint
   {blue}--adjust "pal.hue=180"{reset}         Rotate ANSI palette hues
   {blue}--adjust "sel.invert,cur.hue=90"{reset}  Invert selection, green cursor
-  {blue}--adjust "pal.normalize=50,pal.vibrance=-20"{reset}  Unify palette, then desaturate
+  {blue}--adjust "pal.normalize=50,pal.vibrance=-20"{reset}  Unify palette & desaturate
   {blue}--adjust "preset.txt"{reset}          Load adjustments from file
   {blue}--adjust "_"{reset}                   Reset all adjustments
 
@@ -269,6 +268,12 @@ impl Args {
                         args.nvim_config.replace(arg);
                     }
                     Some('T') => {
+                        if arg == "list" {
+                            for t in targets::ALL_TARGETS {
+                                println!("{}", t);
+                            }
+                            std::process::exit(0);
+                        }
                         if let Ok(t) = arg.parse::<Target>() {
                             if !args.targets.contains(&t) {
                                 args.targets.push(t);

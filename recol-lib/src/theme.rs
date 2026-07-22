@@ -50,8 +50,6 @@ pub const COLOR_SCHEME_NC: usize = 2 + 2 + 2 + 8 + 8;
 /// Byte size of a serialized [`ColorScheme`].
 pub const COLOR_SCHEME_SIZE: usize = COLOR_SCHEME_NC * COLOR_SIZE;
 
-// ── Theme ─────────────────────────────────────────────────────────────────────
-
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Theme {
     pub name: String,
@@ -111,8 +109,6 @@ impl TryFrom<&[u8]> for Theme {
         Ok(Self::new(name, is_light, colors))
     }
 }
-
-// ── ColorScheme ───────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ColorScheme {
@@ -350,8 +346,6 @@ impl TryFrom<&[u8]> for ColorScheme {
     }
 }
 
-// ── Sub-structures ────────────────────────────────────────────────────────────
-
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct SelectionColors {
     pub bg: CssColor,
@@ -391,8 +385,6 @@ pub struct DiffColors {
     pub change: CssColor,
     pub text: CssColor,
 }
-
-// ── AdvancedColorScheme ───────────────────────────────────────────────────────
 
 /// Expanded color scheme with additional derived palette entries for editor use.
 ///

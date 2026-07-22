@@ -1,20 +1,22 @@
 use crate::cli::Args;
-use std::path::PathBuf;
+use std::{fmt, path::PathBuf};
 
 use recol_lib as lib;
 
 mod alacritty;
 mod ghostty;
 mod nvim;
+mod vim;
 mod wezterm;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-const ALL_TARGETS: [Target; 4] = [
+pub const ALL_TARGETS: [Target; 5] = [
     Target::Ghostty,
     Target::Alacritty,
     Target::Wezterm,
     Target::Nvim,
+    Target::Vim,
 ];
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -25,6 +27,21 @@ pub enum Target {
     Alacritty,
     Wezterm,
     Nvim,
+    Vim,
+}
+
+impl fmt::Display for Target {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            Target::None => "none",
+            Target::Ghostty => "ghostty",
+            Target::Alacritty => "alacritty",
+            Target::Wezterm => "wezterm",
+            Target::Nvim => "neovim",
+            Target::Vim => "vim",
+        };
+        write!(f, "{s}")
+    }
 }
 
 impl std::str::FromStr for Target {
@@ -35,7 +52,8 @@ impl std::str::FromStr for Target {
             "g" | "gt" | "ghostty" => Ok(Self::Ghostty),
             "a" | "at" | "alacritty" => Ok(Self::Alacritty),
             "w" | "wt" | "wezterm" => Ok(Self::Wezterm),
-            "neovim" | "nvim" | "nvi" | "nv" | "n" => Ok(Self::Nvim),
+            "n" | "nv" | "nvi" | "nvim" | "neovim" => Ok(Self::Nvim),
+            "v" | "vi" | "vim" => Ok(Self::Vim),
             _ => Err(()),
         }
     }
@@ -54,6 +72,7 @@ impl Target {
                 Target::Alacritty => alacritty::write_theme_to_config(&path, t)?,
                 Target::Wezterm => wezterm::write_theme_to_config(&path, t)?,
                 Target::Nvim => nvim::write_theme_to_config(&path, t)?,
+                Target::Vim => vim::write_theme_to_config(&path, t)?,
                 Target::None => {}
             }
         }
@@ -142,6 +161,27 @@ impl Target {
                 let path = prefix.join("nvim/init.lua");
                 if path.is_file() {
                     return Some(path);
+                }
+                None
+            }
+            Target::Vim => {
+                let path = home_dir().join(".vimrc");
+                if path.is_file() {
+                    return Some(path);
+                }
+                let path = home_dir().join(".vim/vimrc");
+                if path.is_file() {
+                    return Some(path);
+                }
+                let path = PathBuf::from("/etc/vimrc");
+                if path.is_file() {
+                    return Some(path);
+                }
+                if let Ok(vim_dir) = std::env::var("VIM") {
+                    let path = PathBuf::from(vim_dir).join("vimrc");
+                    if path.is_file() {
+                        return Some(path);
+                    }
                 }
                 None
             }

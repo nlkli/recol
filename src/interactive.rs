@@ -439,7 +439,7 @@ fn draw_screen(s: &State) -> io::Result<()> {
                 ],
             ),
             (
-                "FILTER & INPUT",
+                "INPUT & FILTER",
                 &[
                     ("/ : i", "Enter input mode"),
                     ("a", "Enter adjust input mode"),

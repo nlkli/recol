@@ -375,7 +375,6 @@ applyRecolTheme()"###,
         i = if theme.is_light { 3 } else { 2 },
     );
 
-    // TODO
     utils::write_content_inside_text_block(
         path,
         content.as_bytes(),

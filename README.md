@@ -5,9 +5,8 @@
 ![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
 - **590+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
+- **Targets support:** [Ghostty](https://ghostty.org), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org)
 - **Neovim theme integration** based on [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim)
-- **Terminal support:** [Ghostty](https://ghostty.org), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org)
-- **Font switching** (macOS only)
 - **Non-destructive** — only color/font values are modified, nothing else in your config
 - **Minimal dependencies** — see [Cargo.toml](Cargo.toml)
 
@@ -118,15 +117,35 @@ RECOL_BUILD_COLORSCHEMES_BIN=1 \
 cargo build --release
 ```
 
+### Custom color schemes
+
+To build with your own themes, point `RECOL_GHOSSTY_THEMES_DIR` to your themes directory:
+
+```sh
+RECOL_GHOSSTY_THEMES_DIR=/path/to/your/themes \
+RECOL_BUILD_COLORSCHEMES_BIN=1 \
+cargo build --release
+```
+
+Themes use the [Ghostty config format](https://github.com/mbadolato/iTerm2-Color-Schemes/blob/master/ghostty/0x96f) (no file extension). The filename becomes the theme name.
+
+To add your themes to the default collection, place them in `./colorschemes` (run `./fetch.sh` first to populate it). Filter unwanted themes in `build.rs`:
+
+```rust
+recol_lib::build_colorschemes_bin(
+    ...,
+    |name| !["theme_to_exclude"].contains(&name),
+)
+```
+
 ### Help Message
 
 ```text
 CLI utility for changing the color scheme
 https://github.com/nlkli/recol
-590+ color schemes:
-https://github.com/mbadolato/iTerm2-Color-Schemes
 
-Supported targets: alacritty, ghostty, wezterm, neovim.
+Supported targets:
+alacritty, ghostty, wezterm, neovim, vim.
 
 Usage: recol [OPTIONS] [THEME_NAME]
 
@@ -148,8 +167,8 @@ Options:
       Set font family by name (fuzzy matching)
   -F, --font-rand
       Pick a random Nerd Font
-  -T, --target <TARGET>
-      Apply for specific target
+  -T, --target <Name>
+      Apply for specific target (see --target list)
   -L, --theme-list  List available themes
   --font-list       List available Nerd Fonts
   -s, --show
@@ -179,7 +198,7 @@ NAVIGATION
   g / G          Jump to first / last
   Ctrl+ u / d    Half page up / down
 
-FILTER & SEARCH
+INPUT & FILTER
   / : i          Enter input mode
   a              Enter adjust input mode
   Backspace      Delete last character
@@ -223,7 +242,7 @@ Quick start:
   --adjust "temperature=20,tint=-10"   Warmer + slight green tint
   --adjust "pal.hue=180"         Rotate ANSI palette hues
   --adjust "sel.invert,cur.hue=90"  Invert selection, green cursor
-  --adjust "pal.normalize=50,pal.vibrance=-20"  Unify palette, then desaturate
+  --adjust "pal.normalize=50,pal.vibrance=-20"  Unify palette & desaturate
   --adjust "preset.txt"          Load adjustments from file
   --adjust "_"                   Reset all adjustments
 
@@ -315,10 +334,11 @@ Adjustments (all values -100..100 unless noted):
     │   ├── ghostty.rs
     │   ├── mod.rs
     │   ├── nvim.rs
+    │   ├── vim.rs
     │   └── wezterm.rs
     └── utils.rs
 
-5 directories, 27 files
+5 directories, 28 files
 ```
 
 ### SCC
@@ -327,19 +347,19 @@ Adjustments (all values -100..100 unless noted):
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   19       4,885       512       397      3,976        391
+Rust                   20       5,108       512       386      4,210        405
 TOML                    2          46         5         0         41          1
 License                 1          21         4         0         17          0
 Markdown                1         351        65         0        286          0
 Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  24       5,311       588       398      4,325        392
+Total                  25       5,534       588       387      4,559        406
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $125,713
-Estimated Schedule Effort (organic) 6.25 months
-Estimated People Required (organic) 1.79
+Estimated Cost to Develop (organic) $132,864
+Estimated Schedule Effort (organic) 6.39 months
+Estimated People Required (organic) 1.85
 ───────────────────────────────────────────────────────────────────────────────
-Processed 182354 bytes, 0.182 megabytes (SI)
+Processed 188325 bytes, 0.188 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 

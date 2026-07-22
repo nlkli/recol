@@ -1,6 +1,6 @@
 [package]
 name = "recol"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 license = "MIT"
 description = "CLI utility for terminal and Neovim theme switching"

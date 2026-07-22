@@ -34,8 +34,6 @@ use std::{
 /// Source: <https://github.com/mbadolato/iTerm2-Color-Schemes/tree/master/ghostty>
 pub const COLOR_SCHEMES: &[u8] = include_bytes!("colorschemes.bin");
 
-// ── Binary helpers ────────────────────────────────────────────────────────────
-
 /// Number of themes stored in the binary.
 #[inline]
 fn theme_count() -> usize {
@@ -60,8 +58,6 @@ fn theme_section_offset(i: usize) -> usize {
 fn theme_raw(i: usize) -> &'static [u8] {
     &COLOR_SCHEMES[themes_section_start() + theme_section_offset(i)..]
 }
-
-// ── LazyTheme ─────────────────────────────────────────────────────────────────
 
 /// A theme whose color data is not yet decoded — only name and light/dark flag
 /// are held as direct references into the embedded binary.
@@ -125,8 +121,6 @@ impl From<LazyTheme> for Theme {
     }
 }
 
-// ── Filter ────────────────────────────────────────────────────────────────────
-
 /// Predicate used to filter themes inside a [`Collection`].
 #[derive(Default, Clone, Copy, Debug)]
 pub enum ThemeFilter<'a> {
@@ -169,8 +163,6 @@ impl<'a> ThemeFilter<'a> {
         matches!(self, Self::None)
     }
 }
-
-// ── Collection ────────────────────────────────────────────────────────────────
 
 /// Lazy, zero-allocation iterator over the embedded theme collection.
 ///
@@ -277,8 +269,6 @@ impl Iterator for Collection {
     }
 }
 
-// ── Build-time binary generator ───────────────────────────────────────────────
-
 /// Build `colorschemes.bin` from a directory of Ghostty theme files.
 ///
 /// `filter_by_name` lets callers exclude files by name (e.g. hidden files).
@@ -369,8 +359,6 @@ fn parse_ghostty_theme(path: impl AsRef<Path>, name: &str) -> std::io::Result<Th
     let is_light = scheme.bg.color().hsl().2 > 50.0;
     Ok(Theme::new(name, is_light, scheme))
 }
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {

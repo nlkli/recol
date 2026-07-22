@@ -14,7 +14,6 @@ fn print_theme_header(name: &str, is_light: bool) {
     println!("{name} <{}>", if is_light { "LIGHT" } else { "DARK" });
 }
 
-#[inline]
 fn theme_as_json(
     name: &str,
     is_light: bool,
@@ -27,7 +26,6 @@ fn theme_as_json(
     })
 }
 
-#[inline]
 fn print_theme_as_json(name: &str, is_light: bool, colors: &lib::AdvancedColorScheme) {
     let json_str = serde_json::to_string_pretty(&theme_as_json(name, is_light, colors)).unwrap();
     println!("{}", json_str);
