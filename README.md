@@ -48,8 +48,7 @@ if vim.fn.executable("recol") == 1 then
         local buf = vim.api.nvim_create_buf(false, true)
         local win = vim.api.nvim_open_win(buf, true, {
             relative = "editor",
-            width = width,
-            height = height,
+            width = width, height = height,
             row = math.floor((vim.o.lines - height - 3) / 2),
             col = math.floor((vim.o.columns - width) / 2),
             border = "rounded",
@@ -69,19 +68,16 @@ if vim.fn.executable("recol") == 1 then
         })
         vim.cmd.startinsert()
     end
- 
     vim.api.nvim_create_user_command("Recol", function(opts)
         local args = vim.split(opts.args, "%s+", { trimempty = true })
         local is_interactive_mode = vim.tbl_contains(args, "-i") or 
             vim.tbl_contains(args, "--interactive")
         if is_interactive_mode then
-            launch_interactive_mode()
-            return
+            return launch_interactive_mode()
         end
         vim.cmd("!recol " .. opts.args)
         vim.cmd.source("~/.config/nvim/init.lua")
     end, { nargs = "*" })
- 
     vim.api.nvim_create_user_command("RecolOpen", function()
         launch_interactive_mode()
     end, { nargs = 0 })
@@ -339,13 +335,13 @@ Adjustments (all values -100..100 unless noted):
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   20       5,106       512       386      4,208        405
+Rust                   20       5,106       512       385      4,208        405
 TOML                    2          46         5         0         41          1
 License                 1          21         4         0         17          0
 Markdown                1         370        71         0        299          0
 Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  25       5,551       594       387      4,570        406
+Total                  25       5,551       594       386      4,570        406
 ───────────────────────────────────────────────────────────────────────────────
 Estimated Cost to Develop (organic) $133,200
 Estimated Schedule Effort (organic) 6.39 months
