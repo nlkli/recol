@@ -68,19 +68,16 @@ if vim.fn.executable("recol") == 1 then
         })
         vim.cmd.startinsert()
     end
- 
     vim.api.nvim_create_user_command("Recol", function(opts)
         local args = vim.split(opts.args, "%s+", { trimempty = true })
         local is_interactive_mode = vim.tbl_contains(args, "-i") or 
             vim.tbl_contains(args, "--interactive")
         if is_interactive_mode then
-            launch_interactive_mode()
-            return
+            return launch_interactive_mode()
         end
         vim.cmd("!recol " .. opts.args)
         vim.cmd.source("~/.config/nvim/init.lua")
     end, { nargs = "*" })
- 
     vim.api.nvim_create_user_command("RecolOpen", function()
         launch_interactive_mode()
     end, { nargs = 0 })
