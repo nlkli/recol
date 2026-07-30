@@ -1,10 +1,10 @@
 # recol
 
-**Switch your terminal and Neovim color theme from one command - no manual config editing.** Pick from 590+ prebuilt schemes with instant fuzzy search - from your shell or an interactive picker.
+**Switch your terminal and Neovim color theme from one command - no manual config editing.** Pick from 600+ prebuilt schemes with instant fuzzy search - from your shell or an interactive picker.
 
 ![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
-- **590+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
+- **600+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
 - **Targets support:** [Ghostty](https://ghostty.org), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org)
 - **Neovim theme integration** based on [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim)
 - **Non-destructive** — only color/font values are modified, nothing else in your config
