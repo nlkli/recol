@@ -314,7 +314,7 @@ impl Args {
         }
         let path = std::path::PathBuf::from(&arg);
         if path.is_file() {
-            arg = std::fs::read_to_string(path).expect("read adjust file error");
+            arg = std::fs::read_to_string(path).unwrap();
         }
         if arg == "_" {
             self.adjust.clear();
