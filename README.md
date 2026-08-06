@@ -336,12 +336,12 @@ Adjustments (all values -100..100 unless noted):
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
 Rust                   20       5,105       512       385      4,208        405
-TOML                    2          46         5         0         41          1
+TOML                    2          45         5         0         41          1
 License                 1          21         4         0         17          0
 Markdown                1         370        71         0        299          0
 Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  25       5,550       594       386      4,570        406
+Total                  25       5,549       594       386      4,570        406
 ───────────────────────────────────────────────────────────────────────────────
 Estimated Cost to Develop (organic) $133,200
 Estimated Schedule Effort (organic) 6.39 months
