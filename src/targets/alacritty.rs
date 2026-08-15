@@ -44,9 +44,24 @@ pub struct Config {
 
 impl Config {
     pub fn set_font_family(&mut self, f: String) {
-        self.font.replace(Font {
-            normal: Some(FontInner { family: Some(f) }),
-        });
+        if let Some(font) = self.font.as_mut() {
+            if let Some(fi) = font.normal.as_mut() {
+                fi.family = Some(f);
+            } else {
+                font.normal.replace(FontInner {
+                    family: Some(f),
+                    other: None,
+                });
+            }
+        } else {
+            self.font.replace(Font {
+                normal: Some(FontInner {
+                    family: Some(f),
+                    other: None,
+                }),
+                other: None,
+            });
+        }
     }
 }
 
@@ -87,9 +102,7 @@ pub struct Colors {
 
 impl Colors {
     pub fn from_color_scheme(cs: &lib::ColorScheme) -> Self {
-        let cs = cs
-            .clone()
-            .into_advanced(None);
+        let cs = cs.clone().into_advanced(None);
         Self {
             primary: Some(PrimaryColors {
                 background: Some(cs.bg[1].to_string()),
@@ -229,14 +242,20 @@ pub struct IndexedColor {
     pub color: String,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Font {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub normal: Option<FontInner>,
+
+    #[serde(flatten, skip_serializing_if = "Option::is_none", default)]
+    pub other: Option<toml::Value>,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FontInner {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub family: Option<String>,
+
+    #[serde(flatten, skip_serializing_if = "Option::is_none", default)]
+    pub other: Option<toml::Value>,
 }
