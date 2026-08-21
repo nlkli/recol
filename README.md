@@ -163,7 +163,7 @@ Options:
       Set font family by name (fuzzy matching)
   -F, --font-rand
       Pick a random Nerd Font
-  -T, --target <Name>
+  -T, --target <NAME,...> [env: RECOL_TARGET]
       Apply for specific target (see --target list)
   -L, --theme-list  List available themes
   --font-list       List available Nerd Fonts
