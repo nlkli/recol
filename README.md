@@ -193,29 +193,23 @@ NAVIGATION
   ↓ / j / +      Move selection down
   g / G          Jump to first / last
   Ctrl+ u / d    Half page up / down
-
 INPUT & FILTER
   / : i          Enter input mode
   a              Enter adjust input mode
   Backspace      Delete last character
   Esc / Enter    Exit filter mode
   f              Filter by first word (family)
-
 LIST ACTIONS
   s / r          Shuffle / Reverse order
   d / l          Dark / Light only
   h              Recently applied (history)
   Space          Reset filters (show all)
-
 GENERAL
   Enter          Apply theme
   ? / H          Open this help
   q / Ctrl+c     Quit
-
 CLI ARGS
   --quit-on-select
-  --init-input
-  --init-help
 ```
 
 ### Color Adjustments
@@ -335,19 +329,19 @@ Adjustments (all values -100..100 unless noted):
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   20       5,105       512       385      4,208        405
-TOML                    2          45         5         0         41          1
-License                 1          22         4         0         17          0
-Markdown                1         370        71         0        299          0
+Rust                   20       5,125       514       386      4,225        409
+TOML                    2          46         5         0         41          1
+License                 1          21         4         0         17          0
+Markdown                1         358        65         0        293          0
 Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  25       5,550       594       386      4,570        406
+Total                  25       5,558       590       387      4,581        410
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $133,200
-Estimated Schedule Effort (organic) 6.39 months
+Estimated Cost to Develop (organic) $133,537
+Estimated Schedule Effort (organic) 6.40 months
 Estimated People Required (organic) 1.85
 ───────────────────────────────────────────────────────────────────────────────
-Processed 188835 bytes, 0.189 megabytes (SI)
+Processed 189007 bytes, 0.189 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
