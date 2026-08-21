@@ -116,7 +116,7 @@ alacritty, ghostty, wezterm, neovim, vim.
       Set font family by name (fuzzy matching)
   {blue}-F{reset}, {blue}--font-rand{reset}
       Pick a random Nerd Font
-  {blue}-T{reset}, {blue}--target <Name>{reset}
+  {blue}-T{reset}, {blue}--target <NAME,...>{reset} [env: RECOL_TARGET]
       Apply for specific target (see --target list)
   {blue}-L{reset}, {blue}--theme-list{reset}  List available themes
   {blue}--font-list{reset}       List available Nerd Fonts
@@ -194,6 +194,10 @@ impl Args {
             args.adjust_arg(arg);
         }
 
+        if let Some(arg) = std::env::var("RECOL_TARGET").ok() {
+            args.target_arg(arg);
+        }
+
         let mut iter = std::env::args().skip(1);
         while let Some(arg) = iter.next() {
             if let Some(flag) = arg.strip_prefix("--") {
@@ -201,7 +205,7 @@ impl Args {
                     "theme" => last = Some('t'),
                     "font" => last = Some('f'),
                     "contains" => last = Some('c'),
-                    "target" => last = Some('c'),
+                    "target" => last = Some('T'),
                     "nvim_config" => last = Some('0'),
                     "adjust" => last = Some('a'),
                     "theme-list" => args.theme_list = true,
@@ -268,17 +272,7 @@ impl Args {
                         args.nvim_config.replace(arg);
                     }
                     Some('T') => {
-                        if arg == "list" {
-                            for t in targets::ALL_TARGETS {
-                                println!("{}", t);
-                            }
-                            std::process::exit(0);
-                        }
-                        if let Ok(t) = arg.parse::<Target>() {
-                            if !args.targets.contains(&t) {
-                                args.targets.push(t);
-                            }
-                        }
+                        args.target_arg(arg);
                     }
                     Some('a') => {
                         args.adjust_arg(arg);
@@ -305,6 +299,22 @@ impl Args {
             filters.push(lib::ThemeFilter::Contains(s));
         }
         filters
+    }
+
+    fn target_arg(&mut self, arg: String) {
+        if arg == "list" {
+            for t in targets::ALL_TARGETS {
+                println!("{}", t);
+            }
+            std::process::exit(0);
+        }
+        for p in arg.split(",") {
+            if let Ok(t) = p.parse::<Target>() {
+                if !self.targets.contains(&t) {
+                    self.targets.push(t);
+                }
+            }
+        }
     }
 
     fn adjust_arg(&mut self, mut arg: String) {
