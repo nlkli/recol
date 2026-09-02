@@ -6,17 +6,19 @@ use recol_lib as lib;
 mod alacritty;
 mod ghostty;
 mod nvim;
+mod pi;
 mod vim;
 mod wezterm;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-pub const ALL_TARGETS: [Target; 5] = [
+pub const ALL_TARGETS: [Target; 6] = [
     Target::Ghostty,
     Target::Alacritty,
     Target::Wezterm,
     Target::Nvim,
     Target::Vim,
+    Target::Pi,
 ];
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -28,6 +30,7 @@ pub enum Target {
     Wezterm,
     Nvim,
     Vim,
+    Pi,
 }
 
 impl fmt::Display for Target {
@@ -39,6 +42,7 @@ impl fmt::Display for Target {
             Target::Wezterm => "wezterm",
             Target::Nvim => "neovim",
             Target::Vim => "vim",
+            Target::Pi => "pi",
         };
         write!(f, "{s}")
     }
@@ -54,6 +58,7 @@ impl std::str::FromStr for Target {
             "w" | "wt" | "wezterm" => Ok(Self::Wezterm),
             "n" | "nv" | "nvi" | "nvim" | "neovim" => Ok(Self::Nvim),
             "v" | "vi" | "vim" => Ok(Self::Vim),
+            "pi" => Ok(Self::Pi),
             _ => Err(()),
         }
     }
@@ -73,6 +78,9 @@ impl Target {
                 Target::Wezterm => wezterm::write_theme_to_config(&path, t)?,
                 Target::Nvim => nvim::write_theme_to_config(&path, t)?,
                 Target::Vim => vim::write_theme_to_config(&path, t)?,
+                Target::Pi => {
+                    pi::write_theme_to_config(&path, t)?;
+                }
                 Target::None => {}
             }
         }
@@ -182,6 +190,19 @@ impl Target {
                     if path.is_file() {
                         return Some(path);
                     }
+                }
+                None
+            }
+            Target::Pi => {
+                if let Ok(pi_dir) = std::env::var("PI_CODING_AGENT_DIR") {
+                    let path = PathBuf::from(pi_dir);
+                    if path.is_dir() {
+                        return Some(path);
+                    }
+                }
+                let path = home_dir().join(".pi/agent");
+                if path.is_dir() {
+                    return Some(path);
                 }
                 None
             }

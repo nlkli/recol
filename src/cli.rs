@@ -94,7 +94,7 @@ fn help() -> String {
 {magenta}https://github.com/nlkli/recol{reset}
 
 {green}Supported targets:{reset}
-alacritty, ghostty, wezterm, neovim, vim.
+alacritty, ghostty, wezterm, neovim, vim, pi.
 
 {green}Usage:{reset} {blue}recol [OPTIONS] [THEME_NAME]{reset}
 

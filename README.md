@@ -5,7 +5,7 @@
 ![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
 - **600+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
-- **Targets support:** [Ghostty](https://ghostty.org), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org)
+- **Targets support:** [Ghostty](https://ghostty.org), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org), [Pi](https://github.com/earendil-works/pi)
 - **Neovim theme integration** based on [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim)
 - **Non-destructive** — only color/font values are modified, nothing else in your config
 
@@ -140,7 +140,7 @@ CLI utility for changing the color scheme
 https://github.com/nlkli/recol
 
 Supported targets:
-alacritty, ghostty, wezterm, neovim, vim.
+alacritty, ghostty, wezterm, neovim, vim, pi.
 
 Usage: recol [OPTIONS] [THEME_NAME]
 
@@ -311,12 +311,13 @@ Adjustments (all values -100..100 unless noted):
     ├── main.rs
     ├── store.rs
     ├── targets
-    │   ├── alacritty.rs
-    │   ├── ghostty.rs
-    │   ├── mod.rs
-    │   ├── nvim.rs
-    │   ├── vim.rs
-    │   └── wezterm.rs
+    │   ├── alacritty.rs
+    │   ├── ghostty.rs
+    │   ├── mod.rs
+    │   ├── nvim.rs
+    │   ├── pi.rs
+    │   ├── vim.rs
+    │   └── wezterm.rs
     └── utils.rs
 
 5 directories, 28 files

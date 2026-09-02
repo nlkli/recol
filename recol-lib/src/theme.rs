@@ -471,10 +471,10 @@ impl Default for AdvancedColorSchemeParam {
             fg3_brighten: -44.0,
             code_selection_blend: 0.155,
             dim_shade: 0.155,
-            diff_add_blend: 0.35,
-            diff_delete_blend: 0.35,
-            diff_change_blend: 0.35,
-            diff_text_blend: 0.4,
+            diff_add_blend: 0.5,
+            diff_delete_blend: 0.5,
+            diff_change_blend: 0.5,
+            diff_text_blend: 0.6,
             comment_blend: 0.4,
         }
     }
