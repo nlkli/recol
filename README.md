@@ -329,20 +329,44 @@ Adjustments (all values -100..100 unless noted):
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   20       5,125       514       386      4,225        409
+Rust                   21       5,283       524       386      4,373        539
 TOML                    2          46         5         0         41          1
 License                 1          21         4         0         17          0
-Markdown                1         358        65         0        293          0
+Markdown                1         352        61         0        291          0
 Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  25       5,558       590       387      4,581        410
+Total                  26       5,710       596       387      4,727        540
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $133,537
-Estimated Schedule Effort (organic) 6.40 months
-Estimated People Required (organic) 1.85
+Estimated Cost to Develop (organic) $138,024
+Estimated Schedule Effort (organic) 6.48 months
+Estimated People Required (organic) 1.89
 ───────────────────────────────────────────────────────────────────────────────
-Processed 189007 bytes, 0.189 megabytes (SI)
+Processed 193,506 bytes, 0.194 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
+```
+
+### Adding Support for New Targets
+
+`recol` ships with a limited set of built-in targets (Ghostty, Alacritty, WezTerm, Neovim, Vim, Pi). You can extend it to apply themes to any application that lets you tweak its config file — window managers, browsers, file managers, text editors, and more.
+
+Each target is a small module under `src/targets/`:
+
+1. **Locate the config file** — add a `Target` arm in `config_path()` (`src/targets/mod.rs`). Find the correct path(s), honouring `XDG_CONFIG_HOME`; return `None` if the target isn't configured.
+2. **Apply the theme non-destructively** — implement `apply_theme_to(path, theme)` in a new `src/targets/<name>.rs`. Edit the config in place (replace or insert the color values), preserving everything else, and match an existing target's config format. Optionally implement `set_font_on` for font changes.
+3. **Register the target** in `src/targets/mod.rs`:
+   - `mod <name>;`
+   - Add a variant to the `Target` enum
+   - Add it to `ALL_TARGETS`
+   - Add arms to `Display` (the shown name) and `FromStr` (the CLI value, e.g. `vscode`)
+   - Add arms to `Target::apply_theme` and `config_path`
+
+```rust
+// src/targets/mod.rs — example registration
+mod vscode;
+// ...
+pub enum Target { /* ..., Vscode */ }
+pub const ALL_TARGETS: [Target; 7] = [ /* ..., Target::Vscode */ ];
+// Display, FromStr, apply_theme, config_path — add one arm each
 ```
 
 😉👉⭐️

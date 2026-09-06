@@ -4,7 +4,6 @@ use std::{
     path::Path,
 };
 
-// Pi: предложи в этом комментарии лучшие (более подходящие названия) для этой функции
 pub fn inject_content_between_markers<P>(
     path: P,
     content: &[u8],
