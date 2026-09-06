@@ -4,7 +4,8 @@ use std::{
     path::Path,
 };
 
-pub fn write_content_inside_text_block<P>(
+// Pi: предложи в этом комментарии лучшие (более подходящие названия) для этой функции
+pub fn inject_content_between_markers<P>(
     path: P,
     content: &[u8],
     mark: (&str, &str),
