@@ -287,7 +287,7 @@ fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
             ("theme = ", &c.fg[1]),
             ("recol", &c.base.cyan),
             ("::", &c.base.blue),
-            ("current", &c.base.cyan),
+            ("selected", &c.base.cyan),
             ("();", &c.fg[1]),
         ],
         part_buf![
