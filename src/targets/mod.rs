@@ -35,16 +35,19 @@ pub enum Target {
 
 impl fmt::Display for Target {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = match self {
-            Target::None => "none",
-            Target::Ghostty => "ghostty",
-            Target::Alacritty => "alacritty",
-            Target::Wezterm => "wezterm",
-            Target::Nvim => "neovim",
-            Target::Vim => "vim",
-            Target::Pi => "pi",
-        };
-        write!(f, "{s}")
+        write!(
+            f,
+            "{}",
+            match self {
+                Target::None => "none",
+                Target::Ghostty => "ghostty",
+                Target::Alacritty => "alacritty",
+                Target::Wezterm => "wezterm",
+                Target::Nvim => "neovim",
+                Target::Vim => "vim",
+                Target::Pi => "pi",
+            }
+        )
     }
 }
 
@@ -73,13 +76,13 @@ impl Target {
     pub fn apply_theme(&self, t: &lib::Theme) -> Result<()> {
         if let Some(path) = self.config_path() {
             match self {
-                Target::Ghostty => ghostty::write_theme_to_config(&path, t)?,
-                Target::Alacritty => alacritty::write_theme_to_config(&path, t)?,
-                Target::Wezterm => wezterm::write_theme_to_config(&path, t)?,
-                Target::Nvim => nvim::write_theme_to_config(&path, t)?,
-                Target::Vim => vim::write_theme_to_config(&path, t)?,
+                Target::Ghostty => ghostty::apply_theme_to(&path, t)?,
+                Target::Alacritty => alacritty::apply_theme_to(&path, t)?,
+                Target::Wezterm => wezterm::apply_theme_to(&path, t)?,
+                Target::Nvim => nvim::apply_theme_to(&path, t)?,
+                Target::Vim => vim::apply_theme_to(&path, t)?,
                 Target::Pi => {
-                    pi::write_theme_to_config(&path, t)?;
+                    pi::apply_theme_to(&path, t)?;
                 }
                 Target::None => {}
             }
@@ -90,9 +93,9 @@ impl Target {
     pub fn set_font(&self, font_name: impl Into<String>) -> Result<()> {
         if let Some(path) = self.config_path() {
             match self {
-                Target::Ghostty => ghostty::set_font_to_config(&path, font_name.into())?,
-                Target::Alacritty => alacritty::set_font_to_config(&path, font_name.into())?,
-                Target::Wezterm => {} // wezterm::set_font_to_config(&path, t)?,
+                Target::Ghostty => ghostty::set_font_on(&path, font_name.into())?,
+                Target::Alacritty => alacritty::set_font_on(&path, font_name.into())?,
+                Target::Wezterm => {} // wezterm::set_font_on(&path, font_name.into())?,
                 _ => {}
             }
         }

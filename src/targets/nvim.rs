@@ -2,7 +2,7 @@ use crate::utils;
 use recol_lib as lib;
 use std::{io, path::Path};
 
-pub fn write_theme_to_config(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
+pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
     let c = theme.colors.clone().into_advanced(None);
 
     let content = format!(
@@ -375,7 +375,7 @@ applyRecolTheme()"###,
         i = if theme.is_light { 3 } else { 2 },
     );
 
-    utils::write_content_inside_text_block(
+    utils::inject_content_between_markers(
         path,
         content.as_bytes(),
         ("-- recol:start", "-- recol:end"),
