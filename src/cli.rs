@@ -71,7 +71,7 @@ const BRIGHT_MAGENTA: &str = "\x1b[95m";
 
 fn logo() -> String {
     format!(
-        "{bright_black}v0.2.2  [https://github.com/nlkli/recol]{reset}
+        "{bright_black}v0.2.3  [https://github.com/nlkli/recol]{reset}
 {blue}  ____    _____    ____    ___    _ {reset}
 {bright_blue} |  _ \\  | ____|  / ___|  / _ \\  | |{reset}
 {cyan} | |_) | |  _|   | |     | | | | | |{reset}
@@ -88,7 +88,7 @@ fn logo() -> String {
     )
 }
 
-const VERSION: &str = "recol 0.2.1 [https://github.com/nlkli/recol]";
+const VERSION: &str = "recol 0.2.3 [https://github.com/nlkli/recol]";
 fn help() -> String {
     format!(
         r#"CLI utility for changing the color scheme
