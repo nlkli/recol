@@ -287,6 +287,15 @@ Each target is a small module under `src/targets/`:
    - Add arms to `Display` (the shown name) and `FromStr` (the CLI value, e.g. `vscode`)
    - Add arms to `Target::apply_theme` and `config_path`
 
+```rust
+// src/targets/mod.rs — example registration
+mod vscode;
+// ...
+pub enum Target { /* ..., Vscode */ }
+pub const ALL_TARGETS: [Target; 7] = [ /* ..., Target::Vscode */ ];
+// Display, FromStr, apply_theme, config_path — add one arm each
+```
+
 ### Demo & Screenshots
 
 ![recol-demo-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo.gif)
@@ -360,15 +369,6 @@ Estimated People Required (organic) 1.90
 ───────────────────────────────────────────────────────────────────────────────
 Processed 194,999 bytes, 0.195 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
-```
-
-```rust
-// src/targets/mod.rs — example registration
-mod vscode;
-// ...
-pub enum Target { /* ..., Vscode */ }
-pub const ALL_TARGETS: [Target; 7] = [ /* ..., Target::Vscode */ ];
-// Display, FromStr, apply_theme, config_path — add one arm each
 ```
 
 😉👉⭐️
