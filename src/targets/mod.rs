@@ -81,9 +81,7 @@ impl Target {
                 Target::Wezterm => wezterm::apply_theme_to(&path, t)?,
                 Target::Nvim => nvim::apply_theme_to(&path, t)?,
                 Target::Vim => vim::apply_theme_to(&path, t)?,
-                Target::Pi => {
-                    pi::apply_theme_to(&path, t)?;
-                }
+                Target::Pi => pi::apply_theme_to(&path, t)?,
                 Target::None => {}
             }
         }

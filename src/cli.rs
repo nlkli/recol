@@ -19,6 +19,7 @@ pub struct Args {
     /// Filter themes by name substring
     pub contains: Option<String>,
 
+    /// Color adjustments to apply
     pub adjust: Vec<ThemeAdjustment>,
 
     /// Neovim config path
@@ -36,10 +37,10 @@ pub struct Args {
     /// List available Nerd Fonts
     pub font_list: bool,
 
-    /// Show the theme color palette without applying it
+    /// Print palette without applying
     pub show: bool,
 
-    /// Output theme as JSON
+    /// Output as JSON
     pub json: bool,
 
     /// Apply for specific target
@@ -48,13 +49,13 @@ pub struct Args {
     /// Run interactive mode
     pub interactive: bool,
 
-    /// Interactive mode flag
+    /// Exit after selecting a theme
     pub quit_on_select: bool,
 
-    /// Interactive mode flag
+    /// Init input mode
     pub init_input: bool,
 
-    /// Interactive mode flag
+    /// Show init help at startup
     pub init_help: bool,
 }
 
