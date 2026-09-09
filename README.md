@@ -270,6 +270,25 @@ Adjustments (all values -100..100 unless noted):
   nc/norm-chroma=N      Pull chroma toward group average
 ```
 
+### Generate a theme from a media file (beta)
+
+![recol-demo-media-to-theme](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-media-to-theme.gif)
+
+`recol` can derive a color scheme from any image/video frame. Pass a media file with `--media` and recol builds a theme automatically:
+
+```sh
+recol --media ~/Pictures/Sunset.png
+recol -m ~/Videos/X.gif --target ghostty
+```
+
+**Requirements:** `ffmpeg` must be installed and available on `PATH`.
+
+**How it works:**
+
+1. `ffmpeg` runs `palettegen=max_colors=N` to extract the dominant palette from the media into a PPM file (written to a temp location).
+2. `recol` reads the unique colors from the PPM and maps them to the 16 ANSI slots.
+3. The theme auto-detects light vs. dark and aligns the derived colors to a shared luminance for visual consistency.
+
 ### Adding Support for New Targets
 
 ![recol-demo-pi-agent-target](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-pi-agent-target.gif)
@@ -329,6 +348,7 @@ pub const ALL_TARGETS: [Target; 7] = [ /* ..., Target::Vscode */ ];
 │       ├── error.rs
 │       ├── fuzzy.rs
 │       ├── lib.rs
+│       ├── ppm.rs
 │       └── theme.rs
 └── src
     ├── cli.rs
@@ -337,16 +357,16 @@ pub const ALL_TARGETS: [Target; 7] = [ /* ..., Target::Vscode */ ];
     ├── main.rs
     ├── store.rs
     ├── targets
-    │   ├── alacritty.rs
-    │   ├── ghostty.rs
-    │   ├── mod.rs
-    │   ├── nvim.rs
-    │   ├── pi.rs
-    │   ├── vim.rs
-    │   └── wezterm.rs
+    │   ├── alacritty.rs
+    │   ├── ghostty.rs
+    │   ├── mod.rs
+    │   ├── nvim.rs
+    │   ├── pi.rs
+    │   ├── vim.rs
+    │   └── wezterm.rs
     └── utils.rs
 
-5 directories, 28 files
+5 directories, 30 files
 ```
 
 ### SCC
@@ -355,19 +375,19 @@ pub const ALL_TARGETS: [Target; 7] = [ /* ..., Target::Vscode */ ];
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   21       5,282       524       387      4,371        539
+Rust                   22       5,532       559       394      4,579        587
 TOML                    2          46         5         0         41          1
 License                 1          21         4         0         17          0
-Markdown                1         378        67         0        311          0
+Markdown                1         399        75         0        324          0
 Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  26       5,735       602       388      4,745        540
+Total                  27       6,006       645       395      4,966        588
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $138,576
-Estimated Schedule Effort (organic) 6.49 months
-Estimated People Required (organic) 1.90
+Estimated Cost to Develop (organic) $145,361
+Estimated Schedule Effort (organic) 6.61 months
+Estimated People Required (organic) 1.95
 ───────────────────────────────────────────────────────────────────────────────
-Processed 194,999 bytes, 0.195 megabytes (SI)
+Processed 204,028 bytes, 0.204 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 

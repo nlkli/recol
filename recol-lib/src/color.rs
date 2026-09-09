@@ -24,6 +24,14 @@ pub struct Color {
     pub b: f32,
 }
 
+impl Eq for Color {}
+
+impl std::hash::Hash for Color {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.hex().hash(state);
+    }
+}
+
 impl TryFrom<&[u8]> for Color {
     type Error = Error;
 
@@ -303,6 +311,15 @@ impl Color {
     pub fn rotate(&self, v: f32, rhs: f32) -> Color {
         let (h, s, val) = self.hsv();
         Color::from_hsv((h + v).rem_euclid(rhs), s, val)
+    }
+
+    pub fn wcag_contrast_ratio(&self, other: &Color) -> f32 {
+        let l1 = self.luminance();
+        let l2 = other.luminance();
+
+        let (lighter, darker) = if l1 > l2 { (l1, l2) } else { (l2, l1) };
+
+        (lighter + 0.05) / (darker + 0.05)
     }
 }
 

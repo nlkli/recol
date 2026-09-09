@@ -34,6 +34,18 @@ fn print_theme_as_json(name: &str, is_light: bool, colors: &lib::AdvancedColorSc
 fn main() -> Result<()> {
     let args = cli::Args::parse();
 
+    // TODO:
+    if let Some(ref media) = args.media {
+        let cs = lib::ColorScheme::from_media(media).unwrap();
+        let theme = lib::Theme::new(
+            media.file_stem().unwrap().to_str().unwrap(),
+            cs.is_light(),
+            cs,
+        );
+        let _ = targets::apply_theme(&args, &theme);
+        return Ok(());
+    }
+
     store::init();
 
     let mut collection = lib::Collection::new();

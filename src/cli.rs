@@ -57,6 +57,8 @@ pub struct Args {
 
     /// Show init help at startup
     pub init_help: bool,
+
+    pub media: Option<std::path::PathBuf>,
 }
 
 // Standard ANSI color codes
@@ -192,11 +194,11 @@ impl Args {
         let mut last: Option<char> = None;
 
         if let Some(arg) = std::env::var("RECOL_ADJUST").ok() {
-            args.adjust_arg(arg);
+            args.adjustments(arg);
         }
 
         if let Some(arg) = std::env::var("RECOL_TARGET").ok() {
-            args.target_arg(arg);
+            args.targets(arg);
         }
 
         let mut iter = std::env::args().skip(1);
@@ -209,6 +211,7 @@ impl Args {
                     "target" => last = Some('T'),
                     "nvim_config" => last = Some('0'),
                     "adjust" => last = Some('a'),
+                    "media" => last = Some('m'),
                     "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
                     "font-rand" => args.font_rand = true,
@@ -238,7 +241,7 @@ impl Args {
             } else if let Some(flags) = arg.strip_prefix('-') {
                 for c in flags.chars() {
                     match c {
-                        't' | 'f' | 'c' | 'T' | 'a' => last = Some(c),
+                        't' | 'f' | 'c' | 'T' | 'a' | 'm' => last = Some(c),
                         'r' => args.rand = true,
                         'd' => args.dark = true,
                         'l' => args.light = true,
@@ -273,10 +276,16 @@ impl Args {
                         args.nvim_config.replace(arg);
                     }
                     Some('T') => {
-                        args.target_arg(arg);
+                        args.targets(arg);
                     }
                     Some('a') => {
-                        args.adjust_arg(arg);
+                        args.adjustments(arg);
+                    }
+                    Some('m') => {
+                        let path = std::path::PathBuf::from(arg);
+                        if path.is_file() {
+                            args.media.replace(path);
+                        }
                     }
                     _ => {
                         args.theme.replace(arg);
@@ -302,7 +311,7 @@ impl Args {
         filters
     }
 
-    fn target_arg(&mut self, arg: String) {
+    fn targets(&mut self, arg: String) {
         if arg == "list" {
             for t in targets::ALL_TARGETS {
                 println!("{}", t);
@@ -318,7 +327,7 @@ impl Args {
         }
     }
 
-    fn adjust_arg(&mut self, mut arg: String) {
+    fn adjustments(&mut self, mut arg: String) {
         if arg == "help" {
             println!("{}", adjust_help());
             std::process::exit(0);

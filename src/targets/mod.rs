@@ -100,6 +100,9 @@ impl Target {
         Ok(())
     }
 
+    /// - Ghostty: <https://ghostty.org/docs/config#file-location>
+    /// - Alacritty: <https://alacritty.org/config-alacritty.html#location>
+    /// - WezTerm: <https://wezterm.org/config/files.html#configuration-files>
     pub fn config_path(&self) -> Option<PathBuf> {
         let prefix = match std::env::var("XDG_CONFIG_HOME").ok() {
             Some(p) => PathBuf::from(p),

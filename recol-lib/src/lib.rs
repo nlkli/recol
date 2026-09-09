@@ -3,6 +3,7 @@ mod collection;
 mod color;
 mod error;
 mod theme;
+mod ppm;
 
 pub mod fuzzy;
 
