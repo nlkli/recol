@@ -59,6 +59,8 @@ pub struct Args {
     pub init_help: bool,
 
     pub media: Option<std::path::PathBuf>,
+
+    pub palletegen: Option<u8>,
 }
 
 // Standard ANSI color codes
@@ -292,15 +294,7 @@ impl Args {
                         }
                     }
                     Some('G') => {
-                        let Ok(max_colors) = arg.parse::<u8>() else {
-                            continue;
-                        };
-                        if let Some(media_path) = args.media.take() {
-                            let pallete =
-                                lib::palletegen_from_media(media_path, max_colors).unwrap();
-                            pallete.into_iter().for_each(|c| println!("{c}"));
-                            std::process::exit(0);
-                        }
+                        args.palletegen = arg.parse::<u8>().ok();
                     }
                     _ => {
                         args.theme.replace(arg);

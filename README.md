@@ -280,9 +280,10 @@ Adjustments (all values -100..100 unless noted):
 `recol` can derive a color scheme from any image/video frame. Pass a media file with `--media` and recol builds a theme automatically:
 
 ```sh
-recol --media ~/Pictures/Sunset.png
-recol -m ~/Videos/X.gif --json
-recol -m ~/Photo/Landscape.jpg --palletegen 12
+recol --media ~/Pictures/Sunset.png # apply gen from image theme
+recol -m ~/Videos/X.gif --json # output generate theme as json
+recol -m ~/Photo/Landscape.jpg --palletegen 12 # print as css colors list
+recol -m ~/Photo/Logo.svg --palletegen 24 -s   # show colors 
 ```
 
 **Requirements:** [ffmpeg](https://ffmpeg.org) must be installed and available on `PATH`.
