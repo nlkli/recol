@@ -284,7 +284,7 @@ recol --media ~/Pictures/Sunset.png            # generate and apply a theme from
 recol -m ~/Videos/X.gif --json                 # generate a theme and output it as JSON
 recol -m ~/Photo/Landscape.jpg --palletegen 12 # print the generated palette
 recol -m ~/Photo/Logo.svg --palletegen 24 -s   # show extracted colors
-recol -m ~/Photo/Landscape.jpg --palletegen 12 -j # print the generated palette as json
+recol -m ~/Photo/Cat.jpg --palletegen 250 -j   # print the generated palette as JSON
 ```
 
 **Requirements:** [ffmpeg](https://ffmpeg.org) must be installed and available on `PATH`.
