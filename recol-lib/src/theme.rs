@@ -50,11 +50,12 @@ pub const COLOR_SCHEME_NC: usize = 2 + 2 + 2 + 8 + 8;
 /// Byte size of a serialized [`ColorScheme`].
 pub const COLOR_SCHEME_SIZE: usize = COLOR_SCHEME_NC * COLOR_SIZE;
 
-pub fn pallete_from_media(
+// https://ffmpeg.org/ffmpeg-all.html#palettegen-1
+pub fn palletegen_from_media(
     path: impl AsRef<std::path::Path>,
     mut max_colors: u8,
 ) -> crate::error::Result<Vec<Color>> {
-    max_colors = max_colors.max(1);
+    max_colors = max_colors.max(2); // 2..256
 
     let file_stem = path
         .as_ref()
@@ -256,7 +257,7 @@ impl ColorScheme {
     /// Expand this scheme into an [`AdvancedColorScheme`] using the given
     /// brightness/blend parameters.
     pub fn into_advanced(self, param: Option<AdvancedColorSchemeParam>) -> AdvancedColorScheme {
-        let param = param.unwrap_or_default();
+        let p = param.unwrap_or_default();
 
         let bg_color = self.bg.color();
         let fg_color = self.fg.color();
@@ -272,50 +273,50 @@ impl ColorScheme {
 
         // bg[0] is always slightly *outside* the main bg to create contrast;
         // if the naive direction would clip against the boundary, flip it.
-        let bg0 = if (bg_lum + param.bg0_brighten * m - z) * (-m) - GAP < 100.0 {
-            bg_color.brighten(param.bg0_brighten * m).css()
+        let bg0 = if (bg_lum + p.bg0_brighten * m - z) * (-m) - GAP < 100.0 {
+            bg_color.brighten(p.bg0_brighten * m).css()
         } else {
-            bg_color.brighten(-param.bg0_brighten * m).css()
+            bg_color.brighten(-p.bg0_brighten * m).css()
         };
         let bg = [
             bg0,
             self.bg,
-            bg_color.brighten(param.bg2_brighten).css(),
-            bg_color.brighten(param.bg3_brighten).css(),
-            bg_color.brighten(param.bg4_brighten).css(),
+            bg_color.brighten(p.bg2_brighten).css(),
+            bg_color.brighten(p.bg3_brighten).css(),
+            bg_color.brighten(p.bg4_brighten).css(),
         ];
 
         // fg[0] applies the same boundary-aware flip logic.
-        let fg0 = if (fg_color.hsl().2 + param.fg0_brighten * m - z) * (-m) - GAP > 0.0 {
-            fg_color.brighten(param.fg0_brighten * m).css()
+        let fg0 = if (fg_color.hsl().2 + p.fg0_brighten * m - z) * (-m) - GAP > 0.0 {
+            fg_color.brighten(p.fg0_brighten * m).css()
         } else {
-            fg_color.brighten(-param.fg0_brighten * m).css()
+            fg_color.brighten(-p.fg0_brighten * m).css()
         };
         let fg = [
             fg0,
             self.fg,
-            fg_color.brighten(param.fg2_brighten).css(),
-            fg_color.brighten(param.fg3_brighten).css(),
+            fg_color.brighten(p.fg2_brighten).css(),
+            fg_color.brighten(p.fg3_brighten).css(),
         ];
 
         let alt_selection = [
-            bg_color.blend(&fg_color, param.code_selection_blend).css(),
+            bg_color.blend(&fg_color, p.code_selection_blend).css(),
             bg_color
-                .blend(&self.cursor.bg.color(), param.code_selection_blend)
+                .blend(&self.cursor.bg.color(), p.code_selection_blend)
                 .css(),
         ];
 
         let dim = AnsiColors {
-            black: self.base.black.color().shade(param.dim_shade).css(),
-            red: self.base.red.color().shade(param.dim_shade).css(),
-            green: self.base.green.color().shade(param.dim_shade).css(),
-            yellow: self.base.yellow.color().shade(param.dim_shade).css(),
-            blue: self.base.blue.color().shade(param.dim_shade).css(),
-            magenta: self.base.magenta.color().shade(param.dim_shade).css(),
-            cyan: self.base.cyan.color().shade(param.dim_shade).css(),
-            white: self.base.white.color().shade(param.dim_shade).css(),
-            orange: self.base.orange.color().shade(param.dim_shade).css(),
-            pink: self.base.pink.color().shade(param.dim_shade).css(),
+            black: self.base.black.color().shade(p.dim_shade).css(),
+            red: self.base.red.color().shade(p.dim_shade).css(),
+            green: self.base.green.color().shade(p.dim_shade).css(),
+            yellow: self.base.yellow.color().shade(p.dim_shade).css(),
+            blue: self.base.blue.color().shade(p.dim_shade).css(),
+            magenta: self.base.magenta.color().shade(p.dim_shade).css(),
+            cyan: self.base.cyan.color().shade(p.dim_shade).css(),
+            white: self.base.white.color().shade(p.dim_shade).css(),
+            orange: self.base.orange.color().shade(p.dim_shade).css(),
+            pink: self.base.pink.color().shade(p.dim_shade).css(),
         };
 
         let diff = DiffColors {
@@ -323,25 +324,25 @@ impl ColorScheme {
                 .base
                 .green
                 .color()
-                .blend(&bg_color, param.diff_add_blend)
+                .blend(&bg_color, p.diff_add_blend)
                 .css(),
             delete: self
                 .base
                 .red
                 .color()
-                .blend(&bg_color, param.diff_delete_blend)
+                .blend(&bg_color, p.diff_delete_blend)
                 .css(),
             change: self
                 .base
                 .blue
                 .color()
-                .blend(&bg_color, param.diff_change_blend)
+                .blend(&bg_color, p.diff_change_blend)
                 .css(),
             text: self
                 .base
                 .magenta
                 .color()
-                .blend(&bg_color, param.diff_text_blend)
+                .blend(&bg_color, p.diff_text_blend)
                 .css(),
         };
 
@@ -355,7 +356,7 @@ impl ColorScheme {
             bright: self.bright,
             dim,
             diff,
-            comment: fg_color.blend(&bg_color, param.comment_blend).css(),
+            comment: fg_color.blend(&bg_color, p.comment_blend).css(),
         }
     }
 
@@ -369,7 +370,7 @@ impl ColorScheme {
     }
 
     pub fn from_media(path: impl AsRef<std::path::Path>) -> crate::error::Result<Self> {
-        let p5 = pallete_from_media(&path, 5)?;
+        let p5 = palletegen_from_media(&path, 5)?;
         let is_light = (p5[0].lab().0 + p5[4].lab().0) * 0.5 > 50.0;
 
         let (bg, fg, cur_bg, sel_bg, cur_fg, sel_fg) = if is_light {
@@ -377,7 +378,19 @@ impl ColorScheme {
         } else {
             (p5[0], p5[4], p5[3], p5[1], p5[2], p5[3])
         };
-        let p10 = pallete_from_media(&path, 10)?;
+        let target_l = if is_light {
+            p5[4].lab().0
+        } else {
+            p5[0].lab().0
+        };
+
+        let (_, a, b) = cur_fg.lab();
+        let cur_fg = Color::from_lab(target_l, a, b);
+
+        let (_, a, b) = sel_fg.lab();
+        let sel_fg = Color::from_lab(target_l, a, b);
+
+        let p10 = palletegen_from_media(&path, 10)?;
         let (red, green, cyan, yellow, blue, magenta, orange, pink) = if is_light {
             (
                 p10[1], p10[2], p10[3], p10[4], p10[5], p10[6], p10[7], p10[8],
@@ -387,35 +400,35 @@ impl ColorScheme {
                 p10[8], p10[7], p10[6], p10[5], p10[4], p10[3], p10[2], p10[1],
             )
         };
-        let target_lum = if is_light {
+        let target_l = if is_light {
             p10[5].lab().0
         } else {
             p10[6].lab().0
         };
 
         let (_, a, b) = red.lab();
-        let red = Color::from_lab(target_lum, a, b);
+        let red = Color::from_lab(target_l, a, b);
 
         let (_, a, b) = green.lab();
-        let green = Color::from_lab(target_lum, a, b);
+        let green = Color::from_lab(target_l, a, b);
 
         let (_, a, b) = yellow.lab();
-        let yellow = Color::from_lab(target_lum, a, b);
+        let yellow = Color::from_lab(target_l, a, b);
 
         let (_, a, b) = blue.lab();
-        let blue = Color::from_lab(target_lum, a, b);
+        let blue = Color::from_lab(target_l, a, b);
 
         let (_, a, b) = magenta.lab();
-        let magenta = Color::from_lab(target_lum, a, b);
+        let magenta = Color::from_lab(target_l, a, b);
 
         let (_, a, b) = cyan.lab();
-        let cyan = Color::from_lab(target_lum, a, b);
+        let cyan = Color::from_lab(target_l, a, b);
 
         let (_, a, b) = orange.lab();
-        let orange = Color::from_lab(target_lum, a, b);
+        let orange = Color::from_lab(target_l, a, b);
 
         let (_, a, b) = pink.lab();
-        let pink = Color::from_lab(target_lum, a, b);
+        let pink = Color::from_lab(target_l, a, b);
 
         let bright_factor = if is_light { -18. } else { 18. };
 
@@ -451,7 +464,6 @@ impl ColorScheme {
                 magenta: magenta.brighten(bright_factor).css(),
                 cyan: cyan.brighten(bright_factor).css(),
                 white: p10[9].shade(0.1).css(),
-                // Derived: not stored in binary.
                 orange: orange.brighten(bright_factor).css(),
                 pink: pink.brighten(bright_factor).css(),
             },

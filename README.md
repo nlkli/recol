@@ -158,6 +158,9 @@ Options:
       Format: "group.adjustment=value,..."
   -i, --interactive
       Browse and apply themes interactively
+  -m, --media <PATH>
+      Generate a theme from an image/video (requires ffmpeg)
+  --palletegen <MAX_COLORS>  Output media pallete colors
   -f, --font <NAME>
       Set font family by name (fuzzy matching)
   -F, --font-rand
@@ -168,7 +171,7 @@ Options:
   --font-list       List available Nerd Fonts
   -s, --show
       Show the theme color palette without applying it
-  -j, --json  Output theme/list as JSON
+  -j, --json  Output theme/list/media as JSON
   -h, --help; -V, --version; --logo
 ```
 
@@ -278,10 +281,11 @@ Adjustments (all values -100..100 unless noted):
 
 ```sh
 recol --media ~/Pictures/Sunset.png
-recol -m ~/Videos/X.gif --target ghostty
+recol -m ~/Videos/X.gif --json
+recol -m ~/Photo/Landscape.jpg --palletegen 12
 ```
 
-**Requirements:** `ffmpeg` must be installed and available on `PATH`.
+**Requirements:** [ffmpeg](https://ffmpeg.org) must be installed and available on `PATH`.
 
 **How it works:**
 

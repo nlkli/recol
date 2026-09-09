@@ -34,15 +34,29 @@ fn print_theme_as_json(name: &str, is_light: bool, colors: &lib::AdvancedColorSc
 fn main() -> Result<()> {
     let args = cli::Args::parse();
 
-    // TODO:
     if let Some(ref media) = args.media {
-        let cs = lib::ColorScheme::from_media(media).unwrap();
-        let theme = lib::Theme::new(
+        let cs = lib::ColorScheme::from_media(media)?;
+        let mut theme = lib::Theme::new(
             media.file_stem().unwrap().to_str().unwrap(),
             cs.is_light(),
             cs,
         );
-        let _ = targets::apply_theme(&args, &theme);
+        if !args.adjust.is_empty() {
+            theme.colors.apply_adjustments(&args.adjust);
+            targets::apply_theme(&args, &theme)?;
+        }
+        if args.show {
+            print_theme_header(&theme.name, theme.is_light);
+            theme.print_palette();
+        } else if args.json {
+            print_theme_as_json(
+                &theme.name,
+                theme.is_light,
+                &theme.colors.into_advanced(None),
+            );
+        } else {
+            targets::apply_theme(&args, &theme)?;
+        }
         return Ok(());
     }
 
