@@ -1,41 +1,9 @@
 use crate::utils;
-use recol_lib::{self as lib, CssColor};
+use recol_lib as lib;
 use std::{io, path::Path};
 
 pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
     let c = theme.colors.clone().into_advanced(None);
-
-    let pick = |bright: &CssColor, dim: &CssColor| -> CssColor {
-        if theme.is_light {
-            dim.clone()
-        } else {
-            bright.clone()
-        }
-    };
-
-    let syn_comment = c.comment;
-    let syn_const = pick(&c.bright.orange, &c.dim.orange);
-    let syn_string = c.base.green.clone();
-    let syn_number = c.base.orange.clone();
-    let syn_ident = c.base.cyan.clone();
-    let syn_func = pick(&c.bright.blue, &c.dim.blue);
-    let syn_statement = c.base.magenta.clone();
-    let syn_conditional = pick(&c.bright.magenta, &c.dim.magenta);
-    let syn_operator = c.fg[2].clone();
-    let syn_keyword = c.base.magenta.clone();
-    let syn_preproc = pick(&c.bright.pink, &c.dim.pink);
-    let syn_type = c.base.yellow.clone();
-    let syn_builtin2 = pick(&c.bright.orange, &c.dim.orange);
-
-    let diag_error = c.base.red.clone();
-    let diag_warn = c.base.yellow.clone();
-    let diag_info = c.base.blue.clone();
-    let diag_hint = c.base.green.clone();
-
-    let git_add = c.base.green.clone();
-    let git_removed = c.base.red.clone();
-    let git_changed = c.base.blue.clone();
-
     let background = if theme.is_light { "light" } else { "dark" };
 
     let content = format!(
@@ -176,26 +144,26 @@ hi diffIndexLine guifg={syn_preproc}"#,
         diff_delete = c.diff.delete,
         diff_change = c.diff.change,
         diff_text = c.diff.text,
-        syn_comment = syn_comment,
-        syn_const = syn_const,
-        syn_string = syn_string,
-        syn_number = syn_number,
-        syn_ident = syn_ident,
-        syn_func = syn_func,
-        syn_statement = syn_statement,
-        syn_conditional = syn_conditional,
-        syn_operator = syn_operator,
-        syn_keyword = syn_keyword,
-        syn_preproc = syn_preproc,
-        syn_type = syn_type,
-        syn_builtin2 = syn_builtin2,
-        diag_error = diag_error,
-        diag_warn = diag_warn,
-        diag_info = diag_info,
-        diag_hint = diag_hint,
-        git_add = git_add,
-        git_removed = git_removed,
-        git_changed = git_changed,
+        syn_comment = c.comment,
+        syn_const = c.bright.orange,
+        syn_string = c.base.green,
+        syn_number = c.base.orange,
+        syn_ident = c.base.cyan,
+        syn_func = c.bright.blue,
+        syn_statement = c.base.magenta,
+        syn_conditional = c.bright.magenta,
+        syn_operator = c.fg[2],
+        syn_keyword = c.base.magenta,
+        syn_preproc = c.bright.pink,
+        syn_type = c.base.yellow,
+        syn_builtin2 = c.bright.orange,
+        diag_error = c.base.red,
+        diag_warn = c.base.yellow,
+        diag_info = c.base.blue,
+        diag_hint = c.base.green,
+        git_add = c.base.green,
+        git_removed = c.base.red,
+        git_changed = c.base.blue,
     );
 
     utils::inject_content_between_markers(
