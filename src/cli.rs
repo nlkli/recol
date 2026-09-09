@@ -60,7 +60,7 @@ pub struct Args {
 
     pub media: Option<std::path::PathBuf>,
 
-    pub palletegen: Option<u8>,
+    pub palettegen: Option<u8>,
 }
 
 // Standard ANSI color codes
@@ -114,12 +114,11 @@ alacritty, ghostty, wezterm, neovim, vim, pi.
       (used with --rand, --theme or --theme-list)
   {blue}-a{reset}, {blue}--adjust <SPEC|PATH>{reset} [env: RECOL_ADJUST]
       Apply color adjustments (see --adjust help)
-      Format: "group.adjustment=value,..."
   {blue}-i{reset}, {blue}--interactive{reset}
       Browse and apply themes interactively
   {blue}-m{reset}, {blue}--media <PATH>{reset}
       Generate a theme from an image/video (requires ffmpeg)
-  {blue}--palletegen <MAX_COLORS>{reset}  Output media pallete colors
+  {blue}--palettegen <MAX_COLORS>{reset}  Output media palette colors
   {blue}-f{reset}, {blue}--font <NAME>{reset}
       Set font family by name (fuzzy matching)
   {blue}-F{reset}, {blue}--font-rand{reset}
@@ -217,7 +216,7 @@ impl Args {
                     "nvim_config" => last = Some('0'),
                     "adjust" => last = Some('a'),
                     "media" => last = Some('m'),
-                    "palletegen" => last = Some('G'),
+                    "palettegen" => last = Some('G'),
                     "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
                     "font-rand" => args.font_rand = true,
@@ -294,7 +293,7 @@ impl Args {
                         }
                     }
                     Some('G') => {
-                        args.palletegen = arg.parse::<u8>().ok();
+                        args.palettegen = arg.parse::<u8>().ok();
                     }
                     _ => {
                         args.theme.replace(arg);
