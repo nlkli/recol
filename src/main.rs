@@ -39,6 +39,13 @@ fn main() -> Result<()> {
             let pallete = lib::palletegen_from_media(media, max_colors)?;
             if args.show {
                 lib::print_palette(&pallete);
+            } else if args.json {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(
+                        &pallete.into_iter().map(|c| c.css()).collect::<Vec<_>>()
+                    )?
+                );
             } else {
                 pallete.into_iter().for_each(|c| println!("{c}"));
             }
