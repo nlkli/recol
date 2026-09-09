@@ -115,6 +115,9 @@ alacritty, ghostty, wezterm, neovim, vim, pi.
       Format: "group.adjustment=value,..."
   {blue}-i{reset}, {blue}--interactive{reset}
       Browse and apply themes interactively
+  {blue}-m{reset}, {blue}--media <PATH>{reset}
+      Generate a theme from an image/video (requires ffmpeg)
+  {blue}--palletegen <MAX_COLORS>{reset}  Output media pallete colors
   {blue}-f{reset}, {blue}--font <NAME>{reset}
       Set font family by name (fuzzy matching)
   {blue}-F{reset}, {blue}--font-rand{reset}
@@ -125,7 +128,7 @@ alacritty, ghostty, wezterm, neovim, vim, pi.
   {blue}--font-list{reset}       List available Nerd Fonts
   {blue}-s{reset}, {blue}--show{reset}
       Show the theme color palette without applying it
-  {blue}-j{reset}, {blue}--json{reset}  Output theme/list as JSON
+  {blue}-j{reset}, {blue}--json{reset}  Output theme/list/media as JSON
   {blue}-h{reset}, {blue}--help{reset}; {blue}-V{reset}, {blue}--version{reset}; {blue}--logo{reset}"#,
         reset = RESET,
         green = GREEN,
@@ -212,6 +215,7 @@ impl Args {
                     "nvim_config" => last = Some('0'),
                     "adjust" => last = Some('a'),
                     "media" => last = Some('m'),
+                    "palletegen" => last = Some('G'),
                     "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
                     "font-rand" => args.font_rand = true,
@@ -285,6 +289,17 @@ impl Args {
                         let path = std::path::PathBuf::from(arg);
                         if path.is_file() {
                             args.media.replace(path);
+                        }
+                    }
+                    Some('G') => {
+                        let Ok(max_colors) = arg.parse::<u8>() else {
+                            continue;
+                        };
+                        if let Some(media_path) = args.media.take() {
+                            let pallete =
+                                lib::palletegen_from_media(media_path, max_colors).unwrap();
+                            pallete.into_iter().for_each(|c| println!("{c}"));
+                            std::process::exit(0);
                         }
                     }
                     _ => {
