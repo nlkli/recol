@@ -51,7 +51,7 @@ pub const COLOR_SCHEME_NC: usize = 2 + 2 + 2 + 8 + 8;
 pub const COLOR_SCHEME_SIZE: usize = COLOR_SCHEME_NC * COLOR_SIZE;
 
 // https://ffmpeg.org/ffmpeg-all.html#palettegen-1
-pub fn palletegen_from_media(
+pub fn palettegen_from_media(
     path: impl AsRef<std::path::Path>,
     mut max_colors: u8,
 ) -> crate::error::Result<Vec<Color>> {
@@ -370,7 +370,7 @@ impl ColorScheme {
     }
 
     pub fn from_media(path: impl AsRef<std::path::Path>) -> crate::error::Result<Self> {
-        let p5 = palletegen_from_media(&path, 5)?;
+        let p5 = palettegen_from_media(&path, 5)?;
         let is_light = (p5[0].lab().0 + p5[4].lab().0) * 0.5 > 50.0;
 
         let (bg, fg, cur_bg, sel_bg, cur_fg, sel_fg) = if is_light {
@@ -390,7 +390,7 @@ impl ColorScheme {
         let (_, a, b) = sel_fg.lab();
         let sel_fg = Color::from_lab(target_l, a, b);
 
-        let p10 = palletegen_from_media(&path, 10)?;
+        let p10 = palettegen_from_media(&path, 10)?;
         let (red, green, cyan, yellow, blue, magenta, orange, pink) = if is_light {
             (
                 p10[1], p10[2], p10[3], p10[4], p10[5], p10[6], p10[7], p10[8],

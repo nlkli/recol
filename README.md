@@ -155,12 +155,11 @@ Options:
       (used with --rand, --theme or --theme-list)
   -a, --adjust <SPEC|PATH> [env: RECOL_ADJUST]
       Apply color adjustments (see --adjust help)
-      Format: "group.adjustment=value,..."
   -i, --interactive
       Browse and apply themes interactively
   -m, --media <PATH>
       Generate a theme from an image/video (requires ffmpeg)
-  --palletegen <MAX_COLORS>  Output media pallete colors
+  --palettegen <MAX_COLORS>  Output media palette colors
   -f, --font <NAME>
       Set font family by name (fuzzy matching)
   -F, --font-rand
@@ -282,9 +281,9 @@ Adjustments (all values -100..100 unless noted):
 ```sh
 recol --media ~/Pictures/Sunset.png            # generate and apply a theme from an image
 recol -m ~/Videos/X.gif --json                 # generate a theme and output it as JSON
-recol -m ~/Photo/Landscape.jpg --palletegen 12 # print the generated palette
-recol -m ~/Photo/Logo.svg --palletegen 24 -s   # show extracted colors
-recol -m ~/Photo/Cat.jpg --palletegen 250 -j   # print the generated palette as JSON
+recol -m ~/Photo/Landscape.jpg --palettegen 12 # print the generated palette
+recol -m ~/Photo/Logo.svg --palettegen 24 -s   # show extracted colors
+recol -m ~/Photo/Cat.jpg --palettegen 250 -j   # print the generated palette as JSON
 ```
 
 **Requirements:** [ffmpeg](https://ffmpeg.org) must be installed and available on `PATH`.

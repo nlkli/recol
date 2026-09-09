@@ -35,19 +35,19 @@ fn main() -> Result<()> {
     let args = cli::Args::parse();
 
     if let Some(ref media) = args.media {
-        if let Some(max_colors) = args.palletegen {
-            let pallete = lib::palletegen_from_media(media, max_colors)?;
+        if let Some(max_colors) = args.palettegen {
+            let palette = lib::palettegen_from_media(media, max_colors)?;
             if args.show {
-                lib::print_palette(&pallete);
+                lib::print_palette(&palette);
             } else if args.json {
                 println!(
                     "{}",
                     serde_json::to_string_pretty(
-                        &pallete.into_iter().map(|c| c.css()).collect::<Vec<_>>()
+                        &palette.into_iter().map(|c| c.css()).collect::<Vec<_>>()
                     )?
                 );
             } else {
-                pallete.into_iter().for_each(|c| println!("{c}"));
+                palette.into_iter().for_each(|c| println!("{c}"));
             }
             return Ok(());
         }
