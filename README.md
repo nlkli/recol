@@ -280,18 +280,20 @@ Adjustments (all values -100..100 unless noted):
 `recol` can derive a color scheme from any image/video frame. Pass a media file with `--media` and recol builds a theme automatically:
 
 ```sh
-recol --media ~/Pictures/Sunset.png # apply gen from image theme
-recol -m ~/Videos/X.gif --json # output generate theme as json
-recol -m ~/Photo/Landscape.jpg --palletegen 12 # print as css colors list
-recol -m ~/Photo/Logo.svg --palletegen 24 -s   # show colors 
+recol --media ~/Pictures/Sunset.png            # generate and apply a theme from an image
+recol -m ~/Videos/X.gif --json                 # generate a theme and output it as JSON
+recol -m ~/Photo/Landscape.jpg --palletegen 12 # print the generated palette
+recol -m ~/Photo/Logo.svg --palletegen 24 -s   # show extracted colors
 ```
 
 **Requirements:** [ffmpeg](https://ffmpeg.org) must be installed and available on `PATH`.
 
+This feature requires no additional Cargo/Rust dependencies. recol simply invokes the ffmpeg binary already installed on the system and uses its palettegen functionality to extract colors.
+
 **How it works:**
 
-1. `ffmpeg` runs `palettegen=max_colors=N` to extract the dominant palette from the media into a PPM file (written to a temp location).
-2. `recol` reads the unique colors from the PPM and maps them to the 16 ANSI slots.
+1. `recol` invokes the system-installed `ffmpeg` and uses `palettegen=max_colors=N` to extract the dominant palette from the media into a PPM file.
+2. `recol` reads the unique colors from the generated PPM and maps them to the 16 ANSI slots.
 3. The theme auto-detects light vs. dark and aligns the derived colors to a shared luminance for visual consistency.
 
 ### Adding Support for New Targets
