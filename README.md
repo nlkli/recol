@@ -383,19 +383,19 @@ pub const ALL_TARGETS: [Target; 7] = [ /* ..., Target::Vscode */ ];
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   22       5,532       559       394      4,579        587
+Rust                   22       5,585       564       393      4,628        605
 TOML                    2          46         5         0         41          1
 License                 1          21         4         0         17          0
-Markdown                1         399        75         0        324          0
+Markdown                1         406        75         0        331          0
 Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  27       6,006       645       395      4,966        588
+Total                  27       6,066       650       394      5,022        606
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $145,361
-Estimated Schedule Effort (organic) 6.61 months
-Estimated People Required (organic) 1.95
+Estimated Cost to Develop (organic) $147,082
+Estimated Schedule Effort (organic) 6.64 months
+Estimated People Required (organic) 1.97
 ───────────────────────────────────────────────────────────────────────────────
-Processed 204,028 bytes, 0.204 megabytes (SI)
+Processed 206,342 bytes, 0.206 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
