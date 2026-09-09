@@ -1,4 +1,5 @@
 /target
+/media-test
 *.bac
 *.tmp
 /colorschemes
