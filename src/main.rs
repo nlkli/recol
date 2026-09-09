@@ -35,6 +35,15 @@ fn main() -> Result<()> {
     let args = cli::Args::parse();
 
     if let Some(ref media) = args.media {
+        if let Some(max_colors) = args.palletegen {
+            let pallete = lib::palletegen_from_media(media, max_colors)?;
+            if args.show {
+                lib::print_palette(&pallete);
+            } else {
+                pallete.into_iter().for_each(|c| println!("{c}"));
+            }
+            return Ok(());
+        }
         let cs = lib::ColorScheme::from_media(media)?;
         let mut theme = lib::Theme::new(
             media.file_stem().unwrap().to_str().unwrap(),
