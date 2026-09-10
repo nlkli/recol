@@ -284,6 +284,7 @@ recol -m ~/Videos/X.gif --json                 # generate a theme and output it 
 recol -m ~/Photo/Landscape.jpg --palettegen 12 # print the generated palette
 recol -m ~/Photo/Logo.svg --palettegen 24 -s   # show extracted colors
 recol -m ~/Photo/Cat.jpg --palettegen 250 -j   # print the generated palette as JSON
+recol -m ~/Photo/Tree.png -a t.e=9,bb.b=-12    # generate and apply with color adjust
 ```
 
 **Requirements:** [ffmpeg](https://ffmpeg.org) must be installed and available on `PATH`.
@@ -341,6 +342,7 @@ pub const ALL_TARGETS: [Target; 7] = [ /* ..., Target::Vscode */ ];
 ├── build.rs
 ├── Cargo.lock
 ├── Cargo.toml
+├── CHANGELOG.md
 ├── fetch.sh
 ├── LICENSE
 ├── README.md
@@ -373,7 +375,7 @@ pub const ALL_TARGETS: [Target; 7] = [ /* ..., Target::Vscode */ ];
     │   └── wezterm.rs
     └── utils.rs
 
-5 directories, 30 files
+5 directories, 31 files
 ```
 
 ### SCC
@@ -382,19 +384,19 @@ pub const ALL_TARGETS: [Target; 7] = [ /* ..., Target::Vscode */ ];
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   22       5,585       564       393      4,628        605
+Rust                   22       5,746       561       404      4,781        610
+Markdown                2         424        78         0        346          0
 TOML                    2          46         5         0         41          1
 License                 1          21         4         0         17          0
-Markdown                1         406        75         0        331          0
 Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  27       6,066       650       394      5,022        606
+Total                  28       6,245       650       405      5,190        611
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $147,082
-Estimated Schedule Effort (organic) 6.64 months
-Estimated People Required (organic) 1.97
+Estimated Cost to Develop (organic) $152,253
+Estimated Schedule Effort (organic) 6.73 months
+Estimated People Required (organic) 2.01
 ───────────────────────────────────────────────────────────────────────────────
-Processed 206,342 bytes, 0.206 megabytes (SI)
+Processed 212,719 bytes, 0.213 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
