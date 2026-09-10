@@ -68,10 +68,3 @@ where
 
     Ok(())
 }
-
-pub fn io_other_error<E>(err: E) -> io::Error
-where
-    E: Into<Box<dyn std::error::Error + Send + Sync>>,
-{
-    io::Error::new(io::ErrorKind::Other, err)
-}

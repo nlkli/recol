@@ -58,8 +58,10 @@ pub struct Args {
     /// Show init help at startup
     pub init_help: bool,
 
+    // Media path
     pub media: Option<std::path::PathBuf>,
 
+    // max_colors param
     pub palettegen: Option<u8>,
 }
 

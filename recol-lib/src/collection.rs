@@ -5,19 +5,19 @@
 //! ```text
 //! ┌─────────────────────────────────────────────────────────┐
 //! │ Header                                                  │
-//! │   count        : u16 BE   — number of themes           │
+//! │   count        : u16 BE   — number of themes            │
 //! ├─────────────────────────────────────────────────────────┤
-//! │ Offset table  (count × 4 bytes)                        │
-//! │   offsets      : [u32 BE; count]                       │
-//! │                  each value is the byte offset of the  │
+//! │ Offset table  (count × 4 bytes)                         │
+//! │   offsets      : [u32 BE; count]                        │
+//! │                  each value is the byte offset of the   │
 //! │                  theme relative to the themes section   │
 //! ├─────────────────────────────────────────────────────────┤
-//! │ Themes section  (variable length)                      │
-//! │   Per theme:                                           │
-//! │     name_len   : u8       — length of the name in bytes│
-//! │     name       : [u8; name_len]  — UTF-8              │
-//! │     is_light   : u8       — 0 = dark, non-zero = light │
-//! │     colors     : [u8; COLOR_SCHEME_SIZE]               │
+//! │ Themes section  (variable length)                       │
+//! │   Per theme:                                            │
+//! │     name_len   : u8       — length of the name in bytes │
+//! │     name       : [u8; name_len]  — UTF-8                │
+//! │     is_light   : u8       — 0 = dark, non-zero = light  │
+//! │     colors     : [u8; COLOR_SCHEME_SIZE]                │
 //! └─────────────────────────────────────────────────────────┘
 //! ```
 //!
@@ -30,7 +30,7 @@ use std::{
     path::Path,
 };
 
-// TODO: remove offst table
+// TODO: remove offst table?
 /// Source: <https://github.com/mbadolato/iTerm2-Color-Schemes/tree/master/ghostty>
 pub const COLOR_SCHEMES: &[u8] = include_bytes!("colorschemes.bin");
 

@@ -1,7 +1,7 @@
 mod cli;
 mod font;
 mod interactive;
-mod store;
+mod state;
 mod targets;
 mod utils;
 
@@ -59,7 +59,12 @@ fn main() -> Result<()> {
         );
         if !args.adjust.is_empty() {
             theme.colors.apply_adjustments(&args.adjust);
-            targets::apply_theme(&args, &theme)?;
+            targets::apply_theme(
+                targets::with_existing_default_config_path(targets::with_specific_or_for_all(
+                    &args.targets,
+                )),
+                &theme,
+            )?;
         }
         if args.show {
             print_theme_header(&theme.name, theme.is_light);
@@ -71,12 +76,15 @@ fn main() -> Result<()> {
                 &theme.colors.into_advanced(None),
             );
         } else {
-            targets::apply_theme(&args, &theme)?;
+            targets::apply_theme(
+                targets::with_existing_default_config_path(targets::with_specific_or_for_all(
+                    &args.targets,
+                )),
+                &theme,
+            )?;
         }
         return Ok(());
     }
-
-    store::init();
 
     let mut collection = lib::Collection::new();
 
@@ -89,14 +97,19 @@ fn main() -> Result<()> {
         && !args.font_list
         && !args.interactive
     {
-        if let Some(lazy_theme) = store::read_theme_history(1)
+        if let Some(lazy_theme) = state::read_theme_history(1)
             .first()
             .and_then(|n| collection.by_name(n))
         {
             let mut theme = lazy_theme.into_theme();
             if !args.adjust.is_empty() {
                 theme.colors.apply_adjustments(&args.adjust);
-                targets::apply_theme(&args, &theme)?;
+                targets::apply_theme(
+                    targets::with_existing_default_config_path(targets::with_specific_or_for_all(
+                        &args.targets,
+                    )),
+                    &theme,
+                )?;
             }
             if args.show {
                 print_theme_header(&theme.name, theme.is_light);
@@ -124,7 +137,7 @@ fn main() -> Result<()> {
                 .fuzzy_search(query, &filters, None)
                 .map(|v| v.into_theme()));
         } else if args.rand {
-            let theme_history = store::read_theme_history(21);
+            let theme_history = state::read_theme_history(21);
             let mut choice = collection.random(&filters);
             let mut n = 0;
             while let Some(ref t) = choice {
@@ -156,8 +169,13 @@ fn main() -> Result<()> {
                     break;
                 }
                 print_theme_header(&theme.name, theme.is_light);
-                targets::apply_theme(&args, theme)?;
-                store::append_theme_history(&theme.name);
+                targets::apply_theme(
+                    targets::with_existing_default_config_path(targets::with_specific_or_for_all(
+                        &args.targets,
+                    )),
+                    &theme,
+                )?;
+                state::append_theme_history(&theme.name);
                 break;
             }
         }
@@ -194,7 +212,7 @@ fn main() -> Result<()> {
         }
 
         if args.font_rand {
-            let font_history = store::read_font_history(2);
+            let font_history = state::read_font_history(2);
             font_name = fastrand::choice(&font_list).cloned();
             let mut n: usize = 0;
             while n < 5 {
@@ -207,7 +225,7 @@ fn main() -> Result<()> {
                 }
                 break;
             }
-            let font_history = store::read_font_history(2);
+            let font_history = state::read_font_history(2);
             font_name = fastrand::choice(&font_list).cloned();
             let mut n = 0;
             while let Some(ref f) = font_name {
@@ -225,8 +243,13 @@ fn main() -> Result<()> {
         }
 
         if let Some(ref font_name) = font_name {
-            targets::set_font(&args, font_name)?;
-            store::append_font_history(font_name);
+            targets::set_font(
+                targets::with_existing_default_config_path(targets::with_specific_or_for_all(
+                    &args.targets,
+                )),
+                font_name,
+            )?;
+            state::append_font_history(font_name);
         }
     }
 

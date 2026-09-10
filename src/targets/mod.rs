@@ -1,5 +1,8 @@
-use crate::cli::Args;
-use std::{fmt, path::PathBuf};
+use std::{
+    fmt, fs,
+    path::{Path, PathBuf},
+    time,
+};
 
 use recol_lib as lib;
 
@@ -9,8 +12,6 @@ mod nvim;
 mod pi;
 mod vim;
 mod wezterm;
-
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 pub const ALL_TARGETS: [Target; 6] = [
     Target::Ghostty,
@@ -73,37 +74,41 @@ fn home_dir() -> std::path::PathBuf {
 }
 
 impl Target {
-    pub fn apply_theme(&self, t: &lib::Theme) -> Result<()> {
-        if let Some(path) = self.config_path() {
-            match self {
-                Target::Ghostty => ghostty::apply_theme_to(&path, t)?,
-                Target::Alacritty => alacritty::apply_theme_to(&path, t)?,
-                Target::Wezterm => wezterm::apply_theme_to(&path, t)?,
-                Target::Nvim => nvim::apply_theme_to(&path, t)?,
-                Target::Vim => vim::apply_theme_to(&path, t)?,
-                Target::Pi => pi::apply_theme_to(&path, t)?,
-                Target::None => {}
-            }
+    pub fn apply_theme_to(
+        &self,
+        config_path: impl AsRef<Path>,
+        theme: &lib::Theme,
+    ) -> crate::Result<()> {
+        match self {
+            Target::Ghostty => ghostty::apply_theme_to(&config_path, theme)?,
+            Target::Alacritty => alacritty::apply_theme_to(&config_path, theme)?,
+            Target::Wezterm => wezterm::apply_theme_to(&config_path, theme)?,
+            Target::Nvim => nvim::apply_theme_to(&config_path, theme)?,
+            Target::Vim => vim::apply_theme_to(&config_path, theme)?,
+            Target::Pi => pi::apply_theme_to(&config_path, theme)?,
+            Target::None => {}
         }
         Ok(())
     }
 
-    pub fn set_font(&self, font_name: impl Into<String>) -> Result<()> {
-        if let Some(path) = self.config_path() {
-            match self {
-                Target::Ghostty => ghostty::set_font_on(&path, font_name.into())?,
-                Target::Alacritty => alacritty::set_font_on(&path, font_name.into())?,
-                Target::Wezterm => {} // wezterm::set_font_on(&path, font_name.into())?,
-                _ => {}
-            }
+    pub fn set_font_on(
+        &self,
+        config_path: impl AsRef<Path>,
+        font_name: impl Into<String>,
+    ) -> crate::Result<()> {
+        match self {
+            Target::Ghostty => ghostty::set_font_on(&config_path, font_name.into())?,
+            Target::Alacritty => alacritty::set_font_on(&config_path, font_name.into())?,
+            Target::Wezterm => {} // wezterm::set_font_on(&path, font_name.into())?,
+            _ => {}
         }
         Ok(())
     }
 
-    /// - Ghostty: <https://ghostty.org/docs/config#file-location>
-    /// - Alacritty: <https://alacritty.org/config-alacritty.html#location>
-    /// - WezTerm: <https://wezterm.org/config/files.html#configuration-files>
-    pub fn config_path(&self) -> Option<PathBuf> {
+    /// Ghostty: https://ghostty.org/docs/config#file-location
+    /// Alacritty: https://alacritty.org/config-alacritty.html#location
+    /// WezTerm: https://wezterm.org/config/files.html#configuration-files
+    pub fn existing_default_config_path(&self) -> Option<PathBuf> {
         let prefix = match std::env::var("XDG_CONFIG_HOME").ok() {
             Some(p) => PathBuf::from(p),
             None => home_dir().join(".config"),
@@ -213,28 +218,97 @@ impl Target {
             Target::None => None,
         }
     }
+
+    pub fn create_backup(&self, config_path: impl AsRef<Path>) -> crate::Result<Option<PathBuf>> {
+        // TODO: the path to the pi configuration is the directory. skip?
+        if config_path.as_ref().is_dir() {
+            return Ok(None);
+        }
+        let backup_path = std::env::temp_dir().join(format!(
+            "recol.{}.{}.backup",
+            self,
+            time::SystemTime::now()
+                .duration_since(time::UNIX_EPOCH)?
+                .as_millis()
+        ));
+        fs::copy(config_path, &backup_path)?;
+        Ok(Some(backup_path))
+    }
 }
 
-pub fn apply_theme(args: &Args, theme: &lib::Theme) -> Result<()> {
-    for target in if args.targets.is_empty() {
-        &ALL_TARGETS
+/// Returns the selected targets, or all targets when none are specified.
+#[inline]
+pub fn with_specific_or_for_all(specific: &[Target]) -> impl Iterator<Item = &Target> {
+    if specific.is_empty() {
+        ALL_TARGETS.iter()
     } else {
-        args.targets.as_slice()
-    } {
-        target.apply_theme(&theme)?;
+        specific.iter()
     }
+}
+
+/// Returns targets that have an existing default configuration file.
+pub fn with_existing_default_config_path<'a>(
+    targets: impl Iterator<Item = &'a Target>,
+) -> impl Iterator<Item = (&'a Target, PathBuf)> {
+    targets.filter_map(|target| {
+        target
+            .existing_default_config_path()
+            .map(|path| (target, path))
+    })
+}
+
+fn with_backup<'a>(
+    targets: impl Iterator<Item = (&'a Target, PathBuf)>,
+) -> crate::Result<Vec<(&'a Target, PathBuf, Option<PathBuf>)>> {
+    let mut backups = Vec::with_capacity(ALL_TARGETS.len());
+    for (target, config_path) in targets {
+        backups.push((
+            target,
+            config_path.clone(),
+            target.create_backup(config_path)?,
+        ));
+    }
+    Ok(backups)
+}
+
+/// Applies a theme to all selected configurations and restores backups on failure.
+pub fn apply_theme<'a>(
+    targets: impl Iterator<Item = (&'a Target, PathBuf)>,
+    theme: &lib::Theme,
+) -> crate::Result<()> {
+    // Create all backups before changing anything.
+    let backups = with_backup(targets)?;
+    let mut error = None;
+    for (target, config_path, _) in backups.iter() {
+        if let Err(e) = target.apply_theme_to(config_path, theme) {
+            error.replace(e);
+            break;
+        }
+    }
+    if let Some(e) = error {
+        backups.iter().for_each(|(_, dst, src)| {
+            if let Some(src) = src {
+                let _ = fs::copy(src, dst);
+                let _ = fs::remove_file(src);
+            }
+        });
+        return crate::Result::Err(e);
+    }
+    backups.into_iter().for_each(|(_, _, src)| {
+        if let Some(src) = src {
+            let _ = fs::remove_file(src);
+        }
+    });
 
     Ok(())
 }
 
-pub fn set_font(args: &Args, font_name: &str) -> Result<()> {
-    for target in if args.targets.is_empty() {
-        &ALL_TARGETS
-    } else {
-        args.targets.as_slice()
-    } {
-        target.set_font(font_name)?;
+pub fn set_font<'a>(
+    targets: impl Iterator<Item = (&'a Target, PathBuf)>,
+    font_name: &str,
+) -> crate::Result<()> {
+    for (target, config_path) in targets {
+        target.set_font_on(config_path, font_name)?;
     }
-
     Ok(())
 }

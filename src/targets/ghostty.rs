@@ -14,6 +14,10 @@ enum ConfigLine {
     Empty,
 }
 
+// Parses a Ghostty config file into a list of typed lines, preserving
+// order, comments, and unrecognized lines so the file can be written back
+// out losslessly.
+// https://ghostty.org/docs/config#syntax
 fn read_config(path: impl AsRef<Path>) -> io::Result<Vec<ConfigLine>> {
     let file = fs::File::open(path)?;
     let reader = io::BufReader::new(file);
@@ -29,12 +33,16 @@ fn read_config(path: impl AsRef<Path>) -> io::Result<Vec<ConfigLine>> {
             let k = k.trim();
             let v = v.trim();
             if k == "palette" {
+                // palette entries have the form `palette = N=#RRGGBB`,
+                // so the value side needs a second split on '='.
                 if let Some((n, c)) = v.split_once('=') {
                     if let Ok(n) = n.trim().parse::<isize>() {
                         lines.push(ConfigLine::Palette((n, c.trim().into())));
                         continue;
                     }
                 }
+                // malformed palette line (bad index or missing '='):
+                // keep it as-is instead of dropping it.
                 lines.push(ConfigLine::Any(line));
             } else {
                 lines.push(ConfigLine::KeyValue((k.into(), v.into())));
@@ -47,6 +55,7 @@ fn read_config(path: impl AsRef<Path>) -> io::Result<Vec<ConfigLine>> {
     Ok(lines)
 }
 
+// Writes the parsed lines back to disk in their original order/format.
 fn write_config(path: impl AsRef<Path>, lines: &[ConfigLine]) -> io::Result<()> {
     let file = fs::File::create(path)?;
     let mut writer = BufWriter::new(file);
@@ -65,7 +74,7 @@ fn write_config(path: impl AsRef<Path>, lines: &[ConfigLine]) -> io::Result<()> 
     Ok(())
 }
 
-#[inline(always)]
+#[inline]
 fn replace_or_add_palette(lines: &mut Vec<ConfigLine>, index: isize, color: String) {
     if let Some(ConfigLine::Palette((_, pc))) = lines.iter_mut().rev().find(|e| {
         if let ConfigLine::Palette((pn, _)) = e {
@@ -79,7 +88,7 @@ fn replace_or_add_palette(lines: &mut Vec<ConfigLine>, index: isize, color: Stri
     };
 }
 
-#[inline(always)]
+#[inline]
 fn replace_or_add_key_value(lines: &mut Vec<ConfigLine>, k: &str, v: String) {
     if let Some(ConfigLine::KeyValue((_, rv))) = lines.iter_mut().rev().find(|e| {
         if let ConfigLine::KeyValue((rk, _)) = e {

@@ -8,7 +8,7 @@ pub struct Settings {
     pub theme: String,
 
     #[serde(flatten)]
-    pub any: HashMap<String, serde_json::Value>,
+    pub other: HashMap<String, serde_json::Value>,
 }
 
 pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
