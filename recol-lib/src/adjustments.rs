@@ -541,3 +541,64 @@ pub enum NormalizeChannel {
     Chroma,
     Both,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_theme_adjustment() {
+        assert_eq!("u".parse::<ThemeColorGroup>().unwrap(), ThemeColorGroup::UI);
+        assert_eq!(
+            "UI".parse::<ThemeColorGroup>().unwrap(),
+            ThemeColorGroup::UI
+        );
+        assert_eq!(
+            "bg".parse::<ThemeColorGroup>().unwrap(),
+            ThemeColorGroup::Background
+        );
+        assert_eq!(
+            "red".parse::<ThemeColorGroup>().unwrap(),
+            ThemeColorGroup::Red
+        );
+        assert_eq!("norm-chroma".parse::<ThemeColorGroup>(), Err(()));
+        assert_eq!(
+            "b=10".parse::<ThemeAdjustment>().unwrap(),
+            ThemeAdjustment::Brightness(ThemeColorGroup::All, 10.0)
+        );
+        assert_eq!(
+            "red.sat=20".parse::<ThemeAdjustment>().unwrap(),
+            ThemeAdjustment::Saturation(ThemeColorGroup::Red, 20.0)
+        );
+        assert_eq!(
+            "  b = 10  ".parse::<ThemeAdjustment>().unwrap(),
+            ThemeAdjustment::Brightness(ThemeColorGroup::All, 10.0)
+        );
+        assert_eq!(
+            "n=50".parse::<ThemeAdjustment>().unwrap(),
+            ThemeAdjustment::Normalize(ThemeColorGroup::All, 50.0, NormalizeChannel::Lightness)
+        );
+        assert_eq!(
+            "nb=50".parse::<ThemeAdjustment>().unwrap(),
+            ThemeAdjustment::Normalize(ThemeColorGroup::All, 50.0, NormalizeChannel::Both)
+        );
+        assert_eq!(
+            "nc=50".parse::<ThemeAdjustment>().unwrap(),
+            ThemeAdjustment::Normalize(ThemeColorGroup::All, 50.0, NormalizeChannel::Chroma)
+        );
+        assert_eq!(
+            "cursor.invert=0".parse::<ThemeAdjustment>().unwrap(),
+            ThemeAdjustment::Invert(ThemeColorGroup::Cursor)
+        );
+        assert!("nosuchgroup.b=10".parse::<ThemeAdjustment>().is_err());
+        assert!("xx=10".parse::<ThemeAdjustment>().is_err());
+        let res = parse_theme_adjustments("b=10,red.sat=20").unwrap();
+        assert_eq!(
+            res,
+            vec![
+                ThemeAdjustment::Brightness(ThemeColorGroup::All, 10.0),
+                ThemeAdjustment::Saturation(ThemeColorGroup::Red, 20.0),
+            ]
+        );
+    }
+}

@@ -332,28 +332,6 @@ impl Color {
 pub struct CssColor(String);
 use std::io::Write;
 
-pub fn print_palette(colors: &[Color]) {
-    print!("\x1b[48;2;90;90;90m");
-    for _ in colors {
-        print!("    ");
-    }
-    println!("\x1b[0m");
-    for _ in 0..2 {
-        for c in colors {
-            let (r, g, b) = c.rgb();
-            print!("\x1b[48;2;{};{};{}m    \x1b[0m", r, g, b);
-        }
-        println!();
-    }
-    print!("\x1b[48;2;90;90;90m");
-    for _ in colors {
-        print!("    ");
-    }
-    println!("\x1b[0m");
-
-    std::io::stdout().flush().unwrap();
-}
-
 impl Default for CssColor {
     fn default() -> Self {
         Self("#000000".into())
@@ -361,10 +339,6 @@ impl Default for CssColor {
 }
 
 impl CssColor {
-    pub fn new(s: &str) -> Result<Self> {
-        Ok(s.parse::<Color>()?.css())
-    }
-
     pub fn color(&self) -> Color {
         self.as_str()
             .parse()
@@ -386,7 +360,7 @@ impl std::str::FromStr for CssColor {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self> {
-        Self::new(s)
+        s.parse::<Color>().map(|c| c.css())
     }
 }
 
@@ -431,4 +405,26 @@ fn lab_f_inv(t: f32) -> f32 {
     } else {
         (t - 16.0 / 116.0) / 7.787
     }
+}
+
+pub fn print_palette(colors: &[Color]) {
+    print!("\x1b[48;2;90;90;90m");
+    for _ in colors {
+        print!("    ");
+    }
+    println!("\x1b[0m");
+    for _ in 0..2 {
+        for c in colors {
+            let (r, g, b) = c.rgb();
+            print!("\x1b[48;2;{};{};{}m    \x1b[0m", r, g, b);
+        }
+        println!();
+    }
+    print!("\x1b[48;2;90;90;90m");
+    for _ in colors {
+        print!("    ");
+    }
+    println!("\x1b[0m");
+
+    let _ = std::io::stdout().flush();
 }

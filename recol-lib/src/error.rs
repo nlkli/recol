@@ -12,6 +12,7 @@ pub enum Error {
     },
     InvalidHex(String),
     InvalidUtf8(String),
+    InvalidPpm(String),
     Ffmpeg(String),
 }
 
@@ -32,6 +33,9 @@ impl fmt::Display for Error {
             }
             Self::InvalidUtf8(s) => {
                 write!(f, "invalid UTF-8: {s}")
+            }
+            Self::InvalidPpm(s) => {
+                write!(f, "invalid PPM: {s}")
             }
             Self::Ffmpeg(err) => {
                 write!(f, "ffmpeg failed: {err}")

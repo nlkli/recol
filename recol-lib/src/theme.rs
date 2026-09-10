@@ -1,4 +1,3 @@
-//! Color scheme types and their binary serialization.
 //!
 //! # Color order in `ColorScheme` binary representation
 //!
@@ -512,9 +511,6 @@ pub struct CursorColors {
 }
 
 /// Eight standard ANSI colors plus two derived blends (`orange`, `pink`).
-///
-/// `orange` = blend(red, yellow, 50 %)  
-/// `pink`   = blend(red, white,  50 %)
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct AnsiColors {
     pub black: CssColor,

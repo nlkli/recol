@@ -1,19 +1,17 @@
-use crate::utils;
 use recol_lib as lib;
 use serde::{Deserialize, Serialize};
-use std::{fs, io, path::Path};
+use std::{fs, path::Path};
 
-fn write_config(path: impl AsRef<Path>, c: &Config) -> io::Result<()> {
-    let content = toml::to_string::<Config>(c).map_err(|_| utils::io_other_error("serde fail"))?;
+fn write_config(path: impl AsRef<Path>, c: &Config) -> crate::Result<()> {
+    let content = toml::to_string_pretty::<Config>(c)?;
 
     fs::write(&path, &content)?;
     Ok(())
 }
 
-pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
+pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> crate::Result<()> {
     let content = fs::read_to_string(&path)?;
-    let mut config =
-        toml::from_str::<Config>(&content).map_err(|_| utils::io_other_error("serde fail"))?;
+    let mut config = toml::from_str::<Config>(&content)?;
     config
         .colors
         .replace(Colors::from_color_scheme(&theme.colors));
@@ -21,15 +19,33 @@ pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<
     write_config(path, &config)
 }
 
-pub fn set_font_on(path: impl AsRef<Path>, font: String) -> io::Result<()> {
+pub fn set_font_on(path: impl AsRef<Path>, font: String) -> crate::Result<()> {
     let content = fs::read_to_string(&path)?;
-    let mut config =
-        toml::from_str::<Config>(&content).map_err(|_| utils::io_other_error("serde fail"))?;
-    config.set_font_family(font);
+    let mut config = toml::from_str::<Config>(&content)?;
+
+    if let Some(font_fild) = config.font.as_mut() {
+        if let Some(fi) = font_fild.normal.as_mut() {
+            fi.family = Some(font);
+        } else {
+            font_fild.normal.replace(FontInner {
+                family: Some(font),
+                other: None,
+            });
+        }
+    } else {
+        config.font.replace(Font {
+            normal: Some(FontInner {
+                family: Some(font),
+                other: None,
+            }),
+            other: None,
+        });
+    }
 
     write_config(path, &config)
 }
 
+// https://alacritty.org/config-alacritty.html
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -40,29 +56,6 @@ pub struct Config {
 
     #[serde(flatten)]
     pub other: toml::Value,
-}
-
-impl Config {
-    pub fn set_font_family(&mut self, f: String) {
-        if let Some(font) = self.font.as_mut() {
-            if let Some(fi) = font.normal.as_mut() {
-                fi.family = Some(f);
-            } else {
-                font.normal.replace(FontInner {
-                    family: Some(f),
-                    other: None,
-                });
-            }
-        } else {
-            self.font.replace(Font {
-                normal: Some(FontInner {
-                    family: Some(f),
-                    other: None,
-                }),
-                other: None,
-            });
-        }
-    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

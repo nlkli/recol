@@ -1,4 +1,4 @@
-use crate::{cli::Args, store, targets};
+use crate::{cli::Args, state, targets};
 use crossterm::{cursor, event, execute, style, terminal as term};
 use recol_lib::{self as lib, parse_theme_adjustments, Collection, ThemeAdjustment};
 use std::{
@@ -656,7 +656,7 @@ pub fn run(args: &Args) -> io::Result<()> {
         size: term::size()?,
         list: lib::Collection::new().collect(),
         scrolloff: DEFAULT_SCROLLOFF,
-        current_theme: store::read_theme_history(1).into_iter().next(),
+        current_theme: state::read_theme_history(1).iter().next().cloned(),
         adjust: args.adjust.clone(),
         ..Default::default()
     };
@@ -695,8 +695,15 @@ pub fn run(args: &Args) -> io::Result<()> {
                             if !s.adjust.is_empty() {
                                 theme.colors.apply_adjustments(&s.adjust);
                             }
-                            if targets::apply_theme(args, &theme).is_ok() {
-                                store::append_theme_history(&theme.name);
+                            if targets::apply_theme(
+                                targets::with_existing_default_config_path(
+                                    targets::with_specific_or_for_all(&args.targets),
+                                ),
+                                &theme,
+                            )
+                            .is_ok()
+                            {
+                                state::append_theme_history(&theme.name);
                                 s.current_theme.replace(theme.name);
                                 if args.quit_on_select {
                                     break;
@@ -772,7 +779,7 @@ pub fn run(args: &Args) -> io::Result<()> {
                         };
                     }
                     (event::KeyCode::Char('h'), Mode::Normal) => {
-                        let history = store::read_theme_history(store::THEME_HISTORY_CAP);
+                        let history = state::read_theme_history(state::THEME_HISTORY_CAP);
                         if !history.is_empty() {
                             let mut collection = Collection::new();
                             s.list = history
