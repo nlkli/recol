@@ -320,7 +320,7 @@ mod vscode;
 // ...
 pub enum Target { /* ..., Vscode */ }
 pub const ALL_TARGETS: [Target; 7] = [ /* ..., Target::Vscode */ ];
-// Display, FromStr, apply_theme, config_path — add one arm each
+// Display, FromStr, apply_theme_to, existing_default_config_path — add one arm each
 ```
 
 ### Demo & Screenshots
