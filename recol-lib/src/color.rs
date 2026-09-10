@@ -4,16 +4,6 @@ use serde::{Deserialize, Serialize};
 /// Size of Color in bytes.
 pub const COLOR_SIZE: usize = 3;
 
-#[inline(always)]
-fn clamp(v: f32, min: f32, max: f32) -> f32 {
-    v.clamp(min, max)
-}
-
-#[inline(always)]
-fn to_u8(v: f32) -> u8 {
-    (v * 255.0).round() as u8
-}
-
 /// An RGB color stored as sRGB-encoded (gamma-corrected) floats in `[0.0, 1.0]`.
 /// Use `lab()`/`from_lab()` (or the internal `srgb_to_linear`/`linear_to_srgb`
 /// helpers) to work in linear light.
@@ -321,6 +311,16 @@ impl Color {
 
         (lighter + 0.05) / (darker + 0.05)
     }
+}
+
+#[inline(always)]
+fn clamp(v: f32, min: f32, max: f32) -> f32 {
+    v.clamp(min, max)
+}
+
+#[inline(always)]
+fn to_u8(v: f32) -> u8 {
+    (v * 255.0).round() as u8
 }
 
 /// A validated CSS hex color string (e.g. `#1a2b3c`).

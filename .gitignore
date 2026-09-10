@@ -4,3 +4,4 @@
 *.tmp
 /colorschemes
 .DS_Store
+CHANGELOG.md
