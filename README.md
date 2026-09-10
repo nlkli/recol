@@ -19,7 +19,7 @@
 Neovim doesn't support hot theme reload, so add a keybinding or command to re-source your config after switching:
  
 ```lua
-vim.keymap.set("n", "<leader>R", ":source ~/.config/nvim/init.lua<CR>")
+vim.keymap.set("n", "<leader>R", ":source ~/.config/nvim/init.lua<CR>") -- or :restart<CR> nvim v0.13
 ```
  
 Run `recol` directly from Neovim:
