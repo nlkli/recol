@@ -280,9 +280,9 @@ impl ColorScheme {
         let bg = [
             bg0,
             self.bg,
-            bg_color.brighten(p.bg2_brighten).css(),
-            bg_color.brighten(p.bg3_brighten).css(),
-            bg_color.brighten(p.bg4_brighten).css(),
+            bg_color.brighten(p.bg2_brighten * m).css(),
+            bg_color.brighten(p.bg3_brighten * m).css(),
+            bg_color.brighten(p.bg4_brighten * m).css(),
         ];
 
         // fg[0] applies the same boundary-aware flip logic.
@@ -294,8 +294,8 @@ impl ColorScheme {
         let fg = [
             fg0,
             self.fg,
-            fg_color.brighten(p.fg2_brighten).css(),
-            fg_color.brighten(p.fg3_brighten).css(),
+            fg_color.brighten(p.fg2_brighten * m).css(),
+            fg_color.brighten(p.fg3_brighten * m).css(),
         ];
 
         let alt_selection = [
@@ -654,7 +654,7 @@ impl Default for AdvancedColorSchemeParam {
             bg4_brighten: 23.2,
             fg0_brighten: 6.0,
             fg2_brighten: -23.0,
-            fg3_brighten: -41.0,
+            fg3_brighten: -42.0,
             code_selection_blend: 0.155,
             dim_shade: 0.18,
             diff_add_blend: 0.5,
