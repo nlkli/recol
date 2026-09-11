@@ -175,7 +175,9 @@ impl Target {
                 None
             }
             Target::Nvim => {
-                let path = prefix.join("nvim/init.lua");
+                let appname = std::env::var("NVIM_APPNAME").ok();
+                let path = nvim_config_path(&prefix, appname.as_deref());
+
                 if path.is_file() {
                     return Some(path);
                 }
@@ -311,4 +313,38 @@ pub fn set_font<'a>(
         target.set_font_on(config_path, font_name)?;
     }
     Ok(())
+}
+
+/// Respect user's nvim config, e.g. ~/.config/customvim/init.lua
+fn nvim_config_path(prefix: &Path, appname: Option<&str>) -> PathBuf {
+    prefix
+        .join(appname.unwrap_or("nvim"))
+        .join("init.lua")
+}
+
+//  ══════════════ Tests for nvim config path, just in case ═══════════
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn nvim_config_path_defaults_to_nvim() {
+        let prefix = Path::new("/tmp/config");
+
+        assert_eq!(
+            nvim_config_path(prefix, None),
+            PathBuf::from("/tmp/config/nvim/init.lua")
+        );
+    }
+
+    #[test]
+    fn nvim_config_path_uses_appname() {
+        let prefix = Path::new("/tmp/config");
+
+        assert_eq!(
+            nvim_config_path(prefix, Some("customvim")),
+            PathBuf::from("/tmp/config/customvim/init.lua")
+        );
+    }
 }
