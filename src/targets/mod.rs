@@ -8,13 +8,15 @@ use recol_lib as lib;
 
 mod alacritty;
 mod ghostty;
+mod kitty;
 mod nvim;
 mod pi;
 mod vim;
 mod wezterm;
 
-pub const ALL_TARGETS: [Target; 6] = [
+pub const ALL_TARGETS: [Target; 7] = [
     Target::Ghostty,
+    Target::Kitty,
     Target::Alacritty,
     Target::Wezterm,
     Target::Nvim,
@@ -27,6 +29,7 @@ pub enum Target {
     #[default]
     None,
     Ghostty,
+    Kitty,
     Alacritty,
     Wezterm,
     Nvim,
@@ -42,6 +45,7 @@ impl fmt::Display for Target {
             match self {
                 Target::None => "none",
                 Target::Ghostty => "ghostty",
+                Target::Kitty => "kitty",
                 Target::Alacritty => "alacritty",
                 Target::Wezterm => "wezterm",
                 Target::Nvim => "neovim",
@@ -58,6 +62,7 @@ impl std::str::FromStr for Target {
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "g" | "gt" | "ghostty" => Ok(Self::Ghostty),
+            "k" | "kitty" => Ok(Self::Kitty),
             "a" | "at" | "alacritty" => Ok(Self::Alacritty),
             "w" | "wt" | "wezterm" => Ok(Self::Wezterm),
             "n" | "nv" | "nvi" | "nvim" | "neovim" => Ok(Self::Nvim),
@@ -81,6 +86,7 @@ impl Target {
     ) -> crate::Result<()> {
         match self {
             Target::Ghostty => ghostty::apply_theme_to(&config_path, theme)?,
+            Target::Kitty => kitty::apply_theme_to(&config_path, theme)?,
             Target::Alacritty => alacritty::apply_theme_to(&config_path, theme)?,
             Target::Wezterm => wezterm::apply_theme_to(&config_path, theme)?,
             Target::Nvim => nvim::apply_theme_to(&config_path, theme)?,
@@ -114,6 +120,10 @@ impl Target {
             None => home_dir().join(".config"),
         };
         match self {
+            Target::Kitty => {
+                let path = prefix.join("kitty/kitty.conf");
+                path.is_file().then_some(path)
+            }
             Target::Ghostty => {
                 let path = prefix.join("ghostty/config.ghostty");
                 if path.is_file() {
