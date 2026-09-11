@@ -1,5 +1,6 @@
 use crate::{Error, Result};
 use serde::{Deserialize, Serialize};
+use std::io::Write;
 
 /// Size of Color in bytes.
 pub const COLOR_SIZE: usize = 3;
@@ -279,19 +280,19 @@ impl Color {
         )
     }
 
-    /// Adjusts HSV *value* by `v` percentage points.
+    /// Adjusts HSV *value* by `v` percentage points. [0.0, 100.0]
     pub fn brighten(&self, v: f32) -> Color {
         let (h, s, val) = self.hsv();
         Color::from_hsv(h, s, clamp(val + v, 0.0, 100.0))
     }
 
-    /// Adjusts HSL *lightness* by `v` percentage points.
+    /// Adjusts HSL *lightness* by `v` percentage points. [0.0, 100.0]
     pub fn lighten(&self, v: f32) -> Color {
         let (h, s, val) = self.hsl();
         Color::from_hsl(h, s, clamp(val + v, 0.0, 100.0))
     }
 
-    /// Adjusts HSV *saturation* by `v` percentage points.
+    /// Adjusts HSV *saturation* by `v` percentage points. [0.0, 100.0]
     pub fn saturate(&self, v: f32) -> Color {
         let (h, s, val) = self.hsv();
         Color::from_hsv(h, clamp(s + v, 0.0, 100.0), val)
@@ -330,7 +331,6 @@ fn to_u8(v: f32) -> u8 {
 /// both of which enforce the invariant.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct CssColor(String);
-use std::io::Write;
 
 impl Default for CssColor {
     fn default() -> Self {

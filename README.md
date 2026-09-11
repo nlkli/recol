@@ -101,7 +101,7 @@ cargo install --git https://github.com/nlkli/recol --branch main --force
 
 ### Pre-built binaries
 
-Download the latest release binary for your platform from the [Releases](https://github.com/nlkli/recol/releases) page.
+Download the latest release binary for your platform from the [Releases](https://github.com/nlkli/recol/releases) page. (macOS only for now)
 
 ### Fetch and rebuild color schemes
 
@@ -144,33 +144,6 @@ recol dracula --dark --show   # preview palette without applying
 recol -t tokyo --json         # print tokyo theme as JSON
 recol terafox --target nvim   # apply theme for specific target
 recol                         # print current theme name (add --show or --json for more)
-```
-
-### TUI Keybindings
-
-```text
-NAVIGATION
-  ↑ / k / -      Move selection up
-  ↓ / j / +      Move selection down
-  g / G          Jump to first / last
-  Ctrl+ u / d    Half page up / down
-INPUT & FILTER
-  / : i          Enter input mode
-  a              Enter adjust input mode
-  Backspace      Delete last character
-  Esc / Enter    Exit filter mode
-  f              Filter by first word (family)
-LIST ACTIONS
-  s / r          Shuffle / Reverse order
-  d / l          Dark / Light only
-  h              Recently applied (history)
-  Space          Reset filters (show all)
-GENERAL
-  Enter          Apply theme
-  ? / H          Open this help
-  q / Ctrl+c     Quit
-CLI ARGS
-  --quit-on-select
 ```
 
 ### Color Adjustments
@@ -246,19 +219,19 @@ pub const ALL_TARGETS: [Target; 8] = [ /* ..., Target::Vscode */ ];
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   22       5,746       561       404      4,781        610
-Markdown                2         424        78         0        346          0
-TOML                    2          46         5         0         41          1
+Rust                   24       5,924       577       413      4,934        627
+TOML                    2          49         6         0         43          1
 License                 1          21         4         0         17          0
+Markdown                1         269        60         0        209          0
 Shell                   1           8         2         1          5          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  28       6,245       650       405      5,190        611
+Total                  29       6,271       649       414      5,208        628
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $152,253
-Estimated Schedule Effort (organic) 6.73 months
-Estimated People Required (organic) 2.01
+Estimated Cost to Develop (organic) $152,808
+Estimated Schedule Effort (organic) 6.74 months
+Estimated People Required (organic) 2.02
 ───────────────────────────────────────────────────────────────────────────────
-Processed 212,719 bytes, 0.213 megabytes (SI)
+Processed 213,411 bytes, 0.213 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 

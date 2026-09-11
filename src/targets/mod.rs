@@ -26,8 +26,6 @@ pub const ALL_TARGETS: [Target; 7] = [
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum Target {
-    #[default]
-    None,
     Ghostty,
     Kitty,
     Alacritty,
@@ -35,6 +33,9 @@ pub enum Target {
     Nvim,
     Vim,
     Pi,
+
+    #[default]
+    None,
 }
 
 impl fmt::Display for Target {
@@ -62,7 +63,7 @@ impl std::str::FromStr for Target {
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "g" | "gt" | "ghostty" => Ok(Self::Ghostty),
-            "k" | "kitty" => Ok(Self::Kitty),
+            "k" | "kt" | "kitty" => Ok(Self::Kitty),
             "a" | "at" | "alacritty" => Ok(Self::Alacritty),
             "w" | "wt" | "wezterm" => Ok(Self::Wezterm),
             "n" | "nv" | "nvi" | "nvim" | "neovim" => Ok(Self::Nvim),
@@ -84,7 +85,7 @@ impl Target {
         config_path: impl AsRef<Path>,
         theme: &lib::Theme,
     ) -> crate::Result<()> {
-        match self {
+        Ok(match self {
             Target::Ghostty => ghostty::apply_theme_to(&config_path, theme)?,
             Target::Kitty => kitty::apply_theme_to(&config_path, theme)?,
             Target::Alacritty => alacritty::apply_theme_to(&config_path, theme)?,
@@ -92,9 +93,8 @@ impl Target {
             Target::Nvim => nvim::apply_theme_to(&config_path, theme)?,
             Target::Vim => vim::apply_theme_to(&config_path, theme)?,
             Target::Pi => pi::apply_theme_to(&config_path, theme)?,
-            Target::None => {}
-        }
-        Ok(())
+            Target::None => (),
+        })
     }
 
     pub fn set_font_on(
@@ -102,13 +102,14 @@ impl Target {
         config_path: impl AsRef<Path>,
         font_name: impl Into<String>,
     ) -> crate::Result<()> {
-        match self {
+        Ok(match self {
             Target::Ghostty => ghostty::set_font_on(&config_path, font_name.into())?,
             Target::Alacritty => alacritty::set_font_on(&config_path, font_name.into())?,
-            Target::Wezterm => {} // wezterm::set_font_on(&path, font_name.into())?,
-            _ => {}
-        }
-        Ok(())
+            // Not implemented yet
+            // Target::Wezterm => wezterm::set_font_on(&path, font_name.into())?,
+            // Target::Kitty => kitty::set_font_on(&path, font_name.into())?,
+            _ => (),
+        })
     }
 
     /// Ghostty: https://ghostty.org/docs/config#file-location
@@ -327,9 +328,7 @@ pub fn set_font<'a>(
 /// Respect user's nvim config, e.g. ~/.config/customvim/init.lua
 #[inline]
 fn nvim_config_path(prefix: &Path, appname: Option<&str>) -> PathBuf {
-    prefix
-        .join(appname.unwrap_or("nvim"))
-        .join("init.lua")
+    prefix.join(appname.unwrap_or("nvim")).join("init.lua")
 }
 
 #[cfg(test)]
