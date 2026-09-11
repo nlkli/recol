@@ -133,47 +133,6 @@ recol_lib::build_colorschemes_bin(
 )
 ```
 
-### Help Message
-
-```text
-CLI utility for changing the color scheme
-https://github.com/nlkli/recol
-
-Supported targets:
-alacritty, ghostty, wezterm, neovim, vim, pi.
-
-Usage: recol [OPTIONS] [THEME_NAME]
-
-Options:
-  -t, --theme <NAME>
-      Apply a theme by name (fuzzy matching)
-  -r, --rand
-      Apply a random theme
-  -d, --dark; -l, --light
-  -c, --contains <STR>
-      Filter themes by dark, light or name substring
-      (used with --rand, --theme or --theme-list)
-  -a, --adjust <SPEC|PATH> [env: RECOL_ADJUST]
-      Apply color adjustments (see --adjust help)
-  -i, --interactive
-      Browse and apply themes interactively
-  -m, --media <PATH>
-      Generate a theme from an image/video (requires ffmpeg)
-  --palettegen <MAX_COLORS>  Output media palette colors
-  -f, --font <NAME>
-      Set font family by name (fuzzy matching)
-  -F, --font-rand
-      Pick a random Nerd Font
-  -T, --target <NAME,...> [env: RECOL_TARGET]
-      Apply for specific target (see --target list)
-  -L, --theme-list  List available themes
-  --font-list       List available Nerd Fonts
-  -s, --show
-      Show the theme color palette without applying it
-  -j, --json  Output theme/list/media as JSON
-  -h, --help; -V, --version; --logo
-```
-
 ### Usage Examples
 
 ```sh
@@ -220,57 +179,6 @@ CLI ARGS
 Adjust theme colors with `--adjust "group.adjustment=value,..."`. Supports brightness, contrast, saturation, hue, exposure, gamma, temperature, tint, normalize and more. Apply to UI elements, specific colors, or the full ANSI palette using short group names (e.g. pal, bg, red).
 
 In interactive mode you can change adjustments live and see the preview update instantly.
-
-Help Message:
-
-```text
-Color adjustments: --adjust "group.adjustment=value,..."  [env: RECOL_ADJUST]
-  Apply one or more transformations to theme colors.
-
-Quick start:
-  --adjust "brightness=-10"      Darken entire theme
-  --adjust "saturation=20"       Boost all colors evenly
-  --adjust "temperature=20,tint=-10"   Warmer + slight green tint
-  --adjust "pal.hue=180"         Rotate ANSI palette hues
-  --adjust "sel.invert,cur.hue=90"  Invert selection, green cursor
-  --adjust "pal.normalize=50,pal.vibrance=-20"  Unify palette & desaturate
-  --adjust "preset.txt"          Load adjustments from file
-  --adjust "_"                   Reset all adjustments
-
-Groups (optional, defaults to All):
-  u/ui            All UI (fg + bg + sel + cur)
-  b/bg            All backgrounds (base, sel, cursor)
-  f/fg            All foregrounds (base, sel, cursor)
-  s/sel           Selection (bg + fg)
-  c/cur           Cursor (bg + fg)
-  bb/base-bg      Base background
-  bf/base-fg      Base foreground
-  sb/sel-bg       Selection background
-  sf/sel-fg       Selection foreground
-  cb/cur-bg       Cursor background
-  cf/cur-fg       Cursor foreground
-  p/pal           All 16 ANSI colors
-  t/text          All foregrounds + palette
-  black/red/green/yellow/blue/magenta/cyan/white
-  Standard ANSI (normal + bright)
-  orange/pink     Extra named colors
-
-Adjustments (all values -100..100 unless noted):
-  b/brightness=N        HSL lightness shift
-  e/exposure=N          Photographic exposure (linear light scale)
-  c/contrast=N          Contrast around midpoint
-  g/gamma=N             Gamma curve (midtones, preserves black/white)
-  f/fade=N              Blend RGB toward black (-) or white (+)
-  i/invert              Flip lightness around midpoint (value ignored)
-  s/sat/saturation=N    Uniform saturation
-  v/vib/vibrance=N      Smart saturation (protects vivid, boosts muted)
-  h/hue=N               Hue shift (maps to -180°..180°)
-  t/temp/temperature=N  Blue↔Yellow axis (negative = cooler)
-  ti/tint=N             Green↔Magenta axis (negative = greener)
-  n/norm/normalize=N    Pull lightness toward group average
-  nb/norm-both=N        Pull lightness + chroma toward average
-  nc/norm-chroma=N      Pull chroma toward group average
-```
 
 ### Generate a theme from a media file (beta)
 
@@ -330,53 +238,6 @@ pub const ALL_TARGETS: [Target; 7] = [ /* ..., Target::Vscode */ ];
 ![recol-demo-img-1](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-1.png)
 
 ![recol-demo-img-2](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-2.png)
-
-![recol-demo-img-3](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-3.png)
-
-![recol-demo-img-4](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-4.png)
-
-### Project Tree
-
-```text
-.
-├── build.rs
-├── Cargo.lock
-├── Cargo.toml
-├── CHANGELOG.md
-├── fetch.sh
-├── LICENSE
-├── README.md
-├── recol-lib
-│   ├── Cargo.lock
-│   ├── Cargo.toml
-│   └── src
-│       ├── adjustments.rs
-│       ├── collection.rs
-│       ├── color.rs
-│       ├── colorschemes.bin
-│       ├── error.rs
-│       ├── fuzzy.rs
-│       ├── lib.rs
-│       ├── ppm.rs
-│       └── theme.rs
-└── src
-    ├── cli.rs
-    ├── font.rs
-    ├── interactive.rs
-    ├── main.rs
-    ├── state.rs
-    ├── targets
-    │   ├── alacritty.rs
-    │   ├── ghostty.rs
-    │   ├── mod.rs
-    │   ├── nvim.rs
-    │   ├── pi.rs
-    │   ├── vim.rs
-    │   └── wezterm.rs
-    └── utils.rs
-
-5 directories, 31 files
-```
 
 ### SCC
 
