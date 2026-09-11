@@ -373,16 +373,12 @@ impl ColorScheme {
         let p5 = palettegen_from_media(&path, 5)?;
         let is_light = (p5[0].lab().0 + p5[4].lab().0) * 0.5 > 50.0;
 
-        let (bg, mut fg, mut cur_bg, sel_bg, cur_fg, sel_fg) = if is_light {
+        let (mut bg, mut fg, mut cur_bg, sel_bg, cur_fg, sel_fg) = if is_light {
             (p5[4], p5[0], p5[1], p5[3], p5[3], p5[2])
         } else {
             (p5[0], p5[4], p5[3], p5[1], p5[2], p5[3])
         };
-        let target_l = if is_light {
-            p5[4].lab().0
-        } else {
-            p5[0].lab().0
-        };
+        let target_l = if is_light { bg.lab().0 } else { bg.lab().0 };
 
         let (_, a, b) = cur_fg.lab();
         let mut cur_fg = Color::from_lab(target_l, a, b);
@@ -410,25 +406,30 @@ impl ColorScheme {
         });
         let shade_factor_step = if is_light { -0.05 } else { 0.05 };
         colors.iter_mut().for_each(|c| {
-            while c.wcag_contrast_ratio(&bg) < 2.5 {
+            let mut n = 0;
+            while c.wcag_contrast_ratio(&bg) < 2.5 && n < 99 {
                 *c = c.saturate(1.0).shade(shade_factor_step);
+                n += 1;
             }
         });
         colors.iter_mut().for_each(|c| {
             *c = c.saturate(3.);
         });
-        while fg.wcag_contrast_ratio(&bg) < 4.2 {
-            fg = fg.saturate(1.0).shade(shade_factor_step);
+        let mut n = 0;
+        while fg.wcag_contrast_ratio(&bg) < 4.5 && n < 99 {
+            fg = fg.saturate(-2.0).shade(shade_factor_step);
+            n += 1;
         }
         if is_light {
-            fg = fg.shade(-0.28);
+            fg = fg.shade(-0.33);
             cur_bg = cur_bg.brighten(-9.);
             cur_fg = cur_fg.shade(0.3).blend(&bg, 0.1);
         } else {
-            fg = fg.shade(0.09);
+            fg = fg.shade(0.11);
             cur_bg = cur_bg.brighten(9.);
             cur_fg = cur_fg.shade(-0.3).blend(&bg, 0.1);
         }
+        bg = bg.saturate(-3.0);
 
         let [red, green, yellow, blue, magenta, cyan, orange, pink] = colors;
 
@@ -445,26 +446,26 @@ impl ColorScheme {
                 fg: cur_fg.css(),
             },
             base: AnsiColors {
-                black: p10[0].shade(-0.1).css(),
+                black: p10[0].saturate(-3.0).shade(-0.42).css(),
                 red: red.css(),
                 green: green.css(),
                 yellow: yellow.css(),
                 blue: blue.css(),
                 magenta: magenta.css(),
                 cyan: cyan.css(),
-                white: p10[9].shade(0.1).css(),
+                white: p10[9].saturate(-3.0).shade(0.21).css(),
                 orange: orange.css(),
                 pink: pink.css(),
             },
             bright: AnsiColors {
-                black: p10[0].shade(-0.1).css(),
+                black: p10[0].saturate(-3.0).shade(-0.4).css(),
                 red: red.brighten(bright_factor).css(),
                 green: green.brighten(bright_factor).css(),
                 yellow: yellow.brighten(bright_factor).css(),
                 blue: blue.brighten(bright_factor).css(),
                 magenta: magenta.brighten(bright_factor).css(),
                 cyan: cyan.brighten(bright_factor).css(),
-                white: p10[9].shade(0.1).css(),
+                white: p10[9].saturate(-3.0).shade(0.3).css(),
                 orange: orange.brighten(bright_factor).css(),
                 pink: pink.brighten(bright_factor).css(),
             },
