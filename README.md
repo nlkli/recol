@@ -5,13 +5,14 @@
 ![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
 - **600+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
-- **Targets support:** [Ghostty](https://ghostty.org), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org), [Pi](https://github.com/earendil-works/pi)
+- **Targets support:** [Ghostty](https://ghostty.org), [Kitty](https://sw.kovidgoyal.net/kitty/), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org), [Pi](https://github.com/earendil-works/pi)
 - **Neovim theme integration** based on [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim)
 - **Non-destructive** — only color/font values are modified, nothing else in your config
 
 ### Terminal support notes
 
 - **Ghostty** requires a manual reload (e.g. `Ctrl + Shift + ,` on Linux or `Cmd + Shift + ,` on macOS).
+- **Kitty** requires a manual reload (`Ctrl + Shift + F5` by default, or `Ctrl + Cmd + ,` on macOS; see [Kitty documentation](https://sw.kovidgoyal.net/kitty/conf/#shortcut-kitty.Reload-config)).
 - **Alacritty**, **WezTerm** supports hot configuration reload. Changes are applied immediately without restarting the terminal.
 
 ### Neovim integration
@@ -209,7 +210,7 @@ This feature requires no additional Cargo/Rust dependencies. recol simply invoke
 
 ![recol-demo-pi-agent-target](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-pi-agent-target.gif)
 
-`recol` ships with a limited set of built-in targets (Ghostty, Alacritty, WezTerm, Neovim, Vim, Pi). You can extend it to apply themes to any application that lets you tweak its config file — window managers, browsers, file managers, text editors, and more.
+`recol` ships with a limited set of built-in targets (Ghostty, Kitty, Alacritty, WezTerm, Neovim, Vim, Pi). You can extend it to apply themes to any application that lets you tweak its config file — window managers, browsers, file managers, text editors, and more.
 
 Each target is a small module under `src/targets/`:
 
@@ -227,7 +228,7 @@ Each target is a small module under `src/targets/`:
 mod vscode;
 // ...
 pub enum Target { /* ..., Vscode */ }
-pub const ALL_TARGETS: [Target; 7] = [ /* ..., Target::Vscode */ ];
+pub const ALL_TARGETS: [Target; 8] = [ /* ..., Target::Vscode */ ];
 // Display, FromStr, apply_theme_to, existing_default_config_path — add one arm each
 ```
 
