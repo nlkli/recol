@@ -175,7 +175,12 @@ impl Target {
                 None
             }
             Target::Nvim => {
-                let path = prefix.join("nvim/init.lua");
+                // Respect user's nvim config, e.g. ~/.config/customvim/init.lua
+                let appname = std::env::var("NVIM_APPNAME")
+                    .unwrap_or_else(|_| "nvim".to_string());
+
+                let path = prefix.join(appname).join("init.lua");
+
                 if path.is_file() {
                     return Some(path);
                 }
