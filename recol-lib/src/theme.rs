@@ -417,7 +417,7 @@ impl ColorScheme {
         });
         let mut n = 0;
         while fg.wcag_contrast_ratio(&bg) < 4.5 && n < 99 {
-            fg = fg.saturate(-2.0).shade(shade_factor_step);
+            fg = fg.saturate(1.0).shade(shade_factor_step);
             n += 1;
         }
         if is_light {
