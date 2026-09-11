@@ -421,11 +421,11 @@ impl ColorScheme {
             n += 1;
         }
         if is_light {
-            fg = fg.shade(-0.33);
+            fg = fg.shade(-0.3);
             cur_bg = cur_bg.brighten(-9.);
             cur_fg = cur_fg.shade(0.3).blend(&bg, 0.1);
         } else {
-            fg = fg.shade(0.11);
+            fg = fg.shade(0.1);
             cur_bg = cur_bg.brighten(9.);
             cur_fg = cur_fg.shade(-0.3).blend(&bg, 0.1);
         }
@@ -433,7 +433,7 @@ impl ColorScheme {
 
         let [red, green, yellow, blue, magenta, cyan, orange, pink] = colors;
 
-        let bright_factor = if is_light { -18. } else { 18. };
+        let bright_factor = if is_light { -17. } else { 15. };
         let mut cs = Self {
             bg: bg.css(),
             fg: fg.css(),
