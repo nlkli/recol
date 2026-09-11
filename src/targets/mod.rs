@@ -177,7 +177,6 @@ impl Target {
             Target::Nvim => {
                 let appname = std::env::var("NVIM_APPNAME").ok();
                 let path = nvim_config_path(&prefix, appname.as_deref());
-
                 if path.is_file() {
                     return Some(path);
                 }
@@ -222,7 +221,7 @@ impl Target {
     }
 
     pub fn create_backup(&self, config_path: impl AsRef<Path>) -> crate::Result<Option<PathBuf>> {
-        // TODO: the path to the pi configuration is the directory. skip?
+        // TODO: the path to the Pi configuration is the directory. skip?
         if config_path.as_ref().is_dir() {
             return Ok(None);
         }
@@ -316,13 +315,12 @@ pub fn set_font<'a>(
 }
 
 /// Respect user's nvim config, e.g. ~/.config/customvim/init.lua
+#[inline]
 fn nvim_config_path(prefix: &Path, appname: Option<&str>) -> PathBuf {
     prefix
         .join(appname.unwrap_or("nvim"))
         .join("init.lua")
 }
-
-//  ══════════════ Tests for nvim config path, just in case ═══════════
 
 #[cfg(test)]
 mod tests {
