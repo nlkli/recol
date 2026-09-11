@@ -476,10 +476,6 @@ impl ColorScheme {
             21.,
             crate::NormalizeChannel::Lightness,
         ));
-        cs.apply_adjustment(&ThemeAdjustment::Saturation(
-            crate::ThemeColorGroup::Text,
-            2.,
-        ));
 
         Ok(cs)
     }

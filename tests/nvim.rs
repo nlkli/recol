@@ -1,7 +1,4 @@
-use std::{
-    fs,
-    process::Command,
-};
+use std::{fs, process::Command};
 
 #[test]
 fn nvim_respects_nvim_appname() {
