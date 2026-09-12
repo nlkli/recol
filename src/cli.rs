@@ -273,27 +273,21 @@ fn help() -> String {
         r#"CLI utility for changing the color scheme
 {magenta}https://github.com/nlkli/recol{reset}
 
-{green}Supported targets:{reset}
-alacritty, ghostty, kitty, wezterm, neovim, vim, pi.
-
 {green}Usage:{reset} {blue}recol [OPTIONS] [THEME_NAME]{reset}
 
-{green}Options:{reset}
-  {blue}-t{reset}, {blue}--theme <NAME>{reset}
-      Apply a theme by name (fuzzy matching)
+{green}Options:{reset} (most flags can be combined)
+  {blue}-i{reset}, {blue}--interactive{reset}
+      Browse and apply themes interactively
   {blue}-r{reset}, {blue}--rand{reset}
       Apply a random theme
   {blue}-d{reset}, {blue}--dark{reset}; {blue}-l{reset}, {blue}--light{reset}
   {blue}-c{reset}, {blue}--contains <STR>{reset}
       Filter themes by dark, light or name substring
-      (used with --rand, --theme or --theme-list)
   {blue}-a{reset}, {blue}--adjust <SPEC|PATH>{reset} [env: RECOL_ADJUST]
       Apply color adjustments (see --adjust help)
-  {blue}-i{reset}, {blue}--interactive{reset}
-      Browse and apply themes interactively
-  {blue}-m{reset}, {blue}--media <PATH>{reset} (requires ffmpeg)
-      Generate a theme from an img/video; use W for current desktop wallpaper
-  {blue}--palettegen <MAX_COLORS>{reset}  Output media palette colors
+  {blue}-m{reset}, {blue}--media <PATH/W>{reset} [requires ffmpeg]
+      Apply a theme from an img/video; use W for wallpaper
+  {blue}--palettegen <N>{reset}  Output N palette colors from media
   {blue}-f{reset}, {blue}--font <NAME>{reset}
       Set font family by name (fuzzy matching)
   {blue}-F{reset}, {blue}--font-rand{reset}
@@ -304,7 +298,7 @@ alacritty, ghostty, kitty, wezterm, neovim, vim, pi.
   {blue}--font-list{reset}       List available Nerd Fonts
   {blue}-s{reset}, {blue}--show{reset}
       Show the theme color palette without applying it
-  {blue}-j{reset}, {blue}--json{reset}  Output theme/list/media as JSON
+  {blue}-j{reset}, {blue}--json{reset}  Output theme/list/palettegen as JSON
   {blue}-h{reset}, {blue}--help{reset}; {blue}-V{reset}, {blue}--version{reset}; {blue}--logo{reset}"#,
         reset = RESET,
         green = GREEN,
