@@ -141,6 +141,10 @@ recol                         # print current theme name (add --show or --json f
 
 Adjust theme colors with `--adjust "group.adjustment=value,..."`. Supports brightness, contrast, saturation, hue, exposure, gamma, temperature, tint, normalize and more. Apply to UI elements, specific colors, or the full ANSI palette using short group names (e.g. pal, bg, red).
 
+```sh
+recol --adjust help
+```
+
 In interactive mode you can change adjustments live and see the preview update instantly.
 
 ### Generate a theme from a media file (beta)
