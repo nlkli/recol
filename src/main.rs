@@ -4,13 +4,14 @@ mod interactive;
 mod state;
 mod targets;
 mod utils;
+mod wallpaper;
 
 use recol_lib as lib;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 #[inline]
-fn print_theme_header(name: &str, is_light: bool) {
+pub fn print_theme_header(name: &str, is_light: bool) {
     println!("{name} <{}>", if is_light { "LIGHT" } else { "DARK" });
 }
 
@@ -26,7 +27,7 @@ fn theme_as_json(
     })
 }
 
-fn print_theme_as_json(name: &str, is_light: bool, colors: &lib::AdvancedColorScheme) {
+pub fn print_theme_as_json(name: &str, is_light: bool, colors: &lib::AdvancedColorScheme) {
     let json_str = serde_json::to_string_pretty(&theme_as_json(name, is_light, colors)).unwrap();
     println!("{}", json_str);
 }

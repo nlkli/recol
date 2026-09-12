@@ -160,9 +160,18 @@ impl Args {
                         args.adjustments(arg);
                     }
                     Some('m') => {
-                        let path = std::path::PathBuf::from(arg);
+                        if args.media.is_none() && !is_ffmpeg_installed() {
+                            eprintln!("Warning: this feature requires ffmpeg to be installed on your system.");
+                            continue;
+                        }
+                        let path = std::path::PathBuf::from(&arg);
                         if path.is_file() {
                             args.media.replace(path);
+                        } else if arg == "W" || arg == "wallpaper" {
+                            if let Ok(Some(path)) = crate::wallpaper::desktop_wallpaper_path() {
+                                args.media.replace(path);
+                                continue;
+                            }
                         }
                     }
                     Some('G') => {
@@ -265,7 +274,7 @@ fn help() -> String {
 {magenta}https://github.com/nlkli/recol{reset}
 
 {green}Supported targets:{reset}
-alacritty, ghostty, wezterm, neovim, vim, pi.
+alacritty, ghostty, kitty, wezterm, neovim, vim, pi.
 
 {green}Usage:{reset} {blue}recol [OPTIONS] [THEME_NAME]{reset}
 
@@ -282,8 +291,8 @@ alacritty, ghostty, wezterm, neovim, vim, pi.
       Apply color adjustments (see --adjust help)
   {blue}-i{reset}, {blue}--interactive{reset}
       Browse and apply themes interactively
-  {blue}-m{reset}, {blue}--media <PATH>{reset}
-      Generate a theme from an image/video (requires ffmpeg)
+  {blue}-m{reset}, {blue}--media <PATH>{reset} (requires ffmpeg)
+      Generate a theme from an img/video; use W for current desktop wallpaper
   {blue}--palettegen <MAX_COLORS>{reset}  Output media palette colors
   {blue}-f{reset}, {blue}--font <NAME>{reset}
       Set font family by name (fuzzy matching)
@@ -356,4 +365,16 @@ fn adjust_help() -> String {
         green = GREEN,
         blue = BLUE,
     )
+}
+
+/// Checks whether `ffmpeg` is available in PATH.
+fn is_ffmpeg_installed() -> bool {
+    use std::process;
+    process::Command::new("ffmpeg")
+        .arg("-version")
+        .stdout(process::Stdio::null())
+        .stderr(process::Stdio::null())
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
 }

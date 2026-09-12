@@ -650,7 +650,7 @@ fn draw_screen(s: &State) -> io::Result<()> {
 }
 
 pub fn run(args: &Args) -> io::Result<()> {
-    let _terminal_guard = TerminalGuard::new();
+    let terminal_guard = TerminalGuard::new();
 
     let mut s = State {
         size: term::size()?,
@@ -857,6 +857,29 @@ pub fn run(args: &Args) -> io::Result<()> {
         }
 
         draw_screen(&s)?;
+    }
+
+    drop(terminal_guard);
+
+    if args.show {
+        s.current_theme
+            .and_then(|n| lib::Collection::new().find(|t| t.name == n))
+            .inspect(|t| {
+                let theme = t.into_theme();
+                crate::print_theme_header(&theme.name, theme.is_light);
+                theme.print_palette();
+            });
+    } else if args.json {
+        s.current_theme
+            .and_then(|n| lib::Collection::new().find(|t| t.name == n))
+            .inspect(|t| {
+                let theme = t.into_theme();
+                crate::print_theme_as_json(
+                    &theme.name,
+                    theme.is_light,
+                    &theme.colors.into_advanced(None),
+                );
+            });
     }
 
     Ok(())
