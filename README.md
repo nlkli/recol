@@ -90,18 +90,20 @@ end
 git clone https://github.com/nlkli/recol
 cd recol
 cargo build --release
-cp target/release/recol /usr/local/bin/
+./target/release/recol --help
 ```
 
-### Cargo Install
- 
+### Homebrew
+
 ```sh
-cargo install --git https://github.com/nlkli/recol --branch main --force
+brew install nlkli/tap/recol
 ```
 
-### Pre-built binaries
+### Cargo
 
-Download the latest release binary for your platform from the [Releases](https://github.com/nlkli/recol/releases) page. (macOS only for now)
+```sh
+cargo install --git https://github.com/nlkli/recol.git --branch main --force
+```
 
 ### Fetch and rebuild color schemes
 
