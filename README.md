@@ -102,38 +102,25 @@ brew install nlkli/tap/recol
 ### Cargo
 
 ```sh
-cargo install --git https://github.com/nlkli/recol.git --branch main --force
+cargo install --git https://github.com/nlkli/recol --branch main --force
 ```
 
-### Fetch and rebuild color schemes
+### Build Colorschemes Collection
 
-Fetch the latest themes from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes) and rebuild the embedded binary:
+Run `./fetch.sh` to download the latest themes from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes) to `./colorschemes`. Add custom themes there or filter unwanted themes in `build.rs`.
+
+Build the embedded color schemes binary:
 
 ```sh
-RECOL_FETCH_GHOSSTY_THEMES=1 \
-RECOL_BUILD_COLORSCHEMES_BIN=1 \
-cargo build --release
+RECOL_BUILD_COLORSCHEMES_BIN=1 cargo build --release
 ```
 
-### Custom color schemes
-
-To build with your own themes, point `RECOL_GHOSSTY_THEMES_DIR` to your themes directory:
+For a custom themes directory, use `RECOL_GHOSSTY_THEMES_DIR`:
 
 ```sh
-RECOL_GHOSSTY_THEMES_DIR=/path/to/your/themes \
+RECOL_GHOSSTY_THEMES_DIR=/path/to/themes \
 RECOL_BUILD_COLORSCHEMES_BIN=1 \
 cargo build --release
-```
-
-Themes use the [Ghostty config format](https://github.com/mbadolato/iTerm2-Color-Schemes/blob/master/ghostty/0x96f) (no file extension). The filename becomes the theme name.
-
-To add your themes to the default collection, place them in `./colorschemes` (run `./fetch.sh` first to populate it). Filter unwanted themes in `build.rs`:
-
-```rust
-recol_lib::build_colorschemes_bin(
-    ...,
-    |name| !["theme_to_exclude"].contains(&name),
-)
 ```
 
 ### Usage Examples
@@ -221,19 +208,19 @@ pub const ALL_TARGETS: [Target; 8] = [ /* ..., Target::Vscode */ ];
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   24       5,924       577       413      4,934        627
+Rust                   24       5,919       575       417      4,927        624
 TOML                    2          49         6         0         43          1
 License                 1          21         4         0         17          0
-Markdown                1         269        60         0        209          0
-Shell                   1           8         2         1          5          0
+Markdown                1         231        55         0        176          0
+Shell                   1          15         4         7          4          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  29       6,271       649       414      5,208        628
+Total                  29       6,235       644       424      5,167        625
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $152,808
-Estimated Schedule Effort (organic) 6.74 months
-Estimated People Required (organic) 2.02
+Estimated Cost to Develop (organic) $151,545
+Estimated Schedule Effort (organic) 6.71 months
+Estimated People Required (organic) 2.00
 ───────────────────────────────────────────────────────────────────────────────
-Processed 213,411 bytes, 0.213 megabytes (SI)
+Processed 212,351 bytes, 0.212 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
