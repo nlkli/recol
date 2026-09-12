@@ -160,6 +160,7 @@ recol -m ~/Photo/Landscape.jpg --palettegen 12 # print the generated palette
 recol -m ~/Photo/Logo.svg --palettegen 24 -s   # show extracted colors
 recol -m ~/Photo/Cat.jpg --palettegen 250 -j   # print the generated palette as JSON
 recol -m ~/Photo/Tree.png -a t.e=9,bb.b=-12    # generate and apply with color adjust
+recol -m W  # generate and apply a theme from current desktop wallpaper
 ```
 
 **Requirements:** [ffmpeg](https://ffmpeg.org) must be installed and available on `PATH`.
@@ -212,19 +213,19 @@ pub const ALL_TARGETS: [Target; 8] = [ /* ..., Target::Vscode */ ];
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   24       5,919       575       417      4,927        624
+Rust                   25       6,255       609       431      5,215        684
 TOML                    2          49         6         0         43          1
 License                 1          21         4         0         17          0
-Markdown                1         231        55         0        176          0
+Markdown                1         235        56         0        179          0
 Shell                   1          15         4         7          4          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  29       6,235       644       424      5,167        625
+Total                  30       6,575       679       438      5,458        685
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $151,545
-Estimated Schedule Effort (organic) 6.71 months
-Estimated People Required (organic) 2.00
+Estimated Cost to Develop (organic) $160,519
+Estimated Schedule Effort (organic) 6.86 months
+Estimated People Required (organic) 2.08
 ───────────────────────────────────────────────────────────────────────────────
-Processed 212,351 bytes, 0.212 megabytes (SI)
+Processed 222,024 bytes, 0.222 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
