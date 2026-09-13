@@ -250,7 +250,7 @@ const BRIGHT_MAGENTA: &str = "\x1b[95m";
 
 fn logo() -> String {
     format!(
-        "{bright_black}v0.2.4  [https://github.com/nlkli/recol]{reset}
+        "{bright_black}v0.2.5  [https://github.com/nlkli/recol]{reset}
 {blue}  ____    _____    ____    ___    _ {reset}
 {bright_blue} |  _ \\  | ____|  / ___|  / _ \\  | |{reset}
 {cyan} | |_) | |  _|   | |     | | | | | |{reset}
@@ -267,7 +267,7 @@ fn logo() -> String {
     )
 }
 
-const VERSION: &str = "recol 0.2.4 [https://github.com/nlkli/recol]";
+const VERSION: &str = "recol 0.2.5 [https://github.com/nlkli/recol]";
 fn help() -> String {
     format!(
         r#"CLI utility for changing the color scheme
@@ -276,29 +276,22 @@ fn help() -> String {
 {green}Usage:{reset} {blue}recol [OPTIONS] [THEME_NAME]{reset}
 
 {green}Options:{reset} (most flags can be combined)
+  {blue}-T{reset}, {blue}--target <NAME,...>{reset} [env: RECOL_TARGET]
+      Apply for specific target (see --target list)
+  {blue}-r{reset}, {blue}--rand{reset}  Apply a random theme
+  {blue}-d{reset}, {blue}--dark{reset}; {blue}-l{reset}, {blue}--light{reset}  Restrict to dark or light
+  {blue}-c{reset}, {blue}--contains <STR>{reset}  Filter themes by name substring
   {blue}-i{reset}, {blue}--interactive{reset}
       Browse and apply themes interactively
-  {blue}-r{reset}, {blue}--rand{reset}
-      Apply a random theme
-  {blue}-d{reset}, {blue}--dark{reset}; {blue}-l{reset}, {blue}--light{reset}
-  {blue}-c{reset}, {blue}--contains <STR>{reset}
-      Filter themes by dark, light or name substring
-  {blue}-a{reset}, {blue}--adjust <SPEC|PATH>{reset} [env: RECOL_ADJUST]
-      Apply color adjustments (see --adjust help)
   {blue}-m{reset}, {blue}--media <PATH/W>{reset} [requires ffmpeg]
       Apply a theme from an img/video; use W for wallpaper
   {blue}--palettegen <N>{reset}  Output N palette colors from media
-  {blue}-f{reset}, {blue}--font <NAME>{reset}
-      Set font family by name (fuzzy matching)
-  {blue}-F{reset}, {blue}--font-rand{reset}
-      Pick a random Nerd Font
-  {blue}-T{reset}, {blue}--target <NAME,...>{reset} [env: RECOL_TARGET]
-      Apply for specific target (see --target list)
-  {blue}-L{reset}, {blue}--theme-list{reset}  List available themes
-  {blue}--font-list{reset}       List available Nerd Fonts
+  {blue}-a{reset}, {blue}--adjust <SPEC|PATH>{reset} [env: RECOL_ADJUST]
+      Apply color adjustments (see --adjust help)
+  {blue}-L{reset}, {blue}--list{reset}  List available themes
   {blue}-s{reset}, {blue}--show{reset}
       Show the theme color palette without applying it
-  {blue}-j{reset}, {blue}--json{reset}  Output theme/list/palettegen as JSON
+  {blue}-j{reset}, {blue}--json{reset}  Output theme/list/media as JSON
   {blue}-h{reset}, {blue}--help{reset}; {blue}-V{reset}, {blue}--version{reset}; {blue}--logo{reset}"#,
         reset = RESET,
         green = GREEN,
