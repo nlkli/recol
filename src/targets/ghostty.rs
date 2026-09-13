@@ -102,6 +102,17 @@ fn replace_or_add_key_value(lines: &mut Vec<ConfigLine>, k: &str, v: String) {
     };
 }
 
+/// Sends SIGUSR2 to the running Ghostty process to trigger a live config reload.
+/// Best-effort: if Ghostty isn't running or the signal fails, we silently ignore it.
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+fn reload_ghostty() {
+    use std::process::Command;
+
+    let _ = Command::new("pkill")
+        .args(["-USR2", "-x", "ghostty"])
+        .status();
+}
+
 pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
     let mut lines = read_config(&path)?;
 
@@ -149,7 +160,11 @@ pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<
         theme.colors.selection.fg.to_string(),
     );
 
-    write_config(path, &lines)
+    write_config(path, &lines)?;
+
+    reload_ghostty();
+
+    Ok(())
 }
 
 pub fn set_font_on(path: impl AsRef<Path>, font: String) -> io::Result<()> {
@@ -159,3 +174,46 @@ pub fn set_font_on(path: impl AsRef<Path>, font: String) -> io::Result<()> {
 
     write_config(path, &lines)
 }
+
+// fn osc4<W: Write>(out: &mut W, index: usize, color: &lib::CssColor) -> io::Result<()> {
+//     write!(out, "\x1b]4;{};{}\x1b\\", index, color)
+// }
+//
+// fn osc<W: Write>(out: &mut W, code: u16, value: &str) -> io::Result<()> {
+//     write!(out, "\x1b]{};{}\x1b\\", code, value)
+// }
+//
+// fn apply_theme_live(theme: &lib::Theme) -> io::Result<()> {
+//     let stdout = io::stdout();
+//     let mut out = stdout.lock();
+//
+//     // ANSI palette
+//     osc4(&mut out, 0, &theme.colors.base.black)?;
+//     osc4(&mut out, 1, &theme.colors.base.red)?;
+//     osc4(&mut out, 2, &theme.colors.base.green)?;
+//     osc4(&mut out, 3, &theme.colors.base.yellow)?;
+//     osc4(&mut out, 4, &theme.colors.base.blue)?;
+//     osc4(&mut out, 5, &theme.colors.base.magenta)?;
+//     osc4(&mut out, 6, &theme.colors.base.cyan)?;
+//     osc4(&mut out, 7, &theme.colors.base.white)?;
+//
+//     osc4(&mut out, 8, &theme.colors.bright.black)?;
+//     osc4(&mut out, 9, &theme.colors.bright.red)?;
+//     osc4(&mut out, 10, &theme.colors.bright.green)?;
+//     osc4(&mut out, 11, &theme.colors.bright.yellow)?;
+//     osc4(&mut out, 12, &theme.colors.bright.blue)?;
+//     osc4(&mut out, 13, &theme.colors.bright.magenta)?;
+//     osc4(&mut out, 14, &theme.colors.bright.cyan)?;
+//     osc4(&mut out, 15, &theme.colors.bright.white)?;
+//
+//     // custom palette entries
+//     osc4(&mut out, 16, &theme.colors.base.orange)?;
+//     osc4(&mut out, 17, &theme.colors.base.pink)?;
+//
+//     // foreground / background / cursor
+//     osc(&mut out, 10, &theme.colors.fg.to_string())?;
+//     osc(&mut out, 11, &theme.colors.bg.to_string())?;
+//     osc(&mut out, 12, &theme.colors.cursor.bg.to_string())?;
+//
+//     out.flush()
+// }

@@ -11,9 +11,9 @@
 
 ### Terminal support notes
 
-- **Ghostty** requires a manual reload (e.g. `Ctrl + Shift + ,` on Linux or `Cmd + Shift + ,` on macOS).
-- **Kitty 0.47.0+** automatically reloads config changes by default. Older versions, or configurations with auto reload disabled, require `Ctrl + Shift + F5` (`Ctrl + Cmd + ,` on macOS). See [Kitty's auto reload documentation](https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.auto_reload_config).
-- **Alacritty**, **WezTerm** supports hot configuration reload. Changes are applied immediately without restarting the terminal.
+- **Kitty** requires a manual reload (`Ctrl + Shift + F5` by default, or `Ctrl + Cmd + ,` on macOS; see [Kitty documentation](https://sw.kovidgoyal.net/kitty/conf/#shortcut-kitty.Reload-config)).
+- **Ghostty**: config reload is now automatic — the app sends `SIGUSR2` to the running Ghostty process, which Ghostty uses to trigger a live reload (no manual shortcut needed).
+- **Alacritty**, **WezTerm** support hot configuration reload. Changes are applied immediately without restarting the terminal.
 
 ### Neovim integration
  
@@ -130,7 +130,7 @@ recol londonsohonight         # fuzzy match - applies closest theme by name
 recol -rd --contains Gruvbox  # random dark theme with "Gruvbox" in name
 recol --theme-list -l --json  # list light themes as JSON
 recol dracula --dark --show   # preview palette without applying
-recol -t tokyo --json         # print tokyo theme as JSON
+recol tokyo --json            # print tokyo theme as JSON
 recol terafox --target nvim   # apply theme for specific target
 recol                         # print current theme name (add --show or --json for more)
 ```
@@ -166,12 +166,6 @@ recol -m W  # generate and apply a theme from current desktop wallpaper
 **Requirements:** [ffmpeg](https://ffmpeg.org) must be installed and available on `PATH`.
 
 This feature requires no additional Cargo/Rust dependencies. recol simply invokes the ffmpeg binary already installed on the system and uses its palettegen functionality to extract colors.
-
-**How it works:**
-
-1. `recol` invokes the system-installed `ffmpeg` and uses `palettegen=max_colors=N` to extract the dominant palette from the media into a PPM file.
-2. `recol` reads the unique colors from the generated PPM and maps them to the 16 ANSI slots.
-3. The theme auto-detects light vs. dark and aligns the derived colors to a shared luminance for visual consistency.
 
 ### Adding Support for New Targets
 
