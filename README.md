@@ -11,8 +11,8 @@
 
 ### Terminal support notes
 
+- **Ghostty**: now reloads automatically via `SIGUSR2` (should work on most systems); if not, use the manual shortcut (`Ctrl/Cmd + Shift + ,`).
 - **Kitty** requires a manual reload (`Ctrl + Shift + F5` by default, or `Ctrl + Cmd + ,` on macOS; see [Kitty documentation](https://sw.kovidgoyal.net/kitty/conf/#shortcut-kitty.Reload-config)).
-- **Ghostty**: config reload is now automatic — the app sends `SIGUSR2` to the running Ghostty process, which Ghostty uses to trigger a live reload (no manual shortcut needed).
 - **Alacritty**, **WezTerm** support hot configuration reload. Changes are applied immediately without restarting the terminal.
 
 ### Neovim integration
