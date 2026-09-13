@@ -11,7 +11,7 @@
 
 ### Terminal support notes
 
-- **Ghostty**: now reloads automatically via `SIGUSR2` (should work on most systems); if not, use the manual shortcut (`Ctrl/Cmd + Shift + ,`).
+- **Ghostty**: now reloads automatically via `SIGUSR2` (should work on most systems); if not, use the manual shortcut (`Ctrl + Shift + ,` on Linux or `Cmd + Shift + ,` on macOS).
 - **Kitty** requires a manual reload (`Ctrl + Shift + F5` by default, or `Ctrl + Cmd + ,` on macOS; see [Kitty documentation](https://sw.kovidgoyal.net/kitty/conf/#shortcut-kitty.Reload-config)).
 - **Alacritty**, **WezTerm** support hot configuration reload. Changes are applied immediately without restarting the terminal.
 
