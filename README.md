@@ -154,13 +154,13 @@ In interactive mode you can change adjustments live and see the preview update i
 `recol` can derive a color scheme from any image/video frame. Pass a media file with `--media` and recol builds a theme automatically:
 
 ```sh
+recol -m W  # generate and apply a theme from current desktop wallpaper
 recol --media ~/Pictures/Sunset.png            # generate and apply a theme from an image
 recol -m ~/Videos/X.gif --json                 # generate a theme and output it as JSON
 recol -m ~/Photo/Landscape.jpg --palettegen 12 # print the generated palette
 recol -m ~/Photo/Logo.svg --palettegen 24 -s   # show extracted colors
 recol -m ~/Photo/Cat.jpg --palettegen 250 -j   # print the generated palette as JSON
 recol -m ~/Photo/Tree.png -a t.e=9,bb.b=-12    # generate and apply with color adjust
-recol -m W  # generate and apply a theme from current desktop wallpaper
 ```
 
 **Requirements:** [ffmpeg](https://ffmpeg.org) must be installed and available on `PATH`.
