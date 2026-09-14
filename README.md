@@ -12,7 +12,7 @@
 ### Terminal support notes
 
 - **Ghostty**: now reloads automatically via `SIGUSR2` (should work on most systems); if not, use the manual shortcut (`Ctrl + Shift + ,` on Linux or `Cmd + Shift + ,` on macOS).
-- **Kitty** requires a manual reload (`Ctrl + Shift + F5` by default, or `Ctrl + Cmd + ,` on macOS; see [Kitty documentation](https://sw.kovidgoyal.net/kitty/conf/#shortcut-kitty.Reload-config)).
+- **Kitty 0.47.0+** automatically reloads config changes by default. Older versions, or configurations with auto reload disabled, require `Ctrl + Shift + F5` (`Ctrl + Cmd + ,` on macOS). See [Kitty's auto reload documentation](https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.auto_reload_config).
 - **Alacritty**, **WezTerm** support hot configuration reload. Changes are applied immediately without restarting the terminal.
 
 ### Neovim integration
