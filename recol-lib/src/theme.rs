@@ -62,7 +62,7 @@ pub fn palettegen_from_media(
         .and_then(|name| name.to_str())
         .ok_or_else(|| std::io::Error::other("invalid media file name"))?;
 
-    let ppm_path = std::env::temp_dir().join(format!("{file_stem}.ppm"));
+    let ppm_path = std::env::temp_dir().join(format!("{file_stem}_{max_colors}.ppm"));
 
     let output = std::process::Command::new("ffmpeg")
         .args(["-y", "-i"])
@@ -368,9 +368,19 @@ impl ColorScheme {
         adjusts.iter().for_each(|a| self.apply_adjustment(a));
     }
 
-    // TODO: beta
+    /// Derive a full [`ColorScheme`] from an image/video file.
     pub fn from_media(path: impl AsRef<std::path::Path>) -> crate::error::Result<Self> {
-        let p5 = palettegen_from_media(&path, 5)?;
+        let path = path.as_ref();
+
+        // Run both (expensive) palettegen passes concurrently instead of sequentially
+        let (p5, p10) = std::thread::scope(|s| {
+            let h5 = s.spawn(|| palettegen_from_media(path, 5));
+            let h10 = s.spawn(|| palettegen_from_media(path, 10));
+            (h5.join().unwrap(), h10.join().unwrap())
+        });
+        let p5 = p5?;
+        let p10 = p10?;
+
         let is_light = (p5[0].lab().0 + p5[4].lab().0) * 0.5 > 50.0;
 
         let (mut bg, mut fg, mut cur_bg, sel_bg, cur_fg, sel_fg) = if is_light {
@@ -378,14 +388,13 @@ impl ColorScheme {
         } else {
             (p5[0], p5[4], p5[3], p5[1], p5[2], p5[3])
         };
-        let target_l = if is_light { bg.lab().0 } else { bg.lab().0 };
 
+        let target_l = bg.lab().0;
         let (_, a, b) = cur_fg.lab();
         let mut cur_fg = Color::from_lab(target_l, a, b);
         let (_, a, b) = sel_fg.lab();
         let sel_fg = Color::from_lab(target_l, a, b);
 
-        let p10 = palettegen_from_media(&path, 10)?;
         let mut colors = if is_light {
             [
                 p10[1], p10[2], p10[3], p10[4], p10[5], p10[6], p10[7], p10[8],
