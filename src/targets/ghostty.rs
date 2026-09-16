@@ -104,13 +104,15 @@ fn replace_or_add_key_value(lines: &mut Vec<ConfigLine>, k: &str, v: String) {
 
 /// Sends SIGUSR2 to the running Ghostty process to trigger a live config reload.
 /// Best-effort: if Ghostty isn't running or the signal fails, we silently ignore it.
-#[cfg(any(target_os = "macos", target_os = "linux"))]
 fn reload_ghostty() {
-    use std::process::Command;
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
+    {
+        use std::process::Command;
 
-    let _ = Command::new("pkill")
-        .args(["-USR2", "-x", "ghostty"])
-        .status();
+        let _ = Command::new("pkill")
+            .args(["-USR2", "-x", "ghostty"])
+            .status();
+    }
 }
 
 pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
@@ -172,7 +174,11 @@ pub fn set_font_on(path: impl AsRef<Path>, font: String) -> io::Result<()> {
 
     replace_or_add_key_value(&mut lines, "font-family", font);
 
-    write_config(path, &lines)
+    write_config(path, &lines)?;
+
+    reload_ghostty();
+
+    Ok(())
 }
 
 // fn osc4<W: Write>(out: &mut W, index: usize, color: &lib::CssColor) -> io::Result<()> {
