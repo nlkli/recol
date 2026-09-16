@@ -430,13 +430,13 @@ impl ColorScheme {
             n += 1;
         }
         let (black, white) = if is_light {
-            fg = fg.shade(-0.3);
+            fg = fg.shade(-0.27);
             cur_bg = cur_bg.brighten(-9.);
             cur_fg = cur_fg.shade(0.3).blend(&bg, 0.1);
 
             (
-                p10[9].saturate(-3.0).shade(0.1),
-                p10[0].saturate(-3.0).shade(-0.3),
+                p10[9].saturate(-3.0).shade(0.0),
+                p10[0].saturate(-3.0).shade(-0.0),
             )
         } else {
             fg = fg.shade(0.09);
@@ -444,8 +444,8 @@ impl ColorScheme {
             cur_fg = cur_fg.shade(-0.3).blend(&bg, 0.1);
 
             (
-                p10[0].saturate(-3.0).shade(-0.3),
-                p10[9].saturate(-3.0).shade(0.1),
+                p10[0].saturate(-3.0).shade(-0.0),
+                p10[9].saturate(-3.0).shade(0.0),
             )
         };
         bg = bg.saturate(-3.0);
