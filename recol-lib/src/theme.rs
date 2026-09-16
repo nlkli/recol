@@ -435,8 +435,8 @@ impl ColorScheme {
             cur_fg = cur_fg.shade(0.3).blend(&bg, 0.1);
 
             (
-                p10[9].saturate(-3.0).shade(0.14),
-                p10[0].saturate(-3.0).shade(-0.33),
+                p10[9].saturate(-3.0).shade(0.1),
+                p10[0].saturate(-3.0).shade(-0.3),
             )
         } else {
             fg = fg.shade(0.09);
@@ -444,8 +444,8 @@ impl ColorScheme {
             cur_fg = cur_fg.shade(-0.3).blend(&bg, 0.1);
 
             (
-                p10[0].saturate(-3.0).shade(-0.33),
-                p10[9].saturate(-3.0).shade(0.14),
+                p10[0].saturate(-3.0).shade(-0.3),
+                p10[9].saturate(-3.0).shade(0.1),
             )
         };
         bg = bg.saturate(-3.0);
