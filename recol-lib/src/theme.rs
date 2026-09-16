@@ -429,15 +429,25 @@ impl ColorScheme {
             fg = fg.saturate(1.0).shade(shade_factor_step);
             n += 1;
         }
-        if is_light {
+        let (black, white) = if is_light {
             fg = fg.shade(-0.3);
             cur_bg = cur_bg.brighten(-9.);
             cur_fg = cur_fg.shade(0.3).blend(&bg, 0.1);
+
+            (
+                p10[9].saturate(-3.0).shade(0.14),
+                p10[0].saturate(-3.0).shade(-0.33),
+            )
         } else {
-            fg = fg.shade(0.1);
+            fg = fg.shade(0.09);
             cur_bg = cur_bg.brighten(9.);
             cur_fg = cur_fg.shade(-0.3).blend(&bg, 0.1);
-        }
+
+            (
+                p10[0].saturate(-3.0).shade(-0.33),
+                p10[9].saturate(-3.0).shade(0.14),
+            )
+        };
         bg = bg.saturate(-3.0);
 
         let [red, green, yellow, blue, magenta, cyan, orange, pink] = colors;
@@ -455,26 +465,26 @@ impl ColorScheme {
                 fg: cur_fg.css(),
             },
             base: AnsiColors {
-                black: p10[0].saturate(-3.0).shade(-0.42).css(),
+                black: black.css(),
                 red: red.css(),
                 green: green.css(),
                 yellow: yellow.css(),
                 blue: blue.css(),
                 magenta: magenta.css(),
                 cyan: cyan.css(),
-                white: p10[9].saturate(-3.0).shade(0.21).css(),
+                white: white.css(),
                 orange: orange.css(),
                 pink: pink.css(),
             },
             bright: AnsiColors {
-                black: p10[0].saturate(-3.0).shade(-0.6).css(),
+                black: black.brighten(bright_factor).css(),
                 red: red.brighten(bright_factor).css(),
                 green: green.brighten(bright_factor).css(),
                 yellow: yellow.brighten(bright_factor).css(),
                 blue: blue.brighten(bright_factor).css(),
                 magenta: magenta.brighten(bright_factor).css(),
                 cyan: cyan.brighten(bright_factor).css(),
-                white: p10[9].saturate(-3.0).shade(0.33).css(),
+                white: white.brighten(bright_factor).css(),
                 orange: orange.brighten(bright_factor).css(),
                 pink: pink.brighten(bright_factor).css(),
             },
