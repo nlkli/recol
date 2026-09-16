@@ -1,5 +1,3 @@
-#[cfg(any(target_os = "linux",))]
-use std::env;
 use std::io;
 use std::path::PathBuf;
 use std::process::Command;
@@ -50,6 +48,9 @@ fn macos_wallpaper_path() -> io::Result<Option<PathBuf>> {
     let path = PathBuf::from(trimmed);
     Ok(path.is_file().then_some(path))
 }
+
+#[cfg(any(target_os = "linux"))]
+use std::env;
 
 // Attempts to locate the desktop wallpaper path across common Unix desktop environments
 // (GNOME, KDE Plasma, XFCE, MATE, Cinnamon, LXQt).
