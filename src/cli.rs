@@ -262,14 +262,12 @@ impl Args {
 
 fn logo() -> String {
     format!(
-        "{bright_black}v0.2.5  [https://github.com/nlkli/recol]{reset}
-{blue}  ____    _____    ____    ___    _ {reset}
+        "{blue}  ____    _____    ____    ___    _ {reset}
 {bright_blue} |  _ \\  | ____|  / ___|  / _ \\  | |{reset}
 {cyan} | |_) | |  _|   | |     | | | | | |{reset}
 {bright_magenta} |  _ <  | |___  | |___  | |_| | | |___{reset}
 {magenta} |_| \\_\\ |_____|  \\____|  \\___/  |_____|{reset}
 ",
-        bright_black = BRIGHT_BLACK,
         reset = RESET,
         cyan = CYAN,
         bright_blue = BRIGHT_BLUE,
@@ -389,7 +387,6 @@ const GREEN: &str = "\x1b[32m";
 const BLUE: &str = "\x1b[34m";
 const MAGENTA: &str = "\x1b[35m";
 const CYAN: &str = "\x1b[36m";
-const BRIGHT_BLACK: &str = "\x1b[90m";
+// const BRIGHT_BLACK: &str = "\x1b[90m";
 const BRIGHT_BLUE: &str = "\x1b[94m";
 const BRIGHT_MAGENTA: &str = "\x1b[95m";
-
