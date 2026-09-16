@@ -107,21 +107,14 @@ cargo install --git https://github.com/nlkli/recol --branch main --force
 
 ### Build Colorschemes Collection
 
-Run `./fetch.sh` to download the latest themes from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes) to `./colorschemes`. Add custom themes there or filter unwanted themes in `build.rs`.
-
-Build the embedded color schemes binary:
+Build your own color schemes collection right into the binary:
 
 ```sh
+./fetch.sh   # downloads themes into ./colorschemes
 RECOL_BUILD_COLORSCHEMES_BIN=1 cargo build --release
 ```
 
-For a custom themes directory, use `RECOL_GHOSSTY_THEMES_DIR`:
-
-```sh
-RECOL_GHOSSTY_THEMES_DIR=/path/to/themes \
-RECOL_BUILD_COLORSCHEMES_BIN=1 \
-cargo build --release
-```
+Add your own themes to `./colorschemes`, or exclude unwanted ones in `build.rs`.
 
 ### Usage Examples
 
@@ -147,20 +140,16 @@ recol --adjust help
 
 In interactive mode you can change adjustments live and see the preview update instantly.
 
-### Generate a theme from a media file (beta)
+### Generate a theme from a media file
 
 ![recol-demo-media-to-theme](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-media-to-theme.gif)
 
 `recol` can derive a color scheme from any image/video frame. Pass a media file with `--media` and recol builds a theme automatically:
 
 ```sh
-recol -m W  # generate and apply a theme from current desktop wallpaper
 recol --media ~/Pictures/Sunset.png            # generate and apply a theme from an image
 recol -m ~/Videos/X.gif --json                 # generate a theme and output it as JSON
-recol -m ~/Photo/Landscape.jpg --palettegen 12 # print the generated palette
-recol -m ~/Photo/Logo.svg --palettegen 24 -s   # show extracted colors
-recol -m ~/Photo/Cat.jpg --palettegen 250 -j   # print the generated palette as JSON
-recol -m ~/Photo/Tree.png -a t.e=9,bb.b=-12    # generate and apply with color adjust
+recol -m ~/Photo/Tree.png -a t.s=9,bb.b=-12    # generate and apply with color adjust
 ```
 
 **Requirements:** [ffmpeg](https://ffmpeg.org) must be installed and available on `PATH`.
@@ -207,19 +196,19 @@ pub const ALL_TARGETS: [Target; 8] = [ /* ..., Target::Vscode */ ];
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   25       6,255       609       431      5,215        684
-TOML                    2          49         6         0         43          1
+Rust                   24       6,051       590       490      4,971        633
+TOML                    2          49         6         0         43          0
 License                 1          21         4         0         17          0
-Markdown                1         235        56         0        179          0
+Markdown                1         226        54         0        172          0
 Shell                   1          15         4         7          4          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  30       6,575       679       438      5,458        685
+Total                  29       6,362       658       497      5,207        633
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $160,519
-Estimated Schedule Effort (organic) 6.86 months
-Estimated People Required (organic) 2.08
+Estimated Cost to Develop (organic) $152,777
+Estimated Schedule Effort (organic) 6.74 months
+Estimated People Required (organic) 2.02
 ───────────────────────────────────────────────────────────────────────────────
-Processed 222,024 bytes, 0.222 megabytes (SI)
+Processed 217,355 bytes, 0.217 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
