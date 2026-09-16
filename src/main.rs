@@ -4,7 +4,6 @@ mod interactive;
 mod state;
 mod targets;
 mod utils;
-mod wallpaper;
 
 use recol_lib as lib;
 

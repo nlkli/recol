@@ -182,12 +182,6 @@ impl Args {
                         let path = std::path::PathBuf::from(&arg);
                         if path.is_file() {
                             args.media.replace(path);
-                        } else if arg == "W" || arg == "wallpaper" {
-                            // Special-case: pull the current desktop wallpaper.
-                            if let Ok(Some(path)) = crate::wallpaper::desktop_wallpaper_path() {
-                                args.media.replace(path);
-                                continue;
-                            }
                         }
                     }
                     Some('G') => {
@@ -280,7 +274,8 @@ fn logo() -> String {
 const VERSION: &str = "recol 0.2.5 [https://github.com/nlkli/recol]";
 
 // NOTE: some flags (e.g. --font*, --nvim_config, --init-input,
-// --init-help, --quit-on-select) are intentionally left out of --help.
+// --init-help, --quit-on-select, --palettegen) are intentionally 
+// left out of --help.
 // They're legacy options and it's unclear whether they're still needed,
 // so we're not committing to documenting/supporting them yet.
 fn help() -> String {
@@ -295,13 +290,11 @@ fn help() -> String {
       Apply for specific target (see --target list)
   {blue}-r{reset}, {blue}--rand{reset}  Select a random
   {blue}-d{reset}, {blue}--dark{reset}; {blue}-l{reset}, {blue}--light{reset}  Restrict to dark or light
-  {blue}-c{reset}, {blue}--contains <STR>{reset}  Filter by name substring
+  {blue}-c{reset}, {blue}--contains <STR>{reset}     Filter by name substring
   {blue}-i{reset}, {blue}--interactive{reset}
       Browse and apply themes interactively
-  {blue}-m{reset}, {blue}--media <PATH/W>{reset} [requires ffmpeg]
-      Derive a theme from an image/video;
-      use W for current desktop wallpaper
-  {blue}--palettegen <N>{reset}  Output N palette colors from media
+  {blue}-m{reset}, {blue}--media <PATH>{reset} [requires ffmpeg]
+      Derive a theme from an image/video
   {blue}-a{reset}, {blue}--adjust <SPEC|PATH>{reset} [env: RECOL_ADJUST]
       Apply color adjustments (see --adjust help)
   {blue}-L{reset}, {blue}--list{reset}  List available themes
