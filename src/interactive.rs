@@ -54,6 +54,8 @@ struct State {
     /// Minimum number of visible rows to keep above/below the selection.
     scrolloff: usize,
     current_theme: Option<String>,
+    /// Names of favorited themes, mirrored from the state file.
+    favorites: Vec<String>,
     // last_char: Option<char>,
     adjust: Vec<ThemeAdjustment>,
     adjust_input_buf: String,
@@ -454,6 +456,7 @@ fn draw_screen(s: &State) -> io::Result<()> {
                     ("s / r", "Shuffle / Reverse order"),
                     ("d / l", "Dark / Light only"),
                     ("h", "Recently applied (history)"),
+                    ("F", "Favorites only"),
                     ("Space", "Reset filters (show all)"),
                 ],
             ),
@@ -461,6 +464,7 @@ fn draw_screen(s: &State) -> io::Result<()> {
                 "GENERAL",
                 &[
                     ("Enter", "Apply theme"),
+                    ("m", "Toggle favorite (★)"),
                     ("? / H", "Open this help"),
                     ("q / Ctrl+c", "Quit"),
                 ],
@@ -576,8 +580,13 @@ fn draw_screen(s: &State) -> io::Result<()> {
 
     for (row_idx, theme) in s.list.iter().skip(s.list_offset).enumerate() {
         let mut row_text = format!(
-            " {}  {}",
+            " {} {}{}",
             if theme.is_light { "☀" } else { "⏾" },
+            if s.favorites.iter().any(|n| n == theme.name) {
+                "★ "
+            } else {
+                "  "
+            },
             theme.name
         );
         while row_text.chars().count() < list_col_width - 2 {
@@ -657,6 +666,7 @@ pub fn run(args: &Args) -> io::Result<()> {
         list: lib::Collection::new().collect(),
         scrolloff: DEFAULT_SCROLLOFF,
         current_theme: state::read_theme_history(1).iter().next().cloned(),
+        favorites: state::read_theme_favorites().to_vec(),
         adjust: args.adjust.clone(),
         ..Default::default()
     };
@@ -777,6 +787,27 @@ pub fn run(args: &Args) -> io::Result<()> {
                             s.reset_pos();
                             s.filter_list_by_input();
                         };
+                    }
+                    (event::KeyCode::Char('m'), Mode::Normal) => {
+                        if let Some(theme) = s.list.get(s.list_index) {
+                            let name = theme.name.to_string();
+                            state::toggle_theme_favorite(&name);
+                            s.favorites = state::read_theme_favorites().to_vec();
+                        }
+                    }
+                    (event::KeyCode::Char('F'), Mode::Normal) => {
+                        let favorites = state::read_theme_favorites();
+                        if !favorites.is_empty() {
+                            let mut collection = Collection::new();
+                            s.list = favorites
+                                .iter()
+                                .filter_map(|t| collection.by_name(t))
+                                .collect();
+                            if s.list.is_empty() {
+                                s.reset_list();
+                            }
+                            s.reset_pos();
+                        }
                     }
                     (event::KeyCode::Char('h'), Mode::Normal) => {
                         let history = state::read_theme_history(state::THEME_HISTORY_CAP);
