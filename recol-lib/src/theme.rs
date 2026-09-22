@@ -395,7 +395,7 @@ impl ColorScheme {
         let (_, a, b) = sel_fg.lab();
         let sel_fg = Color::from_lab(target_l, a, b);
 
-        let mut colors = if is_light {
+        let mut palette = if is_light {
             [
                 p10[1], p10[2], p10[3], p10[4], p10[5], p10[6], p10[7], p10[8],
             ]
@@ -409,50 +409,39 @@ impl ColorScheme {
         } else {
             (p10[6].lab().0 + p10[5].lab().0) * 0.5
         };
-        colors.iter_mut().for_each(|c| {
-            let (_, a, b) = c.lab();
-            *c = Color::from_lab(target_l, a, b);
-        });
         let shade_factor_step = if is_light { -0.05 } else { 0.05 };
-        colors.iter_mut().for_each(|c| {
+        palette.iter_mut().for_each(|c| {
+            let (_, a, b) = c.lab();
+            *c = Color::from_lab(target_l, a, b).saturate(2.);
             let mut n = 0;
-            while c.wcag_contrast_ratio(&bg) < 2.5 && n < 99 {
+            while c.wcag_contrast_ratio(&bg) < 3. && n < 99 {
                 *c = c.saturate(1.0).shade(shade_factor_step);
                 n += 1;
             }
         });
-        colors.iter_mut().for_each(|c| {
-            *c = c.saturate(3.);
-        });
         let mut n = 0;
-        while fg.wcag_contrast_ratio(&bg) < 4.5 && n < 99 {
-            fg = fg.saturate(1.0).shade(shade_factor_step);
+        while fg.wcag_contrast_ratio(&bg) < 6. && n < 99 {
+            fg = fg.shade(shade_factor_step);
             n += 1;
         }
         let (black, white) = if is_light {
-            fg = fg.shade(-0.27);
             cur_bg = cur_bg.brighten(-9.);
-            cur_fg = cur_fg.shade(0.3).blend(&bg, 0.1);
-
+            cur_fg = cur_fg.shade(0.3);
             (
                 p10[9],
-                // p10[0],
                 fg,
             )
         } else {
-            fg = fg.shade(0.09);
             cur_bg = cur_bg.brighten(9.);
-            cur_fg = cur_fg.shade(-0.3).blend(&bg, 0.1);
-
+            cur_fg = cur_fg.shade(-0.3);
             (
                 p10[0],
-                // p10[9],
                 fg,
             )
         };
         bg = bg.saturate(-3.0);
 
-        let [red, green, yellow, blue, magenta, cyan, orange, pink] = colors;
+        let [red, green, yellow, blue, magenta, cyan, orange, pink] = palette;
 
         let bright_factor = if is_light { -17. } else { 15. };
         let mut cs = Self {
