@@ -465,14 +465,7 @@ fn draw_screen(s: &State) -> io::Result<()> {
                     ("q / Ctrl+c", "Quit"),
                 ],
             ),
-            (
-                "CLI ARGS",
-                &[
-                    ("--quit-on-select", ""),
-                    ("--init-input", ""),
-                    ("--init-help", ""),
-                ],
-            ),
+            ("CLI ARGS", &[("--quit-on-select", "")]),
         ];
 
         let width = s.size.0 as usize;

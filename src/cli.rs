@@ -174,15 +174,12 @@ impl Args {
                         args.adjustments(arg);
                     }
                     Some('m') => {
-                        // Require ffmpeg only the first time --media is used.
                         if args.media.is_none() && !is_ffmpeg_installed() {
                             eprintln!("Warning: this feature requires ffmpeg to be installed on your system.");
                             continue;
                         }
                         let path = std::path::PathBuf::from(&arg);
-                        if path.is_file() {
-                            args.media.replace(path);
-                        }
+                        args.media.replace(path);
                     }
                     Some('G') => {
                         args.palettegen = arg.parse::<u8>().ok();
@@ -200,7 +197,7 @@ impl Args {
 
     /// Builds the list of theme filters (dark/light/contains) from current args.
     pub fn theme_filters(&self) -> Vec<lib::ThemeFilter<'_>> {
-        let mut filters = Vec::new();
+        let mut filters = Vec::with_capacity(3);
         if self.light {
             filters.push(lib::ThemeFilter::Light);
         }
@@ -274,7 +271,7 @@ fn logo() -> String {
 const VERSION: &str = "recol 0.2.5 [https://github.com/nlkli/recol]";
 
 // NOTE: some flags (e.g. --font*, --nvim_config, --init-input,
-// --init-help, --quit-on-select, --palettegen) are intentionally 
+// --init-help, --quit-on-select, --palettegen) are intentionally
 // left out of --help.
 // They're legacy options and it's unclear whether they're still needed,
 // so we're not committing to documenting/supporting them yet.
