@@ -874,11 +874,7 @@ pub fn run(args: &Args) -> io::Result<()> {
             .and_then(|n| lib::Collection::new().find(|t| t.name == n))
             .inspect(|t| {
                 let theme = t.into_theme();
-                crate::print_theme_as_json(
-                    &theme.name,
-                    theme.is_light,
-                    &theme.colors.into_advanced(None),
-                );
+                crate::print_theme_as_json(theme);
             });
     }
 
