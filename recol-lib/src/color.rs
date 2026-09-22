@@ -14,7 +14,7 @@ pub struct Color {
     pub g: f32,
     pub b: f32,
 }
-
+ 
 impl Eq for Color {}
 
 impl std::hash::Hash for Color {
