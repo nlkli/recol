@@ -26,9 +26,19 @@ fn theme_as_json(
     })
 }
 
-pub fn print_theme_as_json(name: &str, is_light: bool, colors: &lib::AdvancedColorScheme) {
-    let json_str = serde_json::to_string_pretty(&theme_as_json(name, is_light, colors)).unwrap();
-    println!("{}", json_str);
+pub fn print_theme_as_json(t: lib::Theme) {
+    let jv = theme_as_json(&t.name, t.is_light, &t.colors.into_advanced(None));
+    println!("{}", serde_json::to_string_pretty(&jv).unwrap());
+}
+
+fn apply_theme(args: &cli::Args, theme: &lib::Theme) -> Result<()> {
+    targets::apply_theme(
+        targets::with_existing_default_config_path(targets::with_specific_or_for_all(
+            &args.targets,
+        )),
+        theme,
+    )?;
+    Ok(())
 }
 
 fn main() -> Result<()> {
@@ -59,22 +69,13 @@ fn main() -> Result<()> {
         );
         if !args.adjust.is_empty() {
             theme.colors.apply_adjustments(&args.adjust);
-            targets::apply_theme(
-                targets::with_existing_default_config_path(targets::with_specific_or_for_all(
-                    &args.targets,
-                )),
-                &theme,
-            )?;
+            apply_theme(&args, &theme)?;
         }
         if args.show {
             print_theme_header(&theme.name, theme.is_light);
             theme.print_palette();
         } else if args.json {
-            print_theme_as_json(
-                &theme.name,
-                theme.is_light,
-                &theme.colors.into_advanced(None),
-            );
+            print_theme_as_json(theme);
         } else {
             targets::apply_theme(
                 targets::with_existing_default_config_path(targets::with_specific_or_for_all(
@@ -104,22 +105,13 @@ fn main() -> Result<()> {
             let mut theme = lazy_theme.into_theme();
             if !args.adjust.is_empty() {
                 theme.colors.apply_adjustments(&args.adjust);
-                targets::apply_theme(
-                    targets::with_existing_default_config_path(targets::with_specific_or_for_all(
-                        &args.targets,
-                    )),
-                    &theme,
-                )?;
+                apply_theme(&args, &theme)?;
             }
             if args.show {
                 print_theme_header(&theme.name, theme.is_light);
                 theme.print_palette();
             } else if args.json {
-                print_theme_as_json(
-                    &theme.name,
-                    theme.is_light,
-                    &theme.colors.into_advanced(None),
-                );
+                print_theme_as_json(theme);
             } else {
                 print_theme_header(&theme.name, theme.is_light);
             }
@@ -151,9 +143,7 @@ fn main() -> Result<()> {
         }
 
         if let Some(ref mut theme) = theme {
-            if !args.adjust.is_empty() {
-                theme.colors.apply_adjustments(&args.adjust);
-            }
+            theme.colors.apply_adjustments(&args.adjust);
             loop {
                 if args.show {
                     print_theme_header(&theme.name, theme.is_light);
@@ -161,20 +151,11 @@ fn main() -> Result<()> {
                     break;
                 }
                 if args.json {
-                    print_theme_as_json(
-                        &theme.name,
-                        theme.is_light,
-                        &theme.colors.clone().into_advanced(None),
-                    );
+                    print_theme_as_json(theme.clone());
                     break;
                 }
                 print_theme_header(&theme.name, theme.is_light);
-                targets::apply_theme(
-                    targets::with_existing_default_config_path(targets::with_specific_or_for_all(
-                        &args.targets,
-                    )),
-                    &theme,
-                )?;
+                apply_theme(&args, &theme)?;
                 state::append_theme_history(&theme.name);
                 break;
             }
