@@ -119,13 +119,16 @@ Add your own themes to `./colorschemes`, or exclude unwanted ones in `build.rs`.
 ### Usage Examples
 
 ```sh
-recol londonsohonight         # fuzzy match - applies closest theme by name
+recol lOnDoNsOhOnIgHt67       # fuzzy match - applies closest theme by name
 recol -rd --contains Gruvbox  # random dark theme with "Gruvbox" in name
-recol --theme-list -l --json  # list light themes as JSON
 recol dracula --dark --show   # preview palette without applying
-recol tokyo --json            # print tokyo theme as JSON
+recol --list -l --json        # list light themes as JSON
 recol terafox --target nvim   # apply theme for specific target
 recol                         # print current theme name (add --show or --json for more)
+
+# change a theme color via JSON and apply the modified theme
+echo GruberDarker69 | recol -j | jq '.colors.fg[1] = "#ff0000"' | recol
+recol --list | tail | recol -rj | jq '.colors.bg[1] = "#000000"' | recol
 ```
 
 ### Color Adjustments

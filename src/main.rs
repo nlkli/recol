@@ -134,6 +134,7 @@ fn main() -> Result<()> {
     match stdin {
         StdIn::Theme(v) => {
             theme_action(&args, v)?;
+            return Ok(());
         }
         StdIn::List(list) => {
             if let Some(theme) = if args.rand {
@@ -143,6 +144,7 @@ fn main() -> Result<()> {
             } {
                 theme_action(&args, theme.clone())?;
             }
+            return Ok(());
         }
         StdIn::NotValid => {}
         StdIn::None => {}
