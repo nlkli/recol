@@ -642,14 +642,22 @@ fn draw_screen(s: &State) -> io::Result<()> {
     stdout.flush()
 }
 
-pub fn run(args: &Args) -> io::Result<()> {
-    let terminal_guard = TerminalGuard::new();
+pub fn run(args: &Args, init_list: &[String]) -> io::Result<()> {
+    let terminal_guard = TerminalGuard::new()?;
+
+    let list = if init_list.is_empty() {
+        lib::Collection::new().collect()
+    } else {
+        lib::Collection::new()
+            .filter(|t| init_list.iter().any(|s| t.name == s))
+            .collect()
+    };
 
     let mut s = State {
         size: term::size()?,
-        list: lib::Collection::new().collect(),
+        list: list,
         scrolloff: DEFAULT_SCROLLOFF,
-        current_theme: state::read_theme_history(1).iter().next().cloned(),
+        current_theme: state::read_theme_history(1).first().cloned(),
         adjust: args.adjust.clone(),
         ..Default::default()
     };

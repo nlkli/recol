@@ -380,3 +380,61 @@ const CYAN: &str = "\x1b[36m";
 // const BRIGHT_BLACK: &str = "\x1b[90m";
 const BRIGHT_BLUE: &str = "\x1b[94m";
 const BRIGHT_MAGENTA: &str = "\x1b[95m";
+
+#[derive(Debug, Clone, Default)]
+pub enum StdIn {
+    Theme(lib::ThemeEx),
+    List(Vec<lib::ThemeEx>),
+
+    #[default]
+    None,
+}
+
+pub fn read_stdin(args: &Args) -> crate::Result<StdIn> {
+    use std::io::{IsTerminal, Read};
+
+    let mut stdin = std::io::stdin();
+    if stdin.is_terminal() {
+        return Ok(StdIn::None);
+    }
+
+    let mut input = String::new();
+    stdin.read_to_string(&mut input)?;
+
+    let trimmed = input.trim();
+    let Some(first) = trimmed.chars().next() else {
+        return Ok(StdIn::None);
+    };
+
+    Ok(match first {
+        '{' => serde_json::from_str::<lib::AdvancedTheme>(trimmed)
+            .map(|t| t.ex())
+            .or_else(|_| serde_json::from_str::<lib::Theme>(trimmed).map(|t| t.ex()))
+            .map(|t| StdIn::Theme(t))?,
+        '[' => serde_json::from_str::<Vec<lib::AdvancedTheme>>(trimmed)
+            .map(|v| StdIn::List(v.into_iter().map(|t| t.ex()).collect()))?,
+        _ => {
+            let mut c = lib::Collection::new();
+            let filters = args.theme_filters();
+            let mut list = trimmed
+                .lines()
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .filter_map(|l| {
+                    c.find(|t| t.name == l)
+                        .or(c.fuzzy_search(l, &filters, None))
+                })
+                .map(|t| t.into_theme().ex())
+                .collect::<Vec<_>>();
+            if list.is_empty() {
+                StdIn::None
+            } else if list.len() == 1 {
+                StdIn::Theme(list.into_iter().next().unwrap())
+            } else {
+                list.sort_by(|a, b| a.name.cmp(&b.name));
+                list.dedup_by(|a, b| a.name == b.name);
+                StdIn::List(list)
+            }
+        }
+    })
+}
