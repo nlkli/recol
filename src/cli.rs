@@ -97,7 +97,7 @@ impl Args {
                     "media" => last = Some('m'),
                     "palettegen" => last = Some('G'),
                     // Boolean flags, applied immediately.
-                    "theme-list" => args.theme_list = true,
+                    "list" | "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
                     "font-rand" => args.font_rand = true,
                     "rand" => args.rand = true,
