@@ -7,7 +7,7 @@
 - **600+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
 - **Targets support:** [Ghostty](https://ghostty.org), [Kitty](https://sw.kovidgoyal.net/kitty/), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org), [Pi](https://github.com/earendil-works/pi)
 - **Neovim theme integration** based on [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim)
-- **Non-destructive** — only color/font values are modified, nothing else in your config
+- **Non-destructive** — only color values are modified, nothing else in your config
 
 ### Terminal support notes
 
