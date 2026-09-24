@@ -1,0 +1,74 @@
+{
+  "colors": {
+    "alt_selection": [
+      "#3d3531",
+      "#3d3531"
+    ],
+    "base": {
+      "black": "#282a2e",
+      "blue": "#2f7d7c",
+      "cyan": "#52877f",
+      "green": "#9dac5f",
+      "magenta": "#b5896e",
+      "orange": "#b6864a",
+      "pink": "#b38e70",
+      "red": "#9f6434",
+      "white": "#c7b8ac",
+      "yellow": "#cca75f"
+    },
+    "bg": [
+      "#191412",
+      "#241d1a",
+      "#332925",
+      "#433630",
+      "#5f4d45"
+    ],
+    "bright": {
+      "black": "#5d4e47",
+      "blue": "#2f7d7c",
+      "cyan": "#52877f",
+      "green": "#9dac5f",
+      "magenta": "#b5896e",
+      "orange": "#b6864a",
+      "pink": "#b38e70",
+      "red": "#9f6434",
+      "white": "#c7b8ac",
+      "yellow": "#cca75f"
+    },
+    "comment": "#867a72",
+    "cursor": {
+      "bg": "#c7b8ac",
+      "fg": "#241d1a"
+    },
+    "diff": {
+      "add": "#61653d",
+      "change": "#2a4d4b",
+      "delete": "#624127",
+      "text": "#5e483c"
+    },
+    "dim": {
+      "black": "#4f5054",
+      "blue": "#549494",
+      "cyan": "#719d96",
+      "green": "#afbb7c",
+      "magenta": "#c29e88",
+      "orange": "#c39c6b",
+      "pink": "#c1a28a",
+      "red": "#b08059",
+      "white": "#d1c5bb",
+      "yellow": "#d5b77c"
+    },
+    "fg": [
+      "#d6c6b9",
+      "#c7b8ac",
+      "#8c8279",
+      "#5c554f"
+    ],
+    "selection": {
+      "bg": "#c7b8ac",
+      "fg": "#241d1a"
+    }
+  },
+  "is_light": false,
+  "name": "novmbr"
+}
