@@ -2,10 +2,10 @@ use recol_lib as lib;
 use std::io::{self, BufRead, Write};
 use std::{fs, path::Path};
 
-pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
+pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::ThemeEx) -> io::Result<()> {
     let path = path.as_ref();
 
-    // --- Parse existing config ---
+    // Parse existing config
     let file = fs::File::open(path)?;
     let reader = io::BufReader::new(file);
 
@@ -57,8 +57,11 @@ pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<
         preamble.push(b'\n');
     }
 
-    // --- Build theme block ---
-    let colors = theme.colors.clone().into_advanced(None);
+    // Build theme block
+    let c = theme
+        .advanced
+        .clone()
+        .unwrap_or(theme.colors.clone().into_advanced(None));
     let theme_block = format!(
         r###"-- {theme_name}
 config.colors = {{}}
@@ -115,33 +118,33 @@ config.colors.tab_bar = {{
     }},
 }}"###,
         theme_name = theme.name,
-        bg = colors.bg[1],
-        fg = colors.fg[1],
-        bg0 = colors.bg[0],
-        fg0 = colors.fg[0],
-        bg2 = colors.bg[2],
-        fg2 = colors.fg[2],
-        bg3 = colors.bg[3],
-        cur_bg = colors.cursor.bg,
-        cur_fg = colors.cursor.fg,
-        sel_bg = colors.selection.bg,
-        sel_fg = colors.selection.fg,
-        black = colors.base.black,
-        red = colors.base.red,
-        green = colors.base.green,
-        yellow = colors.base.yellow,
-        blue = colors.base.blue,
-        magenta = colors.base.magenta,
-        cyan = colors.base.cyan,
-        white = colors.base.white,
-        black_bright = colors.bright.black,
-        red_bright = colors.bright.red,
-        green_bright = colors.bright.green,
-        yellow_bright = colors.bright.yellow,
-        blue_bright = colors.bright.blue,
-        magenta_bright = colors.bright.magenta,
-        cyan_bright = colors.bright.cyan,
-        white_bright = colors.bright.white,
+        bg = c.bg[1],
+        fg = c.fg[1],
+        bg0 = c.bg[0],
+        fg0 = c.fg[0],
+        bg2 = c.bg[2],
+        fg2 = c.fg[2],
+        bg3 = c.bg[3],
+        cur_bg = c.cursor.bg,
+        cur_fg = c.cursor.fg,
+        sel_bg = c.selection.bg,
+        sel_fg = c.selection.fg,
+        black = c.base.black,
+        red = c.base.red,
+        green = c.base.green,
+        yellow = c.base.yellow,
+        blue = c.base.blue,
+        magenta = c.base.magenta,
+        cyan = c.base.cyan,
+        white = c.base.white,
+        black_bright = c.bright.black,
+        red_bright = c.bright.red,
+        green_bright = c.bright.green,
+        yellow_bright = c.bright.yellow,
+        blue_bright = c.bright.blue,
+        magenta_bright = c.bright.magenta,
+        cyan_bright = c.bright.cyan,
+        white_bright = c.bright.white,
     );
 
     let mut file = fs::File::create(path)?;
@@ -150,9 +153,9 @@ config.colors.tab_bar = {{
     preamble.pop();
     file.write_all(&preamble)?;
 
-    if in_mark_block {
+    // if in_mark_block {
         // file.write_all(&mark_block)?;
-    }
+    // }
 
     // Config-var section, or a fresh empty table when absent.
     const PASSTHROUGH_CONFIG: &[u8] = b"local config = config\n";

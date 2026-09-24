@@ -120,8 +120,8 @@ impl Theme {
         buf
     }
 
-    pub fn print_palette(&self) {
-        crate::print_palette(&self.colors.as_colors_array()[0..14]);
+    pub fn ex(self) -> ThemeEx {
+        self.into()
     }
 }
 
@@ -427,17 +427,11 @@ impl ColorScheme {
         let (black, white) = if is_light {
             cur_bg = cur_bg.brighten(-9.);
             cur_fg = cur_fg.shade(0.3);
-            (
-                p10[9],
-                fg,
-            )
+            (p10[9], fg)
         } else {
             cur_bg = cur_bg.brighten(9.);
             cur_fg = cur_fg.shade(-0.3);
-            (
-                p10[0],
-                fg,
-            )
+            (p10[0], fg)
         };
         bg = bg.saturate(-3.0);
 
@@ -591,6 +585,19 @@ pub struct AdvancedColorScheme {
     pub comment: CssColor,
 }
 
+impl From<AdvancedColorScheme> for ColorScheme {
+    fn from(advanced: AdvancedColorScheme) -> Self {
+        Self {
+            bg: advanced.bg[1].clone(),
+            fg: advanced.fg[1].clone(),
+            selection: advanced.selection,
+            cursor: advanced.cursor,
+            base: advanced.base,
+            bright: advanced.bright,
+        }
+    }
+}
+
 /// Tuning knobs for [`ColorScheme::into_advanced`].
 ///
 /// All `*_brighten` values are additive HSL lightness deltas (positive =
@@ -639,5 +646,65 @@ impl Default for AdvancedColorSchemeParam {
             diff_text_blend: 0.6,
             comment_blend: 0.4,
         }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdvancedTheme {
+    pub name: String,
+    pub is_light: bool,
+    pub colors: AdvancedColorScheme,
+}
+
+impl AdvancedTheme {
+    pub fn ex(self) -> ThemeEx {
+        self.into()
+    }
+}
+
+impl From<Theme> for AdvancedTheme {
+    fn from(theme: Theme) -> Self {
+        Self {
+            name: theme.name,
+            is_light: theme.is_light,
+            colors: theme.colors.into_advanced(None),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThemeEx {
+    pub name: String,
+    pub is_light: bool,
+    pub colors: ColorScheme,
+    pub advanced: Option<AdvancedColorScheme>,
+}
+
+impl From<Theme> for ThemeEx {
+    fn from(theme: Theme) -> Self {
+        Self {
+            name: theme.name,
+            is_light: theme.is_light,
+            colors: theme.colors,
+            advanced: None,
+        }
+    }
+}
+
+impl From<AdvancedTheme> for ThemeEx {
+    fn from(theme: AdvancedTheme) -> Self {
+        Self {
+            name: theme.name,
+            is_light: theme.is_light,
+            colors: theme.colors.clone().into(),
+            advanced: Some(theme.colors),
+        }
+    }
+}
+
+impl ThemeEx {
+    pub fn with_advanced(mut self, cs: AdvancedColorScheme) -> Self {
+        self.advanced.replace(cs);
+        self
     }
 }
