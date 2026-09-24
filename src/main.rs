@@ -49,67 +49,6 @@ fn apply_theme(args: &cli::Args, theme: &lib::ThemeEx) -> Result<()> {
     Ok(())
 }
 
-#[derive(Debug, Clone, Default)]
-enum StdIn {
-    Theme(lib::ThemeEx),
-    List(Vec<lib::ThemeEx>),
-    NotValid,
-
-    #[default]
-    None,
-}
-
-fn read_stdin(args: &cli::Args) -> Result<StdIn> {
-    use std::io::{IsTerminal, Read};
-
-    let stdin = std::io::stdin();
-    if stdin.is_terminal() {
-        return Ok(StdIn::None);
-    }
-
-    let mut input = String::new();
-    std::io::stdin().read_to_string(&mut input)?;
-
-    let trimmed = input.trim();
-    let Some(first) = trimmed.chars().next() else {
-        return Ok(StdIn::None);
-    };
-
-    Ok(match first {
-        '{' => match serde_json::from_str::<lib::AdvancedTheme>(trimmed) {
-            Ok(theme) => StdIn::Theme(theme.ex()),
-            _ => StdIn::NotValid,
-        },
-        '[' => match serde_json::from_str::<Vec<lib::AdvancedTheme>>(trimmed) {
-            Ok(list) => StdIn::List(list.into_iter().map(|v| v.ex()).collect()),
-            _ => StdIn::NotValid,
-        },
-        _ => {
-            let mut c = lib::Collection::new();
-            let filters = args.theme_filters();
-            let mut list = trimmed
-                .lines()
-                .map(str::trim)
-                .filter(|s| !s.is_empty())
-                .filter_map(|l| {
-                    c.find(|t| t.name == l)
-                        .or(c.fuzzy_search(l, &filters, None))
-                })
-                .map(|t| t.into_theme().ex())
-                .collect::<Vec<_>>();
-            if list.is_empty() {
-                StdIn::None
-            } else if list.len() == 1 {
-                StdIn::Theme(list.into_iter().next().unwrap())
-            } else {
-                list.sort_by(|a, b| a.name.cmp(&b.name));
-                list.dedup_by(|a, b| a.name == b.name);
-                StdIn::List(list)
-            }
-        }
-    })
-}
-
 fn theme_action(args: &cli::Args, mut theme: lib::ThemeEx) -> Result<()> {
     theme.colors.apply_adjustments(&args.adjust);
     if args.show {
@@ -129,14 +68,22 @@ fn theme_action(args: &cli::Args, mut theme: lib::ThemeEx) -> Result<()> {
 
 fn main() -> Result<()> {
     let args = cli::Args::parse();
-    let stdin = read_stdin(&args)?;
+    let stdin = cli::read_stdin(&args)?;
 
     match stdin {
-        StdIn::Theme(v) => {
+        cli::StdIn::Theme(v) => {
+            if args.interactive {
+                interactive::run(&args, &[v.name])?;
+                return Ok(());
+            }
             theme_action(&args, v)?;
             return Ok(());
         }
-        StdIn::List(list) => {
+        cli::StdIn::List(list) => {
+            if args.interactive {
+                interactive::run(&args, &list.into_iter().map(|t| t.name).collect::<Vec<_>>())?;
+                return Ok(());
+            }
             if let Some(theme) = if args.rand {
                 fastrand::choice(&list)
             } else {
@@ -146,8 +93,7 @@ fn main() -> Result<()> {
             }
             return Ok(());
         }
-        StdIn::NotValid => {}
-        StdIn::None => {}
+        cli::StdIn::None => {}
     }
 
     if let Some(ref media) = args.media {
@@ -300,7 +246,7 @@ fn main() -> Result<()> {
     }
 
     if args.interactive {
-        interactive::run(&args)?;
+        interactive::run(&args, &[])?;
     }
 
     Ok(())
