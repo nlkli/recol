@@ -9,7 +9,7 @@ fn write_config(path: impl AsRef<Path>, c: &Config) -> crate::Result<()> {
     Ok(())
 }
 
-pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> crate::Result<()> {
+pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::ThemeEx) -> crate::Result<()> {
     let content = fs::read_to_string(&path)?;
     let mut config = toml::from_str::<Config>(&content)?;
     config

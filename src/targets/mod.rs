@@ -83,7 +83,7 @@ impl Target {
     pub fn apply_theme_to(
         &self,
         config_path: impl AsRef<Path>,
-        theme: &lib::Theme,
+        theme: &lib::ThemeEx,
     ) -> crate::Result<()> {
         Ok(match self {
             Target::Ghostty => ghostty::apply_theme_to(&config_path, theme)?,
@@ -286,7 +286,7 @@ fn with_backup<'a>(
 /// Applies a theme to all selected configurations and restores backups on failure.
 pub fn apply_theme<'a>(
     targets: impl Iterator<Item = (&'a Target, PathBuf)>,
-    theme: &lib::Theme,
+    theme: &lib::ThemeEx,
 ) -> crate::Result<()> {
     // Create all backups before changing anything.
     let backups = with_backup(targets)?;

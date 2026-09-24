@@ -1,7 +1,7 @@
 use recol_lib as lib;
 use std::{fs, io, path::Path};
 
-pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
+pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::ThemeEx) -> io::Result<()> {
     // Match ColorScheme::as_colors_array(): UI colors, then ANSI colors 0–15.
     let keys: Vec<String> = [
         "background",
@@ -50,7 +50,7 @@ mod tests {
         )
         .unwrap();
         let colors = std::array::from_fn(|i| lib::Color::from_rgb(i as u8, 0, 0));
-        let theme = lib::Theme::new("test", false, lib::ColorScheme::from_color_slice(&colors));
+        let theme = lib::Theme::new("test", false, lib::ColorScheme::from_color_slice(&colors)).ex();
         apply_theme_to(&path, &theme).unwrap();
         let output = fs::read_to_string(&path).unwrap();
         let mut expected = preserved.to_owned();

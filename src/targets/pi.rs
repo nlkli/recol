@@ -11,8 +11,11 @@ pub struct Settings {
     pub other: HashMap<String, serde_json::Value>,
 }
 
-pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::Theme) -> io::Result<()> {
-    let c = theme.colors.clone().into_advanced(None);
+pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::ThemeEx) -> io::Result<()> {
+    let c = theme
+        .advanced
+        .clone()
+        .unwrap_or(theme.colors.clone().into_advanced(None));
 
     let variant = if theme.is_light { &c.dim } else { &c.bright };
 

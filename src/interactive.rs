@@ -675,7 +675,7 @@ pub fn run(args: &Args) -> io::Result<()> {
                             continue;
                         }
 
-                        let Some(mut theme) = s.list.get(s.list_index).map(|v| v.into_theme())
+                        let Some(mut theme) = s.list.get(s.list_index).map(|v| v.into_theme().ex())
                         else {
                             continue;
                         };
@@ -854,21 +854,20 @@ pub fn run(args: &Args) -> io::Result<()> {
 
     drop(terminal_guard);
 
-    if args.show {
-        s.current_theme
-            .and_then(|n| lib::Collection::new().find(|t| t.name == n))
-            .inspect(|t| {
-                let theme = t.into_theme();
-                crate::print_theme_header(&theme.name, theme.is_light);
-                theme.print_palette();
-            });
-    } else if args.json {
-        s.current_theme
-            .and_then(|n| lib::Collection::new().find(|t| t.name == n))
-            .inspect(|t| {
-                let theme = t.into_theme();
-                crate::print_theme_as_json(theme);
-            });
+    if let Some(t) = s
+        .current_theme
+        .and_then(|n| lib::Collection::new().find(|t| t.name == n))
+    {
+        if args.show {
+            let theme = t.into_theme().ex();
+            crate::print_theme_header(&theme.name, theme.is_light);
+            crate::print_theme_palette(&theme);
+        } else if args.json {
+            let theme = t.into_theme().ex();
+            crate::print_theme_as_json(theme);
+        } else {
+            crate::print_theme_header(&t.name, t.is_light);
+        }
     }
 
     Ok(())
