@@ -630,7 +630,7 @@ fn draw_screen(s: &State) -> io::Result<()> {
         }
         execute!(
             stdout,
-            cursor::MoveTo(s.size.0.saturating_sub(3), s.size.1),
+            cursor::MoveTo(s.size.0.saturating_sub(1), s.size.1),
             style::SetForegroundColor(style::Color::DarkGrey),
             style::Print("?"),
             style::ResetColor,
