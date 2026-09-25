@@ -16,73 +16,23 @@
 - **Alacritty**, **WezTerm** support hot configuration reload. Changes are applied immediately without restarting the terminal.
 
 ### Neovim integration
- 
-Neovim doesn't support hot theme reload, so add a keybinding or command to re-source your config after switching:
- 
-```lua
-vim.keymap.set("n", "<leader>R", ":source ~/.config/nvim/init.lua<CR>") -- or :restart<CR> nvim v0.13
-```
- 
-Run `recol` directly from Neovim:
- 
-```lua
-if vim.fn.executable("recol") == 1 then
-    vim.api.nvim_create_user_command("Recol", function(opts)
-        vim.cmd("!recol " .. opts.args)
-        vim.cmd("source ~/.config/nvim/init.lua")
-    end, { nargs = "*" })
-end
-```
- 
-### Interactive mode inside Neovim
- 
+
 ![recol-nvim-integration-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-nvim-integration.gif)
 
-`:RecolOpen` launches `recol` in a floating window; `:Recol <args>` runs it directly.
- 
-```lua
-if vim.fn.executable("recol") == 1 then
-    local launch_interactive_mode = function()
-        local width = math.floor(vim.o.columns * 0.75)
-        local height = math.floor(vim.o.lines * 0.75)
-        local buf = vim.api.nvim_create_buf(false, true)
-        local win = vim.api.nvim_open_win(buf, true, {
-            relative = "editor",
-            width = width, height = height,
-            row = math.floor((vim.o.lines - height - 3) / 2),
-            col = math.floor((vim.o.columns - width) / 2),
-            border = "rounded",
-            title = " Recol ",
-            title_pos = "center",
-        })
-        vim.bo[buf].bufhidden = "wipe"
-        vim.fn.termopen({ "recol", "-i", "--quit-on-select" }, {
-            on_exit = function()
-                vim.schedule(function()
-                    if vim.api.nvim_win_is_valid(win) then
-                        vim.api.nvim_win_close(win, true)
-                    end
-                    vim.cmd.source("~/.config/nvim/init.lua")
-                end)
-            end,
-        })
-        vim.cmd.startinsert()
-    end
-    vim.api.nvim_create_user_command("Recol", function(opts)
-        local args = vim.split(opts.args, "%s+", { trimempty = true })
-        local is_interactive_mode = vim.tbl_contains(args, "-i") or 
-            vim.tbl_contains(args, "--interactive")
-        if is_interactive_mode then
-            return launch_interactive_mode()
-        end
-        vim.cmd("!recol " .. opts.args)
-        vim.cmd.source("~/.config/nvim/init.lua")
-    end, { nargs = "*" })
-    vim.api.nvim_create_user_command("RecolOpen", function()
-        launch_interactive_mode()
-    end, { nargs = 0 })
-end
+Neovim doesn't support hot theme reload — the config needs to be re-sourced after switching. The integration below handles this automatically after every `recol` run.
+
+Implementation: [`recol.lua`](https://github.com/nlkli/recol/blob/main/recol.lua)
+
+**Install:**
+
+```sh
+curl -Ls https://raw.githubusercontent.com/nlkli/recol/main/recol.lua >> ~/.config/nvim/init.lua
 ```
+
+**Usage:**
+
+- `:Recol <args>` — runs `recol` with the given arguments, then reloads your config
+- `:Recol -i` / `:RecolOpen` — opens `recol` in a floating terminal window
 
 ### Build From Source
 
@@ -131,6 +81,10 @@ echo GruberDarker69 | recol -j | jq '.colors.fg[1] = "#ff0000"' | recol
 recol --list | tail | recol -rdj | jq '.colors.bg[1] = "#000000"' | recol
 
 echo "ubuntu\nVague" | recol -i # interactive mode with initial themes
+
+# start interactive mode with your favourite themes
+recol --list -dc "Catppuccin" >> favourites
+cat favourites | recol -i
 ```
 
 ### Color Adjustments

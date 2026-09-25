@@ -268,7 +268,7 @@ fn logo() -> String {
     )
 }
 
-const VERSION: &str = "recol 0.2.5 [https://github.com/nlkli/recol]";
+const VERSION: &str = "recol 0.2.6 [https://github.com/nlkli/recol]";
 
 // NOTE: some flags (e.g. --font*, --nvim_config, --init-input,
 // --init-help, --quit-on-select, --palettegen) are intentionally
@@ -280,7 +280,7 @@ fn help() -> String {
         r#"CLI utility for changing the color scheme
 {magenta}https://github.com/nlkli/recol{reset}
 
-{green}Usage:{reset} {blue}recol [OPTIONS] [THEME_NAME]{reset}
+{green}Usage:{reset} {blue}[LIST|JSON] | recol [OPTIONS] [THEME_NAME]{reset}
 
 {green}Options:{reset} (most flags can be combined)
   {blue}-T{reset}, {blue}--target <NAME,...>{reset} [env: RECOL_TARGET]
