@@ -128,7 +128,9 @@ recol                         # print current theme name (add --show or --json f
 
 # change a theme color via JSON and apply the modified theme
 echo GruberDarker69 | recol -j | jq '.colors.fg[1] = "#ff0000"' | recol
-recol --list | tail | recol -rj | jq '.colors.bg[1] = "#000000"' | recol
+recol --list | tail | recol -rdj | jq '.colors.bg[1] = "#000000"' | recol
+
+echo "ubuntu\nVague" | recol -i # interactive mode with initial themes
 ```
 
 ### Color Adjustments

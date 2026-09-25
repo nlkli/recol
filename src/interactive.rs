@@ -241,7 +241,7 @@ fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
     let c = theme.colors.clone().into_advanced(None);
 
     vec![
-        part_buf![("// Press ?/H for help", &c.comment)],
+        part_buf![("// Press ? for help", &c.comment)],
         part_buf![
             ("use ", &c.base.magenta),
             ("std", &c.base.cyan),
@@ -443,7 +443,6 @@ fn draw_screen(s: &State) -> io::Result<()> {
                 &[
                     ("/ : i", "Enter input mode"),
                     ("a", "Enter adjust input mode"),
-                    ("Backspace", "Delete last character"),
                     ("Esc / Enter", "Exit input mode"),
                     ("f", "Filter by first word (family)"),
                 ],
@@ -461,7 +460,7 @@ fn draw_screen(s: &State) -> io::Result<()> {
                 "GENERAL",
                 &[
                     ("Enter", "Apply theme"),
-                    ("? / H", "Open this help"),
+                    ("?", "Open this help"),
                     ("q / Ctrl+c", "Quit"),
                 ],
             ),
@@ -633,7 +632,7 @@ fn draw_screen(s: &State) -> io::Result<()> {
             stdout,
             cursor::MoveTo(s.size.0.saturating_sub(3), s.size.1),
             style::SetForegroundColor(style::Color::DarkGrey),
-            style::Print("?/H"),
+            style::Print("?"),
             style::ResetColor,
         )?;
         execute!(stdout, cursor::MoveTo(s.cursor.0, s.cursor.1), cursor::Hide)?;
@@ -646,7 +645,28 @@ pub fn run(args: &Args, init_list: &[String]) -> io::Result<()> {
     let terminal_guard = TerminalGuard::new()?;
 
     let list = if init_list.is_empty() {
-        lib::Collection::new().collect()
+        if let Ok(v) = std::env::var("RECOL_FAVOURITES") {
+            let path = std::path::PathBuf::from(v);
+            if path.is_file() {
+                let content = std::fs::read_to_string(&path)?;
+                let mut c = lib::Collection::new();
+                let filters = args.theme_filters();
+                content
+                    .trim()
+                    .lines()
+                    .map(str::trim)
+                    .filter(|s| !s.is_empty())
+                    .filter_map(|l| {
+                        c.find(|t| t.name == l)
+                            .or(c.fuzzy_search(l, &filters, None))
+                    })
+                    .collect::<Vec<_>>()
+            } else {
+                lib::Collection::new().collect()
+            }
+        } else {
+            lib::Collection::new().collect()
+        }
     } else {
         lib::Collection::new()
             .filter(|t| init_list.iter().any(|s| t.name == s))
@@ -727,7 +747,7 @@ pub fn run(args: &Args, init_list: &[String]) -> io::Result<()> {
                         s.mode = Mode::AdjustInput;
                         // s.adjust_input_buf.clear();
                     }
-                    (event::KeyCode::Char('?' | 'H'), Mode::Normal) => {
+                    (event::KeyCode::Char('?'), Mode::Normal) => {
                         s.mode = Mode::Help;
                     }
                     (event::KeyCode::Char('j' | '+'), Mode::Normal) => s.scroll_list_down(1),

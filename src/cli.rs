@@ -419,6 +419,12 @@ pub fn read_stdin(args: &Args) -> crate::Result<StdIn> {
             let mut list = trimmed
                 .lines()
                 .map(str::trim)
+                .map(|s| {
+                    s.strip_suffix("<LIGHT>")
+                        .or_else(|| s.strip_suffix("<DARK>"))
+                        .map(str::trim)
+                        .unwrap_or(s)
+                })
                 .filter(|s| !s.is_empty())
                 .filter_map(|l| {
                     c.find(|t| t.name == l)
