@@ -29,8 +29,6 @@ Implementation: [`recol.lua`](https://github.com/nlkli/recol/blob/main/recol.lua
 curl -Ls https://raw.githubusercontent.com/nlkli/recol/main/recol.lua >> ~/.config/nvim/init.lua
 ```
 
-**Usage:**
-
 - `:Recol <args>` — runs `recol` with the given arguments, then reloads your config
 - `:Recol -i` / `:RecolOpen` — opens `recol` in a floating terminal window
 
