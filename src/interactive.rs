@@ -645,7 +645,7 @@ pub fn run(args: &Args, init_list: &[String]) -> io::Result<()> {
     let terminal_guard = TerminalGuard::new()?;
 
     let list = if init_list.is_empty() {
-        if let Ok(v) = std::env::var("RECOL_FAVOURITES") {
+        if let Ok(v) = std::env::var("RECOL_FAVOURITES_FILE") {
             let path = std::path::PathBuf::from(v);
             if path.is_file() {
                 let content = std::fs::read_to_string(&path)?;
