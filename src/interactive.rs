@@ -644,6 +644,7 @@ fn draw_screen(s: &State) -> io::Result<()> {
 pub fn run(args: &Args, init_list: &[String]) -> io::Result<()> {
     let terminal_guard = TerminalGuard::new()?;
 
+    // Favourites (RECOL_FAVOURITES_FILE) — suggested by Scott Baggett (@scottbaggett)
     let list = if init_list.is_empty() {
         if let Ok(v) = std::env::var("RECOL_FAVOURITES_FILE") {
             let path = std::path::PathBuf::from(v);
