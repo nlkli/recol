@@ -19,11 +19,9 @@
 
 ![recol-nvim-integration-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-nvim-integration.gif)
 
-Neovim doesn't support hot theme reload — the config needs to be re-sourced after switching. The integration below handles this automatically after every `recol` run.
+Neovim doesn't hot-reload themes, so its config needs to be re-sourced after switching. This integration handles that automatically. See [`recol.lua`](https://github.com/nlkli/recol/blob/main/recol.lua) for the implementation.
 
-Implementation: [`recol.lua`](https://github.com/nlkli/recol/blob/main/recol.lua)
-
-**Install:**
+**Install in `init.lua`:**
 
 ```sh
 curl -Ls https://raw.githubusercontent.com/nlkli/recol/main/recol.lua >> ~/.config/nvim/init.lua
@@ -153,19 +151,20 @@ pub const ALL_TARGETS: [Target; 8] = [ /* ..., Target::Vscode */ ];
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   24       6,051       590       490      4,971        633
+Rust                   24       6,191       608       492      5,091        664
 TOML                    2          49         6         0         43          0
 License                 1          21         4         0         17          0
-Markdown                1         226        54         0        172          0
+Lua                     1          63         0         4         59         12
+Markdown                1         174        52         0        122          0
 Shell                   1          15         4         7          4          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  29       6,362       658       497      5,207        633
+Total                  30       6,513       674       503      5,336        676
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $152,777
-Estimated Schedule Effort (organic) 6.74 months
-Estimated People Required (organic) 2.02
+Estimated Cost to Develop (organic) $156,753
+Estimated Schedule Effort (organic) 6.80 months
+Estimated People Required (organic) 2.05
 ───────────────────────────────────────────────────────────────────────────────
-Processed 217,355 bytes, 0.217 megabytes (SI)
+Processed 221,457 bytes, 0.221 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
