@@ -119,13 +119,8 @@ This feature requires no additional Cargo/Rust dependencies. recol simply invoke
 Each target is a small module under `src/targets/`:
 
 1. **Locate the config file** - add a `Target` arm in `existing_default_config_path()` (`src/targets/mod.rs`). Find the correct path(s), honouring `XDG_CONFIG_HOME`; return `None` if the target isn't configured.
-2. **Apply the theme non-destructively** - implement `apply_theme_to(path, theme)` in a new `src/targets/<name>.rs`. Edit the config in place (replace or insert the color values), preserving everything else, and match an existing target's config format. Optionally implement `set_font_on` for font changes.
+2. **Apply the theme non-destructively** - implement `apply_theme_to(path, theme)` in a new `src/targets/<name>.rs`. Edit the config in place (replace or insert the color values), preserving everything else, and match an existing target's config format.
 3. **Register the target** in `src/targets/mod.rs`:
-   - `mod <name>;`
-   - Add a variant to the `Target` enum
-   - Add it to `ALL_TARGETS`
-   - Add arms to `Display` (the shown name) and `FromStr` (the CLI value, e.g. `vscode`)
-   - Add arms to `Target::apply_theme_to` and `existing_default_config_path`
 
 ```rust
 // src/targets/mod.rs - example registration
