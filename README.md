@@ -1,13 +1,12 @@
 # recol
 
-**Switch your terminal, editor, and application color schemes from one command — no manual config editing.** Pick from 600+ prebuilt schemes with instant fuzzy search and apply them across multiple supported targets.
+**Switch your terminal, editor, and application color schemes from one command - no manual config editing.** Pick from 600+ prebuilt schemes with instant fuzzy search and apply them across multiple supported targets.
 
 ![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
 - **600+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
 - **Targets support:** [Ghostty](https://ghostty.org), [Kitty](https://sw.kovidgoyal.net/kitty/), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org), [Pi](https://github.com/earendil-works/pi)
-- **Neovim theme integration** based on [Nightfox.nvim](https://github.com/EdenEast/nightfox.nvim)
-- **Non-destructive** — only color values are modified, nothing else in your config
+- **Non-destructive** - only color values are modified, nothing else in your config
 
 ### Terminal support notes
 
@@ -27,8 +26,8 @@ Neovim doesn't hot-reload themes, so its config needs to be re-sourced after swi
 curl -Ls https://raw.githubusercontent.com/nlkli/recol/main/recol.lua >> ~/.config/nvim/init.lua
 ```
 
-- `:Recol <args>` — runs `recol` with the given arguments, then reloads your config
-- `:Recol -i` / `:RecolOpen` — opens `recol` in a floating terminal window
+- `:Recol <args>` - runs `recol` with the given arguments, then reloads your config
+- `:Recol -i` / `:RecolOpen` - opens `recol` in a floating terminal window
 
 ### Build From Source
 
@@ -115,12 +114,12 @@ This feature requires no additional Cargo/Rust dependencies. recol simply invoke
 
 ![recol-demo-pi-agent-target](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-pi-agent-target.gif)
 
-`recol` ships with a limited set of built-in targets (Ghostty, Kitty, Alacritty, WezTerm, Neovim, Vim, Pi). You can extend it to apply themes to any application that lets you tweak its config file — window managers, browsers, file managers, text editors, and more.
+`recol` ships with a limited set of built-in targets (Ghostty, Kitty, Alacritty, WezTerm, Neovim, Vim, Pi). You can extend it to apply themes to any application that lets you tweak its config file - window managers, browsers, file managers, text editors, and more.
 
 Each target is a small module under `src/targets/`:
 
-1. **Locate the config file** — add a `Target` arm in `existing_default_config_path()` (`src/targets/mod.rs`). Find the correct path(s), honouring `XDG_CONFIG_HOME`; return `None` if the target isn't configured.
-2. **Apply the theme non-destructively** — implement `apply_theme_to(path, theme)` in a new `src/targets/<name>.rs`. Edit the config in place (replace or insert the color values), preserving everything else, and match an existing target's config format. Optionally implement `set_font_on` for font changes.
+1. **Locate the config file** - add a `Target` arm in `existing_default_config_path()` (`src/targets/mod.rs`). Find the correct path(s), honouring `XDG_CONFIG_HOME`; return `None` if the target isn't configured.
+2. **Apply the theme non-destructively** - implement `apply_theme_to(path, theme)` in a new `src/targets/<name>.rs`. Edit the config in place (replace or insert the color values), preserving everything else, and match an existing target's config format. Optionally implement `set_font_on` for font changes.
 3. **Register the target** in `src/targets/mod.rs`:
    - `mod <name>;`
    - Add a variant to the `Target` enum
@@ -129,12 +128,12 @@ Each target is a small module under `src/targets/`:
    - Add arms to `Target::apply_theme_to` and `existing_default_config_path`
 
 ```rust
-// src/targets/mod.rs — example registration
+// src/targets/mod.rs - example registration
 mod vscode;
 // ...
 pub enum Target { /* ..., Vscode */ }
 pub const ALL_TARGETS: [Target; 8] = [ /* ..., Target::Vscode */ ];
-// Display, FromStr, apply_theme_to, existing_default_config_path — add one arm each
+// Display, FromStr, apply_theme_to, existing_default_config_path - add one arm each
 ```
 
 ### Demo & Screenshots
@@ -151,20 +150,16 @@ pub const ALL_TARGETS: [Target; 8] = [ /* ..., Target::Vscode */ ];
 ───────────────────────────────────────────────────────────────────────────────
 Language            Files       Lines    Blanks  Comments       Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Rust                   24       6,191       608       492      5,091        664
+Rust                   24       6,224       612       494      5,118        673
 TOML                    2          49         6         0         43          0
 License                 1          21         4         0         17          0
 Lua                     1          63         0         4         59         12
-Markdown                1         174        52         0        122          0
+Markdown                1         170        52         0        118          0
 Shell                   1          15         4         7          4          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                  30       6,513       674       503      5,336        676
+Total                  30       6,542       678       505      5,359        685
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $156,753
-Estimated Schedule Effort (organic) 6.80 months
-Estimated People Required (organic) 2.05
-───────────────────────────────────────────────────────────────────────────────
-Processed 221,457 bytes, 0.221 megabytes (SI)
+Processed 222,204 bytes, 0.222 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
