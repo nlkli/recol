@@ -9,12 +9,13 @@ fn main() {
         // Use RECOL_GHOSSTY_THEMES_DIR to provide a custom themes directory.
         // Otherwise, themes are loaded from ./colorschemes.
         recol_lib::build_colorschemes_bin(
-            std::env::var("RECOL_GHOSSTY_THEMES_DIR")
-                .unwrap_or_else(|_| "./colorschemes".into()),
+            std::env::var("RECOL_GHOSSTY_THEMES_DIR").unwrap_or_else(|_| "./colorschemes".into()),
             &mut output,
-
             // Exclude unwanted themes from the built-in collection.
             |name| !["theme_to_exclude"].contains(&name),
+            // Normalizes black and white colors across themes that use different color ordering.
+            // Light themes expect `black` to be lighter than `white`, while dark themes expect the opposite.
+            false,
         )
         .expect("Failed to build colorschemes.bin");
     }
