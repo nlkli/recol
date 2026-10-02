@@ -1,11 +1,11 @@
-//! Binary color scheme collection — zero-allocation, zero-copy access.
+//! Binary color scheme collection - zero-allocation, zero-copy access.
 //!
 //! # Binary layout
 //!
 //! ```text
 //! ┌─────────────────────────────────────────────────────────┐
 //! │ Header                                                  │
-//! │   count        : u16 BE   — number of themes            │
+//! │   count        : u16 BE   - number of themes            │
 //! ├─────────────────────────────────────────────────────────┤
 //! │ Offset table  (count × 4 bytes)                         │
 //! │   offsets      : [u32 BE; count]                        │
@@ -14,9 +14,9 @@
 //! ├─────────────────────────────────────────────────────────┤
 //! │ Themes section  (variable length)                       │
 //! │   Per theme:                                            │
-//! │     name_len   : u8       — length of the name in bytes │
-//! │     name       : [u8; name_len]  — UTF-8                │
-//! │     is_light   : u8       — 0 = dark, non-zero = light  │
+//! │     name_len   : u8       - length of the name in bytes │
+//! │     name       : [u8; name_len]  - UTF-8                │
+//! │     is_light   : u8       - 0 = dark, non-zero = light  │
 //! │     colors     : [u8; COLOR_SCHEME_SIZE]                │
 //! └─────────────────────────────────────────────────────────┘
 //! ```
@@ -30,19 +30,17 @@ use std::{
     path::Path,
 };
 
-// TODO: remove offst table?
-/// Source: <https://github.com/mbadolato/iTerm2-Color-Schemes/tree/master/ghostty>
 pub const COLOR_SCHEMES: &[u8] = include_bytes!("colorschemes.bin");
 
 /// Number of themes stored in the binary.
 #[inline]
-fn theme_count() -> usize {
+const fn theme_count() -> usize {
     u16::from_be_bytes([COLOR_SCHEMES[0], COLOR_SCHEMES[1]]) as usize
 }
 
 /// Byte offset where the themes section begins (after header + offset table).
 #[inline]
-fn themes_section_start() -> usize {
+const fn themes_section_start() -> usize {
     2 + theme_count() * 4
 }
 
@@ -59,7 +57,7 @@ fn theme_raw(i: usize) -> &'static [u8] {
     &COLOR_SCHEMES[themes_section_start() + theme_section_offset(i)..]
 }
 
-/// A theme whose color data is not yet decoded — only name and light/dark flag
+/// A theme whose color data is not yet decoded - only name and light/dark flag
 /// are held as direct references into the embedded binary.
 #[derive(Debug, Clone, Copy)]
 pub struct LazyTheme {
@@ -200,7 +198,7 @@ impl Collection {
     }
 
     /// Pick a uniformly random theme among those matching `filters`
-    /// (reservoir sampling — single pass, no allocation).
+    /// (reservoir sampling - single pass, no allocation).
     pub fn random(&mut self, filters: &[ThemeFilter<'_>]) -> Option<LazyTheme> {
         self.reset();
         let mut chosen = None;
@@ -221,7 +219,12 @@ impl Collection {
     }
 
     /// Find the best fuzzy match for `query` among themes matching `filters`.
-    pub fn fuzzy_search(&mut self, query: &str, filters: &[ThemeFilter<'_>], min_score: Option<f64>) -> Option<LazyTheme> {
+    pub fn fuzzy_search(
+        &mut self,
+        query: &str,
+        filters: &[ThemeFilter<'_>],
+        min_score: Option<f64>,
+    ) -> Option<LazyTheme> {
         let candidates = self.name_list(filters);
         crate::fuzzy::search(query, &candidates, min_score).and_then(|name| self.by_name(name))
     }
@@ -269,25 +272,26 @@ impl Iterator for Collection {
     }
 }
 
-/// Build `colorschemes.bin` from a directory of Ghostty theme files.
+/// Builds `colorschemes.bin` from a directory of Ghostty theme files.
 ///
-/// `filter_by_name` lets callers exclude files by name (e.g. hidden files).
-/// Files are sorted alphabetically by name before parsing, so offsets are
-/// computed in a single forward pass — no reordering or recomputation needed.
+/// `filter_by_name` can exclude files by name.
+/// Files are sorted alphabetically to ensure deterministic output.
+/// `normalize_bw` fixes inconsistent black/white ordering across themes.
 pub fn build_colorschemes_bin(
     dir_path: impl AsRef<Path>,
     mut out: impl Write,
     filter_by_name: fn(&str) -> bool,
+    normalize_bw: bool,
 ) -> std::io::Result<()> {
     let mut files = Vec::new();
 
     for entry in std::fs::read_dir(dir_path)? {
         let entry = entry?;
         let path = entry.path();
-        let Some(file_name) = path.file_name() else {
+        let Some(file_stem) = path.file_stem() else {
             continue;
         };
-        files.push((file_name.to_string_lossy().to_string(), path));
+        files.push((file_stem.to_string_lossy().to_string(), path));
     }
 
     files.sort_by(|(a, _), (b, _)| a.cmp(b));
@@ -301,13 +305,41 @@ pub fn build_colorschemes_bin(
         if !filter_by_name(&name) {
             continue;
         }
-        let bytes = parse_ghostty_theme(&path, &name)?.bytes();
+
+        let mut theme = parse_ghostty_theme(&path, &name)?;
+
+        if normalize_bw {
+            // Normalize black/white ordering for light and dark themes.
+            let mut bc = theme.colors.base.black.color();
+            let mut wc = theme.colors.base.white.color();
+            if (theme.is_light && bc.lab().0 < wc.lab().0)
+                || (!theme.is_light && bc.lab().0 > wc.lab().0)
+            {
+                std::mem::swap(&mut bc, &mut wc);
+            }
+            theme.colors.base.black = bc.css();
+            theme.colors.base.white = wc.css();
+
+            let mut bc = theme.colors.bright.black.color();
+            let mut wc = theme.colors.bright.white.color();
+            if (theme.is_light && bc.lab().0 < wc.lab().0)
+                || (!theme.is_light && bc.lab().0 > wc.lab().0)
+            {
+                std::mem::swap(&mut bc, &mut wc);
+            }
+            theme.colors.bright.black = bc.css();
+            theme.colors.bright.white = wc.css();
+        }
+
+        let bytes = theme.bytes();
+
         theme_list_bytes.extend_from_slice(&bytes);
         offsets_bytes.extend_from_slice(&offset.to_be_bytes());
         offset += bytes.len() as u32;
         count += 1;
     }
 
+    // Write theme count, offsets, and serialized theme data.
     out.write_all(&count.to_be_bytes())?;
     out.write_all(&offsets_bytes)?;
     out.write_all(&theme_list_bytes)?;
