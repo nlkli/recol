@@ -268,7 +268,11 @@ fn logo() -> String {
     )
 }
 
-const VERSION: &str = "recol 0.2.6 [https://github.com/nlkli/recol]";
+const VERSION: &str = concat!(
+    "recol ",
+    env!("CARGO_PKG_VERSION"),
+    " [https://github.com/nlkli/recol]"
+);
 
 // NOTE: some flags (e.g. --font*, --nvim_config, --init-input,
 // --init-help, --quit-on-select, --palettegen) are intentionally
