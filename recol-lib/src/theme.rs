@@ -1,4 +1,3 @@
-//!
 //! # Color order in `ColorScheme` binary representation
 //!
 //! A [`ColorScheme`] is serialized as exactly [`COLOR_SCHEME_NC`] colors,
@@ -546,27 +545,27 @@ pub struct DiffColors {
 /// # Background gradient (`bg`)
 ///
 /// ```text
-/// bg[0]  — slightly outside main bg (contrast, e.g. sidebar/status bar)
-/// bg[1]  — main background  (= ColorScheme::bg)
-/// bg[2]  — bg + bg2_brighten
-/// bg[3]  — bg + bg3_brighten
-/// bg[4]  — bg + bg4_brighten
+/// bg[0]  - slightly outside main bg (contrast, e.g. sidebar/status bar)
+/// bg[1]  - main background  (= ColorScheme::bg)
+/// bg[2]  - bg + bg2_brighten
+/// bg[3]  - bg + bg3_brighten
+/// bg[4]  - bg + bg4_brighten
 /// ```
 ///
 /// # Foreground gradient (`fg`)
 ///
 /// ```text
-/// fg[0]  — slightly outside main fg (e.g. bold text)
-/// fg[1]  — main foreground  (= ColorScheme::fg)
-/// fg[2]  — fg + fg2_brighten
-/// fg[3]  — fg + fg3_brighten
+/// fg[0]  - slightly outside main fg (e.g. bold text)
+/// fg[1]  - main foreground  (= ColorScheme::fg)
+/// fg[2]  - fg + fg2_brighten
+/// fg[3]  - fg + fg3_brighten
 /// ```
 ///
 /// # Alternative selection (`alt_selection`)
 ///
 /// ```text
-/// alt_selection[0]  — blend(bg, fg,     code_selection_blend)
-/// alt_selection[1]  — blend(bg, cursor, code_selection_blend)
+/// alt_selection[0]  - blend(bg, fg,     code_selection_blend)
+/// alt_selection[1]  - blend(bg, cursor, code_selection_blend)
 /// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdvancedColorScheme {
@@ -580,7 +579,7 @@ pub struct AdvancedColorScheme {
     /// Base palette shaded by `dim_shade` (for dimmed/inactive text).
     pub dim: AnsiColors,
     pub diff: DiffColors,
-    /// Blend of fg toward bg — typically used for comments.
+    /// Blend of fg toward bg - typically used for comments.
     pub comment: CssColor,
 }
 
