@@ -250,7 +250,7 @@ impl ColorScheme {
     }
 
     pub fn is_light(&self) -> bool {
-        self.bg.color().hsl().2 > 50.
+        self.bg.color().lab().0 > 50.
     }
 
     /// Expand this scheme into an [`AdvancedColorScheme`] using the given
@@ -260,8 +260,7 @@ impl ColorScheme {
 
         let bg_color = self.bg.color();
         let fg_color = self.fg.color();
-        let bg_lum = bg_color.hsl().2;
-        let is_light = bg_lum > 50.0;
+        let is_light = bg_color.lab().0 > 50.0;
 
         // Direction multiplier: +1 for dark themes (brighten = lighter),
         // -1 for light themes (brighten = darker).
@@ -272,7 +271,7 @@ impl ColorScheme {
 
         // bg[0] is always slightly *outside* the main bg to create contrast;
         // if the naive direction would clip against the boundary, flip it.
-        let bg0 = if (bg_lum + p.bg0_brighten * m - z) * (-m) - GAP < 100.0 {
+        let bg0 = if (bg_color.hsl().2 + p.bg0_brighten * m - z) * (-m) - GAP < 100.0 {
             bg_color.brighten(p.bg0_brighten * m).css()
         } else {
             bg_color.brighten(-p.bg0_brighten * m).css()
