@@ -15,7 +15,8 @@ fn main() {
             |name| !["theme_to_exclude"].contains(&name),
             // Normalizes black and white colors across themes that use different color ordering.
             // Light themes expect `black` to be lighter than `white`, while dark themes expect the opposite.
-            false,
+            true,
+            true,
         )
         .expect("Failed to build colorschemes.bin");
     }

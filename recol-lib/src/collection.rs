@@ -282,6 +282,7 @@ pub fn build_colorschemes_bin(
     mut out: impl Write,
     filter_by_name: fn(&str) -> bool,
     normalize_bw: bool,
+    tmux_fix: bool,
 ) -> std::io::Result<()> {
     let mut files = Vec::new();
 
@@ -329,6 +330,22 @@ pub fn build_colorschemes_bin(
             }
             theme.colors.bright.black = bc.css();
             theme.colors.bright.white = wc.css();
+        }
+
+        if tmux_fix {
+            let mut bc = theme.colors.base.black.color();
+            let gc = theme.colors.base.green.color();
+            let bf = if bc.lab().0 < 50. { -1. } else { 1. };
+            let mut n = 0;
+            while gc.wcag_contrast_ratio(&bc) < 2.1 && n < 99 {
+                bc = bc.brighten(bf);
+                n += 1;
+            }
+            if n > 0 {
+                theme.colors.base.black = bc.css();
+                let bbc = theme.colors.bright.black.color();
+                theme.colors.bright.black = bbc.brighten(bf * (n as f32)).css();
+            }
         }
 
         let bytes = theme.bytes();
