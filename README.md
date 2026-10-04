@@ -1,10 +1,10 @@
 # recol
 
-**Switch your terminal, editor, and application color schemes from one command - no manual config editing.** Pick from 600+ prebuilt schemes with instant fuzzy search and apply them across multiple supported targets.
+**Switch your terminal, editor, and application color schemes from one command - no manual config editing.** Pick from 700+ prebuilt schemes with instant fuzzy search and apply them across multiple supported targets.
 
 ![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
-- **600+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
+- **700+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
 - **Targets support:** [Ghostty](https://ghostty.org), [Kitty](https://sw.kovidgoyal.net/kitty/), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org), [Pi](https://github.com/earendil-works/pi)
 - **Non-destructive** - only color values are modified, nothing else in your config
 
