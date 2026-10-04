@@ -277,6 +277,7 @@ impl Iterator for Collection {
 /// `filter_by_name` can exclude files by name.
 /// Files are sorted alphabetically to ensure deterministic output.
 /// `normalize_bw` fixes inconsistent black/white ordering across themes.
+/// `tmux_fix` makes `black` readable on `green` (tmux's default status bar):
 pub fn build_colorschemes_bin(
     dir_path: impl AsRef<Path>,
     mut out: impl Write,
