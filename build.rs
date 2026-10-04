@@ -16,6 +16,7 @@ fn main() {
             // Normalizes black and white colors across themes that use different color ordering.
             // Light themes expect `black` to be lighter than `white`, while dark themes expect the opposite.
             true,
+            // tmux_fix: makes `black` readable on `green` (tmux's default status bar).
             true,
         )
         .expect("Failed to build colorschemes.bin");
