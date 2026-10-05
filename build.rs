@@ -16,8 +16,15 @@ fn main() {
             // Normalizes black and white colors across themes that use different color ordering.
             // Light themes expect `black` to be lighter than `white`, while dark themes expect the opposite.
             true,
-            // tmux_fix: makes `black` readable on `green` (tmux's default status bar).
-            true,
+            // `tmux_fix` - `(enabled, target_wcag_contrast_ratio)`. makes `black` readable on `green` (tmux's default status bar).
+            (true, 2.3),
+            // `normalize_anomalies` - `(enabled, z_threshold, alpha)`.
+            // When enabled, pulls the lightness of palette colors that stand out
+            // on both contrast and L* toward the median.
+            // `z_threshold` is how far a color must deviate to count as an outlier
+            // (lower = more colors get fixed). `alpha` is how far to pull it
+            // toward the median (0.0 = not at all, 1.0 = all the way).
+            (true, 1., 0.666),
         )
         .expect("Failed to build colorschemes.bin");
     }
