@@ -374,17 +374,12 @@ fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
             ("[0]", &c.dim.orange),
             ("[0]", &c.dim.pink),
         ],
-        part_buf![("Selection:", &c.fg[1])],
-        part_buf![("  [0]", &c.selection.bg), ("[0]", &c.selection.fg)],
-        part_buf![("Cursor:", &c.fg[1])],
-        part_buf![("  [0]", &c.cursor.bg), ("[0]", &c.cursor.fg)],
-        part_buf![("Background:", &c.fg[1])],
+        part_buf![("Selection:    Cursor:", &c.fg[1])],
         part_buf![
-            ("  [0]", &c.bg[0]),
-            ("[0]", &c.bg[1]),
-            ("[0]", &c.bg[2]),
-            ("[0]", &c.bg[3]),
-            ("[0]", &c.bg[4]),
+            ("  [0]", &c.selection.bg),
+            ("[0]", &c.selection.fg),
+            ("      [0]", &c.cursor.bg),
+            ("[0]", &c.cursor.fg)
         ],
         part_buf![("Foreground:", &c.fg[1])],
         part_buf![
@@ -392,6 +387,14 @@ fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
             ("[0]", &c.fg[1]),
             ("[0]", &c.fg[2]),
             ("[0]", &c.fg[3]),
+        ],
+        part_buf![("Background:", &c.fg[1])],
+        part_buf![
+            ("  [0]", &c.bg[0]),
+            ("[0]", &c.bg[1]),
+            ("[0]", &c.bg[2]),
+            ("[0]", &c.bg[3]),
+            ("[0]", &c.bg[4]),
         ],
         part_buf![("Diff:", &c.fg[1])],
         part_buf![
