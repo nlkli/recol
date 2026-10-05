@@ -277,13 +277,20 @@ impl Iterator for Collection {
 /// `filter_by_name` can exclude files by name.
 /// Files are sorted alphabetically to ensure deterministic output.
 /// `normalize_bw` fixes inconsistent black/white ordering across themes.
-/// `tmux_fix` makes `black` readable on `green` (tmux's default status bar):
+/// `tmux_fix` - `(enabled, target_wcag_contrast_ratio)`. makes `black` readable on `green` (tmux's default status bar).
+/// `normalize_anomalies` - `(enabled, z_threshold, alpha)`.
+/// When enabled, pulls the lightness of palette colors that stand out
+/// on both contrast and L* toward the median.
+/// `z_threshold` is how far a color must deviate to count as an outlier
+/// (lower = more colors get fixed). `alpha` is how far to pull it
+/// toward the median (0.0 = not at all, 1.0 = all the way).
 pub fn build_colorschemes_bin(
     dir_path: impl AsRef<Path>,
     mut out: impl Write,
     filter_by_name: fn(&str) -> bool,
     normalize_bw: bool,
-    tmux_fix: bool,
+    tmux_fix: (bool, f32),
+    normalize_anomalies: (bool, f32, f32),
 ) -> std::io::Result<()> {
     let mut files = Vec::new();
 
@@ -311,7 +318,6 @@ pub fn build_colorschemes_bin(
         let mut theme = parse_ghostty_theme(&path, &name)?;
 
         if normalize_bw {
-            // Normalize black/white ordering for light and dark themes.
             let mut bc = theme.colors.base.black.color();
             let mut wc = theme.colors.base.white.color();
             if (theme.is_light && bc.lab().0 < wc.lab().0)
@@ -333,12 +339,13 @@ pub fn build_colorschemes_bin(
             theme.colors.bright.white = wc.css();
         }
 
-        if tmux_fix {
+        if tmux_fix.0 {
+            let ratio = tmux_fix.1;
             let mut bc = theme.colors.base.black.color();
             let gc = theme.colors.base.green.color();
             let bf = if bc.lab().0 < 50. { -1. } else { 1. };
             let mut n = 0;
-            while gc.wcag_contrast_ratio(&bc) < 2.1 && n < 99 {
+            while gc.wcag_contrast_ratio(&bc) < ratio && n < 99 {
                 bc = bc.brighten(bf);
                 n += 1;
             }
@@ -347,6 +354,106 @@ pub fn build_colorschemes_bin(
                 let bbc = theme.colors.bright.black.color();
                 theme.colors.bright.black = bbc.brighten(bf * (n as f32)).css();
             }
+        }
+
+        if normalize_anomalies.0 {
+            let z_threshold = normalize_anomalies.1.abs();
+            let alpha = normalize_anomalies.2.clamp(0., 1.);
+
+            let bg = theme.colors.bg.color();
+
+            let mut pal = [
+                theme.colors.base.red.color(),
+                theme.colors.base.green.color(),
+                theme.colors.base.yellow.color(),
+                theme.colors.base.blue.color(),
+                theme.colors.base.magenta.color(),
+                theme.colors.base.cyan.color(),
+            ];
+            normalize_lightness_of_dual_outliers(z_threshold, alpha, &bg, &mut pal);
+
+            theme.colors.base.red = pal[0].css();
+            theme.colors.base.green = pal[1].css();
+            theme.colors.base.yellow = pal[2].css();
+            theme.colors.base.blue = pal[3].css();
+            theme.colors.base.magenta = pal[4].css();
+            theme.colors.base.cyan = pal[5].css();
+
+            let mut pal = [
+                theme.colors.bright.red.color(),
+                theme.colors.bright.green.color(),
+                theme.colors.bright.yellow.color(),
+                theme.colors.bright.blue.color(),
+                theme.colors.bright.magenta.color(),
+                theme.colors.bright.cyan.color(),
+            ];
+            normalize_lightness_of_dual_outliers(z_threshold, alpha, &bg, &mut pal);
+
+            theme.colors.bright.red = pal[0].css();
+            theme.colors.bright.green = pal[1].css();
+            theme.colors.bright.yellow = pal[2].css();
+            theme.colors.bright.blue = pal[3].css();
+            theme.colors.bright.magenta = pal[4].css();
+            theme.colors.bright.cyan = pal[5].css();
+
+            // with white
+            let mut pal = [
+                theme.colors.base.red.color(),
+                theme.colors.base.green.color(),
+                theme.colors.base.yellow.color(),
+                theme.colors.base.blue.color(),
+                theme.colors.base.magenta.color(),
+                theme.colors.base.cyan.color(),
+                theme.colors.base.white.color(),
+            ];
+            normalize_lightness_of_dual_outliers(z_threshold * 1.15, alpha * 0.5, &bg, &mut pal);
+
+            theme.colors.base.red = pal[0].css();
+            theme.colors.base.green = pal[1].css();
+            theme.colors.base.yellow = pal[2].css();
+            theme.colors.base.blue = pal[3].css();
+            theme.colors.base.magenta = pal[4].css();
+            theme.colors.base.cyan = pal[5].css();
+            theme.colors.base.white = pal[6].css();
+
+            let mut pal = [
+                theme.colors.bright.red.color(),
+                theme.colors.bright.green.color(),
+                theme.colors.bright.yellow.color(),
+                theme.colors.bright.blue.color(),
+                theme.colors.bright.magenta.color(),
+                theme.colors.bright.cyan.color(),
+                theme.colors.bright.white.color(),
+            ];
+            normalize_lightness_of_dual_outliers(z_threshold * 1.1, alpha * 0.5, &bg, &mut pal);
+
+            theme.colors.bright.red = pal[0].css();
+            theme.colors.bright.green = pal[1].css();
+            theme.colors.bright.yellow = pal[2].css();
+            theme.colors.bright.blue = pal[3].css();
+            theme.colors.bright.magenta = pal[4].css();
+            theme.colors.bright.cyan = pal[5].css();
+            theme.colors.bright.white = pal[6].css();
+
+            // with fg
+            let mut pal = [
+                theme.colors.base.red.color(),
+                theme.colors.base.green.color(),
+                theme.colors.base.yellow.color(),
+                theme.colors.base.blue.color(),
+                theme.colors.base.magenta.color(),
+                theme.colors.base.cyan.color(),
+                theme.colors.fg.color(),
+            ];
+            normalize_lightness_of_dual_outliers(z_threshold * 1.25, alpha * 0.15, &bg, &mut pal);
+
+            theme.colors.base.red = pal[0].css();
+            theme.colors.base.green = pal[1].css();
+            theme.colors.base.yellow = pal[2].css();
+            theme.colors.base.blue = pal[3].css();
+            theme.colors.base.magenta = pal[4].css();
+            theme.colors.base.cyan = pal[5].css();
+            theme.colors.fg = pal[6].css();
         }
 
         let bytes = theme.bytes();
@@ -408,6 +515,69 @@ fn parse_ghostty_theme(path: impl AsRef<Path>, name: &str) -> std::io::Result<Th
     let scheme = ColorScheme::from_color_slice(&colors);
     let is_light = scheme.bg.color().hsl().2 > 50.0;
     Ok(Theme::new(name, is_light, scheme))
+}
+
+/// Shifts the lightness (L*) of palette colors that are outliers by
+/// modified z-score (Iglewicz–Hoaglin, threshold `z_threshold`) on
+/// *both* metrics - WCAG contrast against `base` *and* L* itself.
+///
+/// Outliers are pulled toward the median L* by `alpha` (0.0 = no-op,
+/// 1.0 = collapse to median). Hue (a*, b*) is preserved.
+///
+/// Colors flagged on only one metric are left untouched.
+fn normalize_lightness_of_dual_outliers(
+    z_threshold: f32,
+    alpha: f32,
+    base: &Color,
+    palette: &mut [Color],
+) {
+    fn median(v: &mut [f32]) -> f32 {
+        v.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        let n = v.len();
+        if n == 0 {
+            return 0.0;
+        }
+        if n % 2 == 1 {
+            v[n / 2]
+        } else {
+            (v[n / 2 - 1] + v[n / 2]) * 0.5
+        }
+    }
+
+    fn robust_z(values: &[f32]) -> (f32, Vec<f32>) {
+        let med = median(&mut values.to_vec());
+        let mad = median(&mut values.iter().map(|v| (v - med).abs()).collect::<Vec<_>>()) * 1.4826;
+        let z = values
+            .iter()
+            .map(|v| {
+                if mad > 1e-6 {
+                    0.6745 * (v - med) / mad
+                } else {
+                    0.0
+                }
+            })
+            .collect();
+        (med, z)
+    }
+
+    let crs: Vec<f32> = palette
+        .iter()
+        .map(|c| base.wcag_contrast_ratio(c))
+        .collect();
+    let ls: Vec<f32> = palette.iter().map(|c| c.lab().0).collect();
+
+    let (_, cr_z) = robust_z(&crs);
+    let (l_med, l_z) = robust_z(&ls);
+
+    for i in 0..palette.len() {
+        if cr_z[i].abs() <= z_threshold || l_z[i].abs() <= z_threshold {
+            continue;
+        }
+
+        let l_new = ls[i] + alpha * (l_med - ls[i]);
+        let (_, a, b) = palette[i].lab();
+        palette[i] = Color::from_lab(l_new, a, b);
+    }
 }
 
 #[cfg(test)]
