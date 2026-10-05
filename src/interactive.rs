@@ -240,6 +240,50 @@ impl<'a> PartBuf<'a> {
 fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
     let c = theme.colors.clone().into_advanced(None);
 
+    macro_rules! visibility_label {
+        ($ratio:expr) => {
+            match $ratio {
+                r if r < 1.5 => "Invisible",
+                r if r < 3.0 => "Faint",
+                r if r < 4.5 => "Weak",
+                r if r < 7.0 => "Good",
+                r if r < 12.0 => "Strong",
+                _ => "Maximum",
+            }
+        };
+    }
+
+    let bg = c.bg[1].color();
+    let pal_wcag_cr = [
+        c.base.red.color(),
+        c.base.green.color(),
+        c.base.yellow.color(),
+        c.base.blue.color(),
+        c.base.magenta.color(),
+        c.base.cyan.color(),
+    ]
+    .iter()
+    .map(|c| bg.wcag_contrast_ratio(c))
+    .sum::<f32>()
+        / 6.;
+    let pal_wcag_cr_info = format!("[{:.1}] {}", pal_wcag_cr, visibility_label!(pal_wcag_cr));
+    let fg_wcag_cr = bg.wcag_contrast_ratio(&c.fg[1].color());
+    let fg_wcag_cr_info = format!("[{:.1}] {}", fg_wcag_cr, visibility_label!(fg_wcag_cr),);
+
+    let bg_l = bg.lab().0;
+    let bg_l_info = format!(
+        "[{:.0}] {}",
+        bg_l,
+        match bg_l {
+            l if l < 15.0 => "Black",
+            l if l < 38.0 => "Dark",
+            l if l < 49.0 => "MidDark",
+            l if l < 62.0 => "MidLight",
+            l if l < 85.0 => "Light",
+            _ => "White",
+        }
+    );
+
     vec![
         part_buf![("// Press ? for help", &c.comment)],
         part_buf![
@@ -337,7 +381,7 @@ fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
         ],
         part_buf![("}", &c.fg[2])],
         part_buf![("Name: ", &c.fg[1]), (&theme.name, &c.cursor.bg)],
-        part_buf![("Palette:", &c.fg[1])],
+        part_buf![("Palette:    ", &c.fg[1]), (&pal_wcag_cr_info, &c.comment)],
         part_buf![
             ("  [0]", &c.base.black),
             ("[0]", &c.base.red),
@@ -374,21 +418,24 @@ fn gen_preview(theme: &lib::Theme, col_width: usize) -> Vec<String> {
             ("[0]", &c.dim.orange),
             ("[0]", &c.dim.pink),
         ],
-        part_buf![("Selection:    Cursor:", &c.fg[1])],
+        part_buf![("Selection:     Cursor:", &c.fg[1])],
         part_buf![
             ("  [0]", &c.selection.bg),
             ("[0]", &c.selection.fg),
-            ("      [0]", &c.cursor.bg),
+            ("       [0]", &c.cursor.bg),
             ("[0]", &c.cursor.fg)
         ],
-        part_buf![("Foreground:", &c.fg[1])],
+        part_buf![
+            ("Foreground:    ", &c.fg[1]),
+            (&fg_wcag_cr_info, &c.comment)
+        ],
         part_buf![
             ("  [0]", &c.fg[0]),
             ("[0]", &c.fg[1]),
             ("[0]", &c.fg[2]),
             ("[0]", &c.fg[3]),
         ],
-        part_buf![("Background:", &c.fg[1])],
+        part_buf![("Background:    ", &c.fg[1]), (&bg_l_info, &c.comment)],
         part_buf![
             ("  [0]", &c.bg[0]),
             ("[0]", &c.bg[1]),
