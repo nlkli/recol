@@ -188,8 +188,13 @@ impl ColorScheme {
                 cyan: c[12].css(),
                 white: c[13].css(),
                 // Derived: not stored in binary.
-                orange: c[7].blend(&c[9], 0.5).css(),
-                pink: c[7].blend(&c[13], 0.5).css(),
+                orange: c[7].blend_lab(&c[9], 0.5).css(),
+                pink: {
+                    // `white` is often unstable and may drift in lightness,
+                    // so we anchor its L* back to red's L* to keep them consistent.
+                    let (l, a, b) = c[7].blend_lab(&c[13], 0.5).lab();
+                    Color::from_lab((c[7].lab().0 - l).mul_add(0.8, l), a, b).css()
+                },
             },
             bright: AnsiColors {
                 black: c[14].css(),
@@ -201,8 +206,13 @@ impl ColorScheme {
                 cyan: c[20].css(),
                 white: c[21].css(),
                 // Derived: not stored in binary.
-                orange: c[15].blend(&c[17], 0.5).css(),
-                pink: c[15].blend(&c[21], 0.5).css(),
+                orange: c[15].blend_lab(&c[17], 0.5).css(),
+                pink: {
+                    // `white` is often unstable and may drift in lightness,
+                    // so we anchor its L* back to red's L* to keep them consistent.
+                    let (l, a, b) = c[15].blend_lab(&c[21], 0.5).lab();
+                    Color::from_lab((c[15].lab().0 - l).mul_add(0.8, l), a, b).css()
+                },
             },
         }
     }
@@ -254,6 +264,12 @@ impl ColorScheme {
 
     /// Expand this scheme into an [`AdvancedColorScheme`] using the given
     /// brightness/blend parameters.
+
+    // TODO: This implementation needs a complete rewrite. The current logic and most
+    // parameters are ported from https://github.com/EdenEast/nightfox.nvim, which works
+    // well only for those specific themes. For other themes the results are often poor.
+    // We need a smarter, more correct color transformation that adapts properly to any
+    // theme instead of relying on nightfox-tuned constants and heuristics.
     pub fn into_advanced(self, param: Option<AdvancedColorSchemeParam>) -> AdvancedColorScheme {
         let p = param.unwrap_or_default();
 
@@ -289,7 +305,7 @@ impl ColorScheme {
         } else {
             fg_color.brighten(-p.fg0_brighten * m).css()
         };
-        let fg = [
+        let mut fg = [
             fg0,
             self.fg,
             fg_color.brighten(p.fg2_brighten * m).css(),
@@ -304,16 +320,16 @@ impl ColorScheme {
         ];
 
         let dim = AnsiColors {
-            black: self.base.black.color().shade(p.dim_shade).css(),
-            red: self.base.red.color().shade(p.dim_shade).css(),
-            green: self.base.green.color().shade(p.dim_shade).css(),
-            yellow: self.base.yellow.color().shade(p.dim_shade).css(),
-            blue: self.base.blue.color().shade(p.dim_shade).css(),
-            magenta: self.base.magenta.color().shade(p.dim_shade).css(),
-            cyan: self.base.cyan.color().shade(p.dim_shade).css(),
-            white: self.base.white.color().shade(p.dim_shade).css(),
-            orange: self.base.orange.color().shade(p.dim_shade).css(),
-            pink: self.base.pink.color().shade(p.dim_shade).css(),
+            black: self.base.black.color().shade(p.dim_shade * -m).css(),
+            red: self.base.red.color().shade(p.dim_shade * -m).css(),
+            green: self.base.green.color().shade(p.dim_shade * -m).css(),
+            yellow: self.base.yellow.color().shade(p.dim_shade * -m).css(),
+            blue: self.base.blue.color().shade(p.dim_shade * -m).css(),
+            magenta: self.base.magenta.color().shade(p.dim_shade * -m).css(),
+            cyan: self.base.cyan.color().shade(p.dim_shade * -m).css(),
+            white: self.base.white.color().shade(p.dim_shade * -m).css(),
+            orange: self.base.orange.color().shade(p.dim_shade * -m).css(),
+            pink: self.base.pink.color().shade(p.dim_shade * -m).css(),
         };
 
         let diff = DiffColors {
@@ -342,6 +358,12 @@ impl ColorScheme {
                 .blend(&bg_color, p.diff_text_blend)
                 .css(),
         };
+
+        // NOTE: tmp fix
+        if bg[1].color().wcag_contrast_ratio(&fg[3].color()) < 2.1 {
+            fg[2] = fg[1].clone();
+            fg[3] = fg[1].clone();
+        }
 
         AdvancedColorScheme {
             bg,
@@ -626,16 +648,19 @@ pub struct AdvancedColorSchemeParam {
     pub comment_blend: f32,
 }
 
+// https://github.com/EdenEast/nightfox.nvim/blob/main/lua/nightfox/palette/carbonfox.lua
+// bg: -4 6 12 24
+// fg:  6 -24 -48
 impl Default for AdvancedColorSchemeParam {
     fn default() -> Self {
         Self {
-            bg0_brighten: -4.31,
+            bg0_brighten: -4.2,
             bg2_brighten: 6.0,
-            bg3_brighten: 12.1,
-            bg4_brighten: 23.2,
+            bg3_brighten: 12.0,
+            bg4_brighten: 22.0,
             fg0_brighten: 6.0,
-            fg2_brighten: -23.0,
-            fg3_brighten: -42.0,
+            fg2_brighten: -22.0,
+            fg3_brighten: -41.0,
             code_selection_blend: 0.155,
             dim_shade: 0.18,
             diff_add_blend: 0.5,

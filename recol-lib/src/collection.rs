@@ -406,7 +406,7 @@ pub fn build_colorschemes_bin(
                 theme.colors.base.cyan.color(),
                 theme.colors.base.white.color(),
             ];
-            normalize_lightness_of_dual_outliers(z_threshold * 1.15, alpha * 0.5, &bg, &mut pal);
+            normalize_lightness_of_dual_outliers(z_threshold * 1.1, alpha * 0.5, &bg, &mut pal);
 
             theme.colors.base.red = pal[0].css();
             theme.colors.base.green = pal[1].css();
@@ -434,26 +434,6 @@ pub fn build_colorschemes_bin(
             theme.colors.bright.magenta = pal[4].css();
             theme.colors.bright.cyan = pal[5].css();
             theme.colors.bright.white = pal[6].css();
-
-            // with fg
-            let mut pal = [
-                theme.colors.base.red.color(),
-                theme.colors.base.green.color(),
-                theme.colors.base.yellow.color(),
-                theme.colors.base.blue.color(),
-                theme.colors.base.magenta.color(),
-                theme.colors.base.cyan.color(),
-                theme.colors.fg.color(),
-            ];
-            normalize_lightness_of_dual_outliers(z_threshold * 1.25, alpha * 0.15, &bg, &mut pal);
-
-            theme.colors.base.red = pal[0].css();
-            theme.colors.base.green = pal[1].css();
-            theme.colors.base.yellow = pal[2].css();
-            theme.colors.base.blue = pal[3].css();
-            theme.colors.base.magenta = pal[4].css();
-            theme.colors.base.cyan = pal[5].css();
-            theme.colors.fg = pal[6].css();
         }
 
         let bytes = theme.bytes();
