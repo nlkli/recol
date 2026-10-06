@@ -1,4 +1,6 @@
-# recol
+<p align="center">
+  <img src="https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-logo.png" alt="Logo" height="60">
+</p>
 
 **Switch your terminal, editor, and application color schemes from one command - no manual config editing.** Pick from 700+ prebuilt schemes with instant fuzzy search and apply them across multiple supported targets.
 
