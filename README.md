@@ -6,14 +6,14 @@
 
 ![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
-- **800+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
+- **888+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
 - **Targets support:** [Ghostty](https://ghostty.org), [Kitty](https://sw.kovidgoyal.net/kitty/), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org), [Pi](https://github.com/earendil-works/pi)
 
 ### Terminal support notes
 
-- **Ghostty** — auto-reloads via `SIGUSR2`; otherwise use `Ctrl + Shift + ,` (Linux) / `Cmd + Shift + ,` (macOS).
-- **Kitty 0.47.0+** — auto-reloads by default. Older versions: `Ctrl + Shift + F5` (`Ctrl + Cmd + ,` on macOS). See [docs](https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.auto_reload_config).
-- **Alacritty**, **WezTerm** — hot reload, no restart needed.
+- **Ghostty** - auto-reloads via `SIGUSR2`; otherwise use `Ctrl + Shift + ,` (Linux) / `Cmd + Shift + ,` (macOS).
+- **Kitty 0.47.0+** - auto-reloads by default. Older versions: `Ctrl + Shift + F5` (`Ctrl + Cmd + ,` on macOS). See [docs](https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.auto_reload_config).
+- **Alacritty**, **WezTerm** - hot reload, no restart needed.
 
 ### Neovim integration
 
