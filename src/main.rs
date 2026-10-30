@@ -30,7 +30,7 @@ fn theme_as_json_value(
     })
 }
 
-pub fn print_theme_as_json(t: lib::ThemeEx) {
+fn print_theme_as_json(t: lib::ThemeEx) {
     let jv = theme_as_json_value(
         &t.name,
         t.is_light,
