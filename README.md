@@ -2,19 +2,18 @@
   <img src="https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-logo.png" alt="Logo" height="60">
 </p>
 
-**Switch your terminal, editor, and application color schemes from one command - no manual config editing.** Pick from 700+ prebuilt schemes with instant fuzzy search and apply them across multiple supported targets.
+<p align="center"><strong>CLI utility for changing the color scheme</strong></p>
 
 ![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
-- **700+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
+- **800+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
 - **Targets support:** [Ghostty](https://ghostty.org), [Kitty](https://sw.kovidgoyal.net/kitty/), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org), [Pi](https://github.com/earendil-works/pi)
-- **Non-destructive** - only color values are modified, nothing else in your config
 
 ### Terminal support notes
 
-- **Ghostty**: now reloads automatically via `SIGUSR2` (should work on most systems); if not, use the manual shortcut (`Ctrl + Shift + ,` on Linux or `Cmd + Shift + ,` on macOS).
-- **Kitty 0.47.0+** automatically reloads config changes by default. Older versions, or configurations with auto reload disabled, require `Ctrl + Shift + F5` (`Ctrl + Cmd + ,` on macOS). See [Kitty's auto reload documentation](https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.auto_reload_config).
-- **Alacritty**, **WezTerm** support hot configuration reload. Changes are applied immediately without restarting the terminal.
+- **Ghostty** — auto-reloads via `SIGUSR2`; otherwise use `Ctrl + Shift + ,` (Linux) / `Cmd + Shift + ,` (macOS).
+- **Kitty 0.47.0+** — auto-reloads by default. Older versions: `Ctrl + Shift + F5` (`Ctrl + Cmd + ,` on macOS). See [docs](https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.auto_reload_config).
+- **Alacritty**, **WezTerm** — hot reload, no restart needed.
 
 ### Neovim integration
 
@@ -141,27 +140,6 @@ pub const ALL_TARGETS: [Target; 8] = [ /* ..., Target::Vscode */ ];
 
 ![recol-demo-img-2](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-2.png)
 
-### SCC
-
-```text
-───────────────────────────────────────────────────────────────────────────────
-Language            Files       Lines    Blanks  Comments       Code Complexity
-───────────────────────────────────────────────────────────────────────────────
-Rust                   24       6,736       662       571      5,503        740
-TOML                    2          49         6         0         43          0
-License                 1          21         4         0         17          0
-Lua                     1          63         0         4         59         12
-Markdown                1         165        52         0        113          0
-Shell                   1          15         4         7          4          0
-───────────────────────────────────────────────────────────────────────────────
-Total                  30       7,049       728       582      5,739        752
-───────────────────────────────────────────────────────────────────────────────
-Processed 241,744 bytes, 0.242 megabytes (SI)
-───────────────────────────────────────────────────────────────────────────────
-```
-
-😉👉⭐️
-
-![star-history](https://api.star-history.com/svg?repos=nlkli/recol)
+---
 
 [LICENSE](LICENSE)
