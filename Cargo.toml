@@ -1,6 +1,6 @@
 [package]
 name = "recol"
-version = "0.2.8"
+version = "0.3.0"
 edition = "2021"
 license = "MIT"
 description = "CLI utility for changing the color scheme"
