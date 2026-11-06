@@ -947,15 +947,15 @@ pub fn run(args: &Args, init_list: &[String]) -> io::Result<()> {
         .current_theme
         .and_then(|n| lib::Collection::new().find(|t| t.name == n))
     {
+        let theme = t.into_theme().ex();
         if args.show {
-            let theme = t.into_theme().ex();
-            crate::print_theme_header(&theme.name, theme.is_light);
+            crate::print_theme_header(&theme);
             crate::print_theme_palette(&theme);
         } else if args.json {
             let theme = t.into_theme().ex();
             crate::print_theme_as_json(theme);
         } else {
-            crate::print_theme_header(&t.name, t.is_light);
+            crate::print_theme_header(&theme);
         }
     }
 
