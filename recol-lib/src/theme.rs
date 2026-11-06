@@ -38,7 +38,7 @@
 //! `orange` and `pink` in [`AnsiColors`] are **derived** (blended at runtime)
 //! and are not stored in the binary.
 
-use crate::{COLOR_SIZE, Color, CssColor, Error, Result, ThemeAdjustment, ppm};
+use crate::{COLOR_SIZE, Color, CssColor, Error, Result, ThemeAdjustment, palettegen_from_media};
 use serde::{Deserialize, Serialize};
 
 /// Number of colors stored per [`ColorScheme`]: 2 terminal + 2 selection +
@@ -47,46 +47,6 @@ pub const COLOR_SCHEME_NC: usize = 2 + 2 + 2 + 8 + 8;
 
 /// Byte size of a serialized [`ColorScheme`].
 pub const COLOR_SCHEME_SIZE: usize = COLOR_SCHEME_NC * COLOR_SIZE;
-
-// https://ffmpeg.org/ffmpeg-all.html#palettegen-1
-pub fn palettegen_from_media(
-    path: impl AsRef<std::path::Path>,
-    mut max_colors: u8,
-) -> crate::error::Result<Vec<Color>> {
-    max_colors = max_colors.max(2); // 2..256
-
-    let file_stem = path
-        .as_ref()
-        .file_stem()
-        .and_then(|name| name.to_str())
-        .ok_or_else(|| std::io::Error::other("invalid media file name"))?;
-
-    let ppm_path = std::env::temp_dir().join(format!("{file_stem}_{max_colors}.ppm"));
-
-    let output = std::process::Command::new("ffmpeg")
-        .args(["-y", "-i"])
-        .arg(path.as_ref())
-        .arg("-vf")
-        .arg(format!(
-            "palettegen=max_colors={max_colors}:reserve_transparent=0"
-        ))
-        .arg(&ppm_path)
-        .output()?;
-
-    if !output.status.success() {
-        return Err(crate::error::Error::Ffmpeg(
-            String::from_utf8_lossy(&output.stderr).into_owned(),
-        ));
-    }
-
-    let colors = ppm::unique_colors_from_ppm(&ppm_path);
-    let _ = std::fs::remove_file(ppm_path);
-    let colors = colors?;
-
-    assert!(max_colors == colors.len() as u8);
-
-    Ok(colors)
-}
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Theme {

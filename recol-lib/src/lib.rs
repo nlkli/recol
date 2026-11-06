@@ -3,9 +3,10 @@ mod collection;
 mod color;
 mod error;
 mod theme;
-mod ppm;
+mod palettegen;
 
 pub mod fuzzy;
+pub use palettegen::palettegen_from_media;
 
 pub use adjustments::*;
 pub use collection::*;
