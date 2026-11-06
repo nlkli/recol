@@ -33,13 +33,16 @@ fn theme_as_json_value(
     })
 }
 
-fn print_theme_as_json(t: lib::ThemeEx) {
-    let jv = theme_as_json_value(
-        &t.name,
-        t.is_light,
-        &t.advanced.unwrap_or(t.colors.into_advanced(None)),
+fn print_theme_as_json(theme: lib::ThemeEx) {
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&theme_as_json_value(
+            &theme.name,
+            theme.is_light,
+            &theme.advanced.unwrap_or(theme.colors.into_advanced(None)),
+        ))
+        .unwrap()
     );
-    println!("{}", serde_json::to_string_pretty(&jv).unwrap());
 }
 
 fn apply_theme(args: &cli::Args, theme: &lib::ThemeEx) -> Result<()> {
