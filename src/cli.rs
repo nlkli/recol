@@ -68,6 +68,16 @@ pub struct Args {
 impl Args {
     /// Parses CLI arguments, falling back to RECOL_ADJUST / RECOL_TARGET env vars.
     pub fn parse() -> Self {
+        let argv: Vec<String> = std::env::args().skip(1).collect();
+        match argv.first().map(String::as_str) {
+            Some("--complete") => complete(&argv[1..]),
+            Some("--completions") => {
+                print!("{}", include_str!("../completion.sh"));
+                std::process::exit(0);
+            }
+            _ => {}
+        }
+
         let mut args = Self::default();
         // Tracks which flag is expecting a value on the *next* iteration
         // (e.g. after seeing `-t`, `last` holds 't' so the next token is
@@ -82,7 +92,7 @@ impl Args {
             args.targets(arg);
         }
 
-        let mut iter = std::env::args().skip(1);
+        let mut iter = argv.into_iter();
         while let Some(arg) = iter.next() {
             if let Some(flag) = arg.strip_prefix("--") {
                 match flag {
@@ -301,7 +311,7 @@ fn help() -> String {
   {blue}-L{reset}, {blue}--list{reset}  List available themes
   {blue}-s{reset}, {blue}--show{reset}  Show a color palette
   {blue}-j{reset}, {blue}--json{reset}  Output theme/list/media as JSON
-  {blue}-h{reset}, {blue}--help{reset}; {blue}-V{reset}, {blue}--version{reset}; {blue}--logo{reset}"#,
+  {blue}-h{reset}, {blue}--help{reset}; {blue}-V{reset}, {blue}--version{reset}; {blue}--completions{reset}; {blue}--logo{reset}"#,
         reset = RESET,
         green = GREEN,
         blue = BLUE,
@@ -447,4 +457,160 @@ pub fn read_stdin(args: &Args) -> crate::Result<StdIn> {
             }
         }
     })
+}
+
+const FLAGS: &[&str] = &[
+    "-T",
+    "--target",
+    "-r",
+    "--rand",
+    "-d",
+    "--dark",
+    "-l",
+    "--light",
+    "-c",
+    "--contains",
+    "-i",
+    "--interactive",
+    "-m",
+    "--media",
+    "-a",
+    "--adjust",
+    "-L",
+    "--list",
+    "-s",
+    "--show",
+    "-j",
+    "--json",
+    "-h",
+    "--help",
+    "-V",
+    "--version",
+    "--logo",
+    "--completions",
+];
+
+const ADJ_GROUPS: &[&str] = &[
+    "ui", "bg", "fg", "sel", "cur", "base-bg", "base-fg", "sel-bg", "sel-fg", "cur-bg", "cur-fg",
+    "pal", "text", "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", "orange",
+    "pink",
+];
+
+const ADJ_NAMES: &[&str] = &[
+    "brightness",
+    "exposure",
+    "contrast",
+    "gamma",
+    "fade",
+    "invert",
+    "saturation",
+    "vibrance",
+    "hue",
+    "temperature",
+    "tint",
+    "normalize",
+    "norm-both",
+    "norm-chroma",
+];
+
+fn complete(args: &[String]) {
+    let idx: usize = args.first().and_then(|s| s.parse().ok()).unwrap_or(0);
+    let words = args.get(1..).unwrap_or(&[]);
+    let cur_owned: String = words
+        .get(idx)
+        .map(|s| {
+            s.chars()
+                .filter(|c| !matches!(c, '\\' | '"' | '\''))
+                .collect()
+        })
+        .unwrap_or_default();
+    let cur = cur_owned.as_str();
+
+    let mut j = idx;
+    while j > 0 && (words[j] == "=" || words[j - 1] == "=") {
+        j -= 1;
+    }
+    let prev = j
+        .checked_sub(1)
+        .and_then(|i| words.get(i))
+        .map(String::as_str);
+    let after_eq = idx > 0 && words[idx - 1] == "=";
+
+    let out: Vec<String> = match prev {
+        Some("-T" | "--target") => {
+            let (head, tail) = cur.rsplit_once(',').map_or(("", cur), |(h, t)| (h, t));
+            let sep = if head.is_empty() { "" } else { "," };
+            targets::ALL_TARGETS
+                .iter()
+                .map(|t| t.to_string())
+                .filter(|n| n.starts_with(tail))
+                .map(|n| format!("{head}{sep}{n}"))
+                .collect()
+        }
+
+        Some("-a" | "--adjust") => {
+            let (head, tail) = match cur.rfind(',') {
+                Some(i) => cur.split_at(i + 1),
+                None => ("", cur),
+            };
+            if tail.contains('=') || after_eq {
+                vec![]
+            } else {
+                let group = tail.rfind('.').map_or("", |i| &tail[..=i]);
+                let mut cands: Vec<String> = Vec::new();
+                if group.is_empty() {
+                    cands.extend(ADJ_GROUPS.iter().map(|g| format!("{g}.")));
+                }
+                for n in ADJ_NAMES {
+                    let eq = if *n == "invert" { "" } else { "=" };
+                    cands.push(format!("{group}{n}{eq}"));
+                }
+                cands
+                    .into_iter()
+                    .filter(|c| c.starts_with(tail))
+                    .map(|c| format!("{head}{c}"))
+                    .collect()
+            }
+        }
+
+        Some("-m" | "--media" | "-c" | "--contains") => vec![],
+
+        _ if cur.starts_with('-') => FLAGS
+            .iter()
+            .filter(|f| f.starts_with(cur))
+            .map(|s| s.to_string())
+            .collect(),
+
+        _ => {
+            let dark = words.iter().any(|w| w == "-d" || w == "--dark");
+            let light = words.iter().any(|w| w == "-l" || w == "--light");
+            let has_upper = cur.chars().any(|c| c.is_uppercase());
+            let cur_lc = cur.to_lowercase();
+            lib::Collection::new()
+                .filter(|t| (!dark || !t.is_light) && (!light || t.is_light))
+                .filter(|t| {
+                    if has_upper {
+                        t.name.starts_with(cur)
+                    } else {
+                        t.name.to_lowercase().starts_with(&cur_lc)
+                    }
+                })
+                .take(12)
+                .into_iter()
+                .map(|t| {
+                    let n = t.name.trim();
+                    if has_upper {
+                        n.to_string()
+                    } else {
+                        n.to_lowercase()
+                    }
+                })
+                .collect()
+        }
+    };
+
+    for s in out {
+        println!("{s}");
+    }
+    std::process::exit(0);
 }

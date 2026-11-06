@@ -91,6 +91,19 @@ recol --list -dc "Catppuccin" >> favourites
 cat favourites | recol -i
 ```
 
+### Shell completion
+
+Bash and zsh. Completes flags, targets, theme names and `--adjust` specs. See [`completion.sh`](https://github.com/nlkli/recol/blob/main/completion.sh).
+
+**Install** (zsh: the line must come after `compinit`):
+
+```sh
+# bash
+echo 'eval "$(recol --completions)"' >> ~/.bashrc
+# zsh
+echo 'eval "$(recol --completions)"' >> ~/.zshrc
+```
+
 ### Color Adjustments
 
 ![recol-demo-adjust-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-adjust.gif)
