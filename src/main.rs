@@ -13,9 +13,12 @@ pub fn print_theme_palette(t: &lib::ThemeEx) {
     lib::print_palette(&t.colors.as_colors_array()[0..14]);
 }
 
-#[inline]
-pub fn print_theme_header(name: &str, is_light: bool) {
-    println!("{name} <{}>", if is_light { "LIGHT" } else { "DARK" });
+pub fn print_theme_header(theme: &lib::ThemeEx) {
+    println!(
+        "{} <{}>",
+        theme.name,
+        if theme.is_light { "LIGHT" } else { "DARK" }
+    );
 }
 
 fn theme_as_json_value(
@@ -52,7 +55,7 @@ fn apply_theme(args: &cli::Args, theme: &lib::ThemeEx) -> Result<()> {
 fn theme_action(args: &cli::Args, mut theme: lib::ThemeEx) -> Result<()> {
     theme.colors.apply_adjustments(&args.adjust);
     if args.show {
-        print_theme_header(&theme.name, theme.is_light);
+        print_theme_header(&theme);
         print_theme_palette(&theme);
     } else if args.json {
         print_theme_as_json(theme);
@@ -61,7 +64,7 @@ fn theme_action(args: &cli::Args, mut theme: lib::ThemeEx) -> Result<()> {
         if lib::Collection::new().any(|t| t.name == theme.name) {
             state::append_theme_history(&theme.name);
         }
-        print_theme_header(&theme.name, theme.is_light);
+        print_theme_header(&theme);
     }
     Ok(())
 }
