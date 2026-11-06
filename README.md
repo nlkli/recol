@@ -6,8 +6,16 @@
 
 ![recol-demo-interactive-mode-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-interactive-mode.gif)
 
-- **888+ color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
-- **Targets support:** [Ghostty](https://ghostty.org), [Kitty](https://sw.kovidgoyal.net/kitty/), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org), [Pi](https://github.com/earendil-works/pi)
+**recol** is a fast and lightweight command-line color scheme manager. Browse, preview, apply, adjust, and generate color schemes from images - all from one tool.
+
+Designed for a consistent color experience across your development environment.
+
+- **888+ built-in color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes) - embedded directly into the binary, carefully curated, color-normalized, and optimized for consistent appearance across supported tools.
+- **7 built-in targets:** [Ghostty](https://ghostty.org), [Kitty](https://sw.kovidgoyal.net/kitty/), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org) and [Pi](https://github.com/earendil-works/pi)
+- **Interactive browser with live previews**
+- **Color adjustments with brightness, contrast, saturation, hue, and more**
+- **Image-to-theme generation from images and video frames**
+- **Hot reload support where available**
 
 ### Terminal support notes
 
@@ -19,7 +27,7 @@
 
 ![recol-nvim-integration-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-nvim-integration.gif)
 
-Neovim doesn't hot-reload themes, so its config needs to be re-sourced after switching. This integration handles that automatically. See [`recol.lua`](https://github.com/nlkli/recol/blob/main/recol.lua) for the implementation.
+Neovim does not automatically reload colorschemes when its configuration changes. The included integration handles this by re-sourcing your configuration after applying a theme. See [`recol.lua`](https://github.com/nlkli/recol/blob/main/recol.lua).
 
 **Install in `init.lua`:**
 
@@ -107,9 +115,9 @@ recol -m ~/Videos/X.gif --json                 # generate a theme and output it 
 recol -m ~/Photo/Tree.png -a t.s=9,bb.b=-12    # generate and apply with color adjust
 ```
 
-**Requirements:** [ffmpeg](https://ffmpeg.org) must be installed and available on `PATH`.
+**Requirement:** [FFmpeg](https://ffmpeg.org) must be installed and available on `PATH`.
 
-This feature requires no additional Cargo/Rust dependencies. recol simply invokes the ffmpeg binary already installed on the system and uses its palettegen functionality to extract colors.
+This feature uses FFmpeg's built-in palettegen functionality and requires no additional Rust dependencies.
 
 ### Adding Support for New Targets
 
