@@ -24,6 +24,7 @@ if vim.fn.executable("recol") == 1 then
             title_pos = "center",
         })
         vim.bo[buf].bufhidden = "wipe"
+        -- Use --target nvim to apply themes to Neovim only.
         local job_id = vim.fn.termopen({ "recol", "-i", "--quit-on-select" }, {
             on_exit = function(_, code)
                 vim.schedule(function()
