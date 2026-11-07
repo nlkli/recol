@@ -98,10 +98,7 @@ Bash and zsh. Completes flags, targets, theme names and `--adjust` specs. See [`
 **Install** (zsh: the line must come after `compinit`):
 
 ```sh
-# bash
-echo 'eval "$(recol --completions)"' >> ~/.bashrc
-# zsh
-echo 'eval "$(recol --completions)"' >> ~/.zshrc
+f=~/.${SHELL##*/}rc; echo 'eval "$(recol --completions)"' >> "$f"
 ```
 
 ### Color Adjustments
