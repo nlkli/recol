@@ -614,10 +614,10 @@ pub struct AdvancedColorSchemeParam {
 impl Default for AdvancedColorSchemeParam {
     fn default() -> Self {
         Self {
-            bg0_brighten: -4.2,
+            bg0_brighten: -4.5,
             bg2_brighten: 6.0,
-            bg3_brighten: 12.0,
-            bg4_brighten: 22.0,
+            bg3_brighten: 12.5,
+            bg4_brighten: 25.0,
             fg0_brighten: 6.0,
             fg2_brighten: -22.0,
             fg3_brighten: -41.0,
