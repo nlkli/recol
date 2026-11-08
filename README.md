@@ -72,8 +72,11 @@ Add your own themes to `./colorschemes`, or exclude unwanted ones in `build.rs`.
 
 ### Usage Examples
 
+By default, recol applies the selected theme to all supported targets for which a configuration file can be found. To apply a theme to a specific target, use the --target flag, or use --output to generate themes in a specified directory without applying them.
+
 ```sh
 recol lOnDoNsOhOnIgHt67       # fuzzy match - applies closest theme by name
+recol NordWave -o ./output    # generate themes into the directory
 recol -rd --contains Gruvbox  # random dark theme with "Gruvbox" in name
 recol dracula --dark --show   # preview palette without applying
 recol --list -l --json        # list light themes as JSON
@@ -157,6 +160,8 @@ pub const ALL_TARGETS: [Target; 8] = [ /* ..., Target::Vscode */ ];
 ![recol-demo-media-to-theme](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-media-to-theme.jpg)
 
 ![recol-demo-img-2](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-2.png)
+
+<!-- All demos and screenshots are from an older version. I'm too lazy to update them. -->
 
 ---
 
