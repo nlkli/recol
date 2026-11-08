@@ -187,7 +187,10 @@ impl Target {
             }
             Target::Nvim => {
                 let appname = std::env::var("NVIM_APPNAME").ok();
-                let path = nvim_config_path(&prefix, appname.as_deref());
+                // Respect user's nvim config, e.g. ~/.config/customvim/init.lua
+                let path = prefix
+                    .join(appname.as_deref().unwrap_or("nvim"))
+                    .join("init.lua");
                 if path.is_file() {
                     return Some(path);
                 }
@@ -325,8 +328,39 @@ pub fn set_font<'a>(
     Ok(())
 }
 
-/// Respect user's nvim config, e.g. ~/.config/customvim/init.lua
-#[inline]
-fn nvim_config_path(prefix: &Path, appname: Option<&str>) -> PathBuf {
-    prefix.join(appname.unwrap_or("nvim")).join("init.lua")
+pub fn generate_theme_into_dir(
+    path: impl AsRef<Path>,
+    theme: &lib::ThemeEx,
+    targets: &[Target],
+) -> crate::Result<()> {
+    let path = path.as_ref();
+    if !path.exists() {
+        std::fs::create_dir(path)?;
+    } else {
+        if !path.is_dir() {
+            return Err(std::io::Error::other(format!("not a directory: {path:?}")).into());
+        }
+    }
+    for target in with_specific_or_for_all(targets) {
+        let target_path_name = match target {
+            Target::Ghostty => "config.ghostty",
+            Target::Kitty => "kitty.conf",
+            Target::Alacritty => "alacritty.toml",
+            Target::Wezterm => "wezterm.lua",
+            Target::Nvim => "init.lua",
+            Target::Vim => "vimrc",
+            Target::Pi => "pi_agent",
+            Target::None => "",
+        };
+        if target_path_name.is_empty() {
+            continue;
+        }
+        let config_path = path.join(target_path_name);
+        if *target != Target::Pi {
+            let _f = std::fs::File::create(&config_path)?;
+            drop(_f);
+        }
+        target.apply_theme_to(config_path, theme)?;
+    }
+    Ok(())
 }

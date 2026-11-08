@@ -63,6 +63,8 @@ pub struct Args {
 
     /// Number of palette colors to generate from media (--palettegen)
     pub palettegen: Option<u8>,
+
+    pub output_dir: Option<std::path::PathBuf>,
 }
 
 impl Args {
@@ -106,6 +108,7 @@ impl Args {
                     "adjust" => last = Some('a'),
                     "media" => last = Some('m'),
                     "palettegen" => last = Some('G'),
+                    "output" => last = Some('o'),
                     // Boolean flags, applied immediately.
                     "list" | "theme-list" => args.theme_list = true,
                     "font-list" => args.font_list = true,
@@ -140,7 +143,7 @@ impl Args {
                 for c in flags.chars() {
                     match c {
                         // These expect a value on the next token.
-                        't' | 'f' | 'c' | 'T' | 'a' | 'm' => last = Some(c),
+                        't' | 'f' | 'c' | 'T' | 'a' | 'm' | 'o' => last = Some(c),
                         'r' => args.rand = true,
                         'd' => args.dark = true,
                         'l' => args.light = true,
@@ -193,6 +196,18 @@ impl Args {
                     }
                     Some('G') => {
                         args.palettegen = arg.parse::<u8>().ok();
+                    }
+                    Some('o') => {
+                        let path = std::path::PathBuf::from(&arg);
+                        if !path.exists() {
+                            std::fs::create_dir(&path).unwrap();
+                        } else {
+                            if !path.is_dir() {
+                                eprintln!("not a directory: {path:?}");
+                                std::process::exit(1);
+                            }
+                        }
+                        args.output_dir.replace(path);
                     }
                     // No pending flag: treat as a positional theme name.
                     _ => {
@@ -308,6 +323,8 @@ fn help() -> String {
       Derive a theme from an image/video
   {blue}-a{reset}, {blue}--adjust <SPEC|PATH>{reset} [env: RECOL_ADJUST]
       Apply color adjustments (see --adjust help)
+  {blue}-o{reset}, {blue}--output{reset} <DIR_PATH>
+      Generate themes into the directory
   {blue}-L{reset}, {blue}--list{reset}  List available themes
   {blue}-s{reset}, {blue}--show{reset}  Show a color palette
   {blue}-j{reset}, {blue}--json{reset}  Output theme/list/media as JSON
@@ -488,6 +505,8 @@ const FLAGS: &[&str] = &[
     "--version",
     "--logo",
     "--completions",
+    "-o",
+    "-output",
 ];
 
 const ADJ_GROUPS: &[&str] = &[

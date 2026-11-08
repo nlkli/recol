@@ -57,7 +57,9 @@ fn apply_theme(args: &cli::Args, theme: &lib::ThemeEx) -> Result<()> {
 
 fn theme_action(args: &cli::Args, mut theme: lib::ThemeEx) -> Result<()> {
     theme.colors.apply_adjustments(&args.adjust);
-    if args.show {
+    if let Some(ref output_dir) = args.output_dir {
+        targets::generate_theme_into_dir(output_dir, &theme, &args.targets)?;
+    } else if args.show {
         print_theme_header(&theme);
         print_theme_palette(&theme);
     } else if args.json {
