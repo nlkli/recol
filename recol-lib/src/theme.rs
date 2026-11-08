@@ -170,7 +170,7 @@ impl ColorScheme {
                 pink: {
                     // `white` is often unstable and may drift in lightness,
                     // so we anchor its L* back to red's L* to keep them consistent.
-                    let (l, a, b) = c[15].blend_lab(&c[21], 0.5).lab();
+                    let (l, a, b) = c[21].blend_lab(&c[15], 0.555).lab();
                     Color::from_lab((c[15].lab().0 - l).mul_add(0.8, l), a, b).css()
                 },
             },
@@ -247,29 +247,29 @@ impl ColorScheme {
         // bg[0] is always slightly *outside* the main bg to create contrast;
         // if the naive direction would clip against the boundary, flip it.
         let bg0 = if (bg_color.hsl().2 + p.bg0_brighten * m - z) * (-m) - GAP < 100.0 {
-            bg_color.brighten(p.bg0_brighten * m).css()
+            bg_color.adjust_value(p.bg0_brighten * m).css()
         } else {
-            bg_color.brighten(-p.bg0_brighten * m).css()
+            bg_color.adjust_value(-p.bg0_brighten * m).css()
         };
         let bg = [
             bg0,
             self.bg,
-            bg_color.brighten(p.bg2_brighten * m).css(),
-            bg_color.brighten(p.bg3_brighten * m).css(),
-            bg_color.brighten(p.bg4_brighten * m).css(),
+            bg_color.adjust_value(p.bg2_brighten * m).css(),
+            bg_color.adjust_value(p.bg3_brighten * m).css(),
+            bg_color.adjust_value(p.bg4_brighten * m).css(),
         ];
 
         // fg[0] applies the same boundary-aware flip logic.
         let fg0 = if (fg_color.hsl().2 + p.fg0_brighten * m - z) * (-m) - GAP > 0.0 {
-            fg_color.brighten(p.fg0_brighten * m).css()
+            fg_color.adjust_value(p.fg0_brighten * m).css()
         } else {
-            fg_color.brighten(-p.fg0_brighten * m).css()
+            fg_color.adjust_value(-p.fg0_brighten * m).css()
         };
         let mut fg = [
             fg0,
             self.fg,
-            fg_color.brighten(p.fg2_brighten * m).css(),
-            fg_color.brighten(p.fg3_brighten * m).css(),
+            fg_color.adjust_value(p.fg2_brighten * m).css(),
+            fg_color.adjust_value(p.fg3_brighten * m).css(),
         ];
 
         let alt_selection = [
@@ -392,10 +392,10 @@ impl ColorScheme {
         let shade_factor_step = if is_light { -0.05 } else { 0.05 };
         palette.iter_mut().for_each(|c| {
             let (_, a, b) = c.lab();
-            *c = Color::from_lab(target_l, a, b).saturate(2.);
+            *c = Color::from_lab(target_l, a, b).adjust_saturation(2.);
             let mut n = 0;
             while c.wcag_contrast_ratio(&bg) < 3. && n < 99 {
-                *c = c.saturate(1.0).shade(shade_factor_step);
+                *c = c.adjust_saturation(1.0).shade(shade_factor_step);
                 n += 1;
             }
         });
@@ -405,15 +405,15 @@ impl ColorScheme {
             n += 1;
         }
         let (black, white) = if is_light {
-            cur_bg = cur_bg.brighten(-9.);
+            cur_bg = cur_bg.adjust_value(-9.);
             cur_fg = cur_fg.shade(0.3);
             (p10[9], fg)
         } else {
-            cur_bg = cur_bg.brighten(9.);
+            cur_bg = cur_bg.adjust_value(9.);
             cur_fg = cur_fg.shade(-0.3);
             (p10[0], fg)
         };
-        bg = bg.saturate(-3.0);
+        bg = bg.adjust_saturation(-3.0);
 
         let [red, green, yellow, blue, magenta, cyan, orange, pink] = palette;
 
@@ -442,16 +442,16 @@ impl ColorScheme {
                 pink: pink.css(),
             },
             bright: AnsiColors {
-                black: black.brighten(bright_factor).css(),
-                red: red.brighten(bright_factor).css(),
-                green: green.brighten(bright_factor).css(),
-                yellow: yellow.brighten(bright_factor).css(),
-                blue: blue.brighten(bright_factor).css(),
-                magenta: magenta.brighten(bright_factor).css(),
-                cyan: cyan.brighten(bright_factor).css(),
-                white: white.brighten(bright_factor).css(),
-                orange: orange.brighten(bright_factor).css(),
-                pink: pink.brighten(bright_factor).css(),
+                black: black.adjust_value(bright_factor).css(),
+                red: red.adjust_value(bright_factor).css(),
+                green: green.adjust_value(bright_factor).css(),
+                yellow: yellow.adjust_value(bright_factor).css(),
+                blue: blue.adjust_value(bright_factor).css(),
+                magenta: magenta.adjust_value(bright_factor).css(),
+                cyan: cyan.adjust_value(bright_factor).css(),
+                white: white.adjust_value(bright_factor).css(),
+                orange: orange.adjust_value(bright_factor).css(),
+                pink: pink.adjust_value(bright_factor).css(),
             },
         };
 
