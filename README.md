@@ -161,7 +161,7 @@ pub const ALL_TARGETS: [Target; 8] = [ /* ..., Target::Vscode */ ];
 
 ![recol-demo-img-2](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-2.png)
 
-<!-- All demos and screenshots are from an older version. I'm too lazy to update them. -->
+<sub>All demos and screenshots are from an older version. I'm too lazy to update them.</sub>
 
 ---
 
