@@ -196,14 +196,14 @@ fn apply_tmux_fix(theme: &mut lib::Theme, target_contrast: f32) {
 
     let mut steps = 0u32;
     while green.wcag_contrast_ratio(&black) < target_contrast && steps < MAX_STEPS {
-        black = black.brighten(step);
+        black = black.adjust_value(step);
         steps += 1;
     }
 
     if steps > 0 {
         theme.colors.base.black = black.css();
         let bright_black = theme.colors.bright.black.color();
-        theme.colors.bright.black = bright_black.brighten(step * steps as f32).css();
+        theme.colors.bright.black = bright_black.adjust_value(step * steps as f32).css();
     }
 }
 
