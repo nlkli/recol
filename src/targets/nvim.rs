@@ -122,7 +122,7 @@ local function applyRecolTheme()
 
         DiffAdd     = {{ bg = P.diff.add }},
         DiffChange  = {{ bg = P.diff.change }},
-        DiffDelete  = {{ bg = P.diff.del, fg = P.diff.del }},
+        DiffDelete  = {{ bg = P.diff.del }},
         DiffText    = {{ bg = P.diff.txt, bold = true }},
         DiffTextAdd = {{ bg = P.diff.add, bold = true }},
 
