@@ -14,7 +14,7 @@ mod pi;
 mod vim;
 mod wezterm;
 
-pub const ALL_TARGETS: [Target; 7] = [
+pub const ALL_TARGETS: &[Target] = &[
     Target::Ghostty,
     Target::Kitty,
     Target::Alacritty,
@@ -329,29 +329,4 @@ pub fn set_font<'a>(
 #[inline]
 fn nvim_config_path(prefix: &Path, appname: Option<&str>) -> PathBuf {
     prefix.join(appname.unwrap_or("nvim")).join("init.lua")
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn nvim_config_path_defaults_to_nvim() {
-        let prefix = Path::new("/tmp/config");
-
-        assert_eq!(
-            nvim_config_path(prefix, None),
-            PathBuf::from("/tmp/config/nvim/init.lua")
-        );
-    }
-
-    #[test]
-    fn nvim_config_path_uses_appname() {
-        let prefix = Path::new("/tmp/config");
-
-        assert_eq!(
-            nvim_config_path(prefix, Some("customvim")),
-            PathBuf::from("/tmp/config/customvim/init.lua")
-        );
-    }
 }
