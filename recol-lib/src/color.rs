@@ -81,9 +81,9 @@ impl Color {
     /// For linear-light input use [`Color::from_linear`].
     pub fn new(r: f32, g: f32, b: f32) -> Self {
         Self {
-            r: sat01(r),
-            g: sat01(g),
-            b: sat01(b),
+            r: clamp_unit(r),
+            g: clamp_unit(g),
+            b: clamp_unit(b),
         }
     }
 
@@ -94,6 +94,7 @@ impl Color {
     }
 
     /// Creates a color from a packed 24-bit hex value (`0xRRGGBB`).
+    /// The upper 8 bits are ignored.
     #[inline]
     pub fn from_hex(hex: u32) -> Self {
         Self::from_rgb(
@@ -113,7 +114,7 @@ impl Color {
     ///
     /// - `h` – hue in degrees (wrapped to `[0°, 360°)`)
     /// - `s` – saturation in `[0, 100]`
-    /// - `v` – value/brightness in `[0, 100]`
+    /// - `v` – value (brightness) in `[0, 100]`
     pub fn from_hsv(h: f32, s: f32, v: f32) -> Self {
         let h = wrap_degrees(h);
         let s = s.clamp(0.0, 100.0) / 100.0;
@@ -137,83 +138,62 @@ impl Color {
         let s = s.clamp(0.0, 100.0) / 100.0;
         let l = l.clamp(0.0, 100.0) / 100.0;
 
-        let a = s * l.min(1.0 - l);
+        let amplitude = s * l.min(1.0 - l);
 
         let channel = |n: f32| {
             let k = (n + h / 30.0).rem_euclid(12.0);
-            l - a * (k - 3.0).min(9.0 - k).clamp(-1.0, 1.0)
+            l - amplitude * (k - 3.0).min(9.0 - k).clamp(-1.0, 1.0)
         };
 
         Self::new(channel(0.0), channel(8.0), channel(4.0))
     }
 
-    /// Converts CIE L*a*b* (D65) to a `Color`.
+    /// Creates a color from CIE L*a*b* (D65).
     ///
     /// Colors outside the sRGB gamut are clipped per channel, which can shift
     /// the hue. Use [`Color::from_lab_gamut_mapped`] to preserve lightness and
     /// hue instead.
     pub fn from_lab(l: f32, a: f32, b: f32) -> Self {
-        let (r, g, bl) = lab_to_linear(l as f64, a as f64, b as f64);
-        Self::from_linear64(r, g, bl)
+        Self::from_lab64(l as f64, a as f64, b as f64)
     }
 
-    /// Converts CIE L*a*b* (D65) to a `Color`. Out-of-gamut colors are mapped
+    /// Creates a color from CIE L*a*b* (D65). Out-of-gamut colors are mapped
     /// into sRGB by reducing chroma at constant lightness and hue, rather than
     /// by clipping channels.
     pub fn from_lab_gamut_mapped(l: f32, a: f32, b: f32) -> Self {
-        let (l, a, b) = (l as f64, a as f64, b as f64);
-
-        if !(l.is_finite() && a.is_finite() && b.is_finite()) {
-            return Self::from_lab(l as f32, a as f32, b as f32);
-        }
-        if l <= 0.0 {
-            return Self::new(0.0, 0.0, 0.0);
-        }
-        if l >= 100.0 {
-            return Self::new(1.0, 1.0, 1.0);
-        }
-        if lab_in_gamut(l, a, b) {
-            return Self::from_lab(l as f32, a as f32, b as f32);
-        }
-
-        let chroma = a.hypot(b);
-        if chroma < 1e-9 {
-            return Self::from_lab(l as f32, a as f32, b as f32);
-        }
-        let (sin_h, cos_h) = (b / chroma, a / chroma);
-        let (mut lo, mut hi) = (0.0_f64, chroma);
-        for _ in 0..32 {
-            let mid = 0.5 * (lo + hi);
-            if lab_in_gamut(l, mid * cos_h, mid * sin_h) {
-                lo = mid;
-            } else {
-                hi = mid;
-            }
-        }
-        Self::from_lab(l as f32, (lo * cos_h) as f32, (lo * sin_h) as f32)
+        Self::from_lab64_gamut_mapped(l as f64, a as f64, b as f64)
     }
 
+    /// Creates a color from raw bytes.
+    ///
+    /// Returns an error if the slice is not a valid encoding
+    /// (see the `TryFrom<&[u8]>` implementation).
     #[inline]
-    pub fn try_from_bytes(b: &[u8]) -> Result<Self> {
-        Self::try_from(b)
+    pub fn try_from_bytes(bytes: &[u8]) -> Result<Self> {
+        Self::try_from(bytes)
     }
 
     /// Parses a CSS hex color string (`#rrggbb` or `rrggbb`).
     #[inline]
-    pub fn try_from_css(s: &str) -> Result<Self> {
-        s.parse()
+    pub fn try_from_css(css: &str) -> Result<Self> {
+        css.parse()
     }
 
-    /// Returns the color as `(r, g, b)` bytes.
+    /// Returns the color as 8-bit sRGB `(r, g, b)`.
     #[inline]
     pub fn rgb(&self) -> (u8, u8, u8) {
-        (to_u8(self.r), to_u8(self.g), to_u8(self.b))
+        (
+            unit_to_byte(self.r),
+            unit_to_byte(self.g),
+            unit_to_byte(self.b),
+        )
     }
 
+    /// Returns the color as 8-bit sRGB `[r, g, b]`.
     #[inline]
-    pub fn bytes(&self) -> Vec<u8> {
+    pub fn bytes(&self) -> [u8; 3] {
         let (r, g, b) = self.rgb();
-        vec![r, g, b]
+        [r, g, b]
     }
 
     /// Returns the color as a packed `0xRRGGBB` integer.
@@ -230,69 +210,49 @@ impl Color {
     }
 
     /// Returns the channels as linear-light `(r, g, b)` in `[0.0, 1.0]`.
-    pub fn to_linear(&self) -> (f32, f32, f32) {
+    pub fn linear(&self) -> (f32, f32, f32) {
         let (r, g, b) = self.linear64();
         (r as f32, g as f32, b as f32)
     }
 
-    fn linear64(&self) -> (f64, f64, f64) {
-        (
-            srgb_to_linear(self.r as f64),
-            srgb_to_linear(self.g as f64),
-            srgb_to_linear(self.b as f64),
-        )
-    }
-
-    fn from_linear64(r: f64, g: f64, b: f64) -> Self {
-        Self::new(
-            linear_to_srgb(unit64(r)) as f32,
-            linear_to_srgb(unit64(g)) as f32,
-            linear_to_srgb(unit64(b)) as f32,
-        )
-    }
-
-    fn hue(&self) -> f32 {
-        let max = self.r.max(self.g).max(self.b);
-        let min = self.r.min(self.g).min(self.b);
-        let delta = max - min;
-
-        let h = if delta == 0.0 {
-            0.0
-        } else if max == self.r {
-            60.0 * (self.g - self.b) / delta
-        } else if max == self.g {
-            60.0 * ((self.b - self.r) / delta + 2.0)
-        } else {
-            60.0 * ((self.r - self.g) / delta + 4.0)
-        };
-
-        wrap_degrees(h)
-    }
-
-    /// Returns `(hue °, saturation %, value %)`.
+    /// Returns `(hue °, saturation %, value %)`; hue in `[0°, 360°)`.
     pub fn hsv(&self) -> (f32, f32, f32) {
-        let max = self.r.max(self.g).max(self.b);
-        let min = self.r.min(self.g).min(self.b);
-        let delta = max - min;
-
-        let s = if max == 0.0 { 0.0 } else { delta / max };
-        (self.hue(), s * 100.0, max * 100.0)
+        let (hue, min, max) = self.hue_and_extremes();
+        let saturation = if max == 0.0 { 0.0 } else { (max - min) / max };
+        (hue, saturation * 100.0, max * 100.0)
     }
 
-    /// Returns `(hue °, saturation %, lightness %)`.
+    /// Returns `(hue °, saturation %, lightness %)`; hue in `[0°, 360°)`.
     pub fn hsl(&self) -> (f32, f32, f32) {
-        let max = self.r.max(self.g).max(self.b);
-        let min = self.r.min(self.g).min(self.b);
-        let l = (max + min) / 2.0;
+        let (hue, min, max) = self.hue_and_extremes();
+        let lightness = (max + min) / 2.0;
         let delta = max - min;
-
-        let s = if delta == 0.0 {
+        let saturation = if delta == 0.0 {
             0.0
         } else {
-            delta / (1.0 - (2.0 * l - 1.0).abs())
+            delta / (1.0 - (2.0 * lightness - 1.0).abs())
         };
+        (hue, saturation * 100.0, lightness * 100.0)
+    }
 
-        (self.hue(), s * 100.0, l * 100.0)
+    /// Returns CIE L*a*b* (D65 white point).
+    pub fn lab(&self) -> (f32, f32, f32) {
+        let (l, a, b) = self.lab64();
+        (l as f32, a as f32, b as f32)
+    }
+
+    /// Returns CIE LCh(ab) as `(L, C, h°)`, with `h` in `[0°, 360°)`.
+    /// Approximate hues: red ≈ 40°, yellow ≈ 102°, green ≈ 136°, blue ≈ 306°.
+    /// Hue is `0.0` for exact neutrals.
+    pub fn lch(&self) -> (f32, f32, f32) {
+        let (l, a, b) = self.lab64();
+        let chroma = a.hypot(b);
+        let hue = if chroma < 1e-9 {
+            0.0
+        } else {
+            wrap_degrees(b.atan2(a).to_degrees() as f32)
+        };
+        (l as f32, chroma as f32, hue)
     }
 
     /// Returns the relative luminance as defined by WCAG 2.x
@@ -305,20 +265,63 @@ impl Color {
         (0.2126 * r + 0.7152 * g + 0.0722 * b) as f32
     }
 
-    /// Converts a `Color` to CIE L*a*b* (D65 white point).
-    pub fn lab(self) -> (f32, f32, f32) {
-        let (r, g, b) = self.linear64();
+    /// WCAG 2.x contrast ratio between two colors, in `[1.0, 21.0]`.
+    pub fn wcag_contrast_ratio(&self, other: &Color) -> f32 {
+        let (a, b) = (self.luminance(), other.luminance());
+        (a.max(b) + 0.05) / (a.min(b) + 0.05)
+    }
 
-        let x = (0.4124564 * r + 0.3575761 * g + 0.1804375 * b) / D65_XN;
-        let y = (0.2126729 * r + 0.7151522 * g + 0.0721750 * b) / D65_YN;
-        let z = (0.0193339 * r + 0.1191920 * g + 0.9503041 * b) / D65_ZN;
+    /// Euclidean distance in CIE L*a*b* (ΔE76). Fast but overstates
+    /// differences between saturated colors. Prefer [`Color::delta_e2000`].
+    pub fn delta_e76(&self, other: &Color) -> f32 {
+        let (l1, a1, b1) = self.lab64();
+        let (l2, a2, b2) = other.lab64();
+        ((l1 - l2).powi(2) + (a1 - a2).powi(2) + (b1 - b2).powi(2)).sqrt() as f32
+    }
 
-        let (fx, fy, fz) = (lab_f(x), lab_f(y), lab_f(z));
-        (
-            (116.0 * fy - 16.0) as f32,
-            (500.0 * (fx - fy)) as f32,
-            (200.0 * (fy - fz)) as f32,
-        )
+    /// Perceptual color difference (CIEDE2000). Symmetric.
+    /// Rough guide: `< 1` invisible, `1–2` barely visible, `2–10` clearly
+    /// visible, `> 10` different colors. Black vs white is `100`.
+    pub fn delta_e2000(&self, other: &Color) -> f32 {
+        ciede2000(self.lab64(), other.lab64()) as f32
+    }
+
+    /// Overall color similarity in `(0.0, 1.0]`; `1.0` means identical.
+    ///
+    /// `half_similarity_delta_e` is the ΔE2000 at which the result is exactly
+    /// `0.5` (try `15.0`; smaller = stricter).
+    pub fn similarity(&self, other: &Color, half_similarity_delta_e: f32) -> f32 {
+        let d = self.delta_e2000(other) / half_similarity_delta_e.max(f32::EPSILON);
+        1.0 / (1.0 + d * d)
+    }
+
+    /// Shortest angular distance between Lab hues, in degrees `[0, 180]`.
+    /// Meaningless for near-neutral colors (see [`Color::hue_similarity`]).
+    pub fn hue_distance(&self, other: &Color) -> f32 {
+        angular_distance(self.lch().2, other.lch().2)
+    }
+
+    /// How close this color's *hue* is to `other`'s, in `[0.0, 1.0]`,
+    /// ignoring lightness. Use it to ask "how red / green is this color?":
+    /// `c.hue_similarity(&Color::from_rgb(255, 0, 0), 30.0)`.
+    ///
+    /// - `half_similarity_degrees`: hue difference at which the score halves
+    ///   (try `25–40`).
+    /// - Grays score near `0.0` because they have no hue; both colors must
+    ///   be chromatic, so pass a saturated `other`.
+    pub fn hue_similarity(&self, other: &Color, half_similarity_degrees: f32) -> f32 {
+        // Chroma at which a color counts as "clearly chromatic"
+        // (weight ≈ 0.63). Neutrals (C ≈ 0) have no meaningful hue.
+        const CHROMA_SCALE: f32 = 20.0;
+
+        let (_, chroma_a, hue_a) = self.lch();
+        let (_, chroma_b, hue_b) = other.lch();
+
+        let d = angular_distance(hue_a, hue_b) / half_similarity_degrees.max(f32::EPSILON);
+        let hue_score = 1.0 / (1.0 + d * d);
+
+        let chromatic_weight = |chroma: f32| 1.0 - (-chroma / CHROMA_SCALE).exp();
+        hue_score * chromatic_weight(chroma_a).min(chromatic_weight(chroma_b))
     }
 
     /// Linearly interpolates between `self` and `other` in **gamma-encoded
@@ -353,40 +356,36 @@ impl Color {
     ///
     /// `f = 0.0` returns `self`; `f = 1.0` returns `other`.
     pub fn blend_lab(&self, other: &Color, f: f32) -> Color {
-        let (l1, a1, b1) = self.lab();
-        let (l2, a2, b2) = other.lab();
-        Color::from_lab_gamut_mapped(l1 + (l2 - l1) * f, a1 + (a2 - a1) * f, b1 + (b2 - b1) * f)
+        let (l1, a1, b1) = self.lab64();
+        let (l2, a2, b2) = other.lab64();
+        let f = f as f64;
+        Color::from_lab64_gamut_mapped(l1 + (l2 - l1) * f, a1 + (a2 - a1) * f, b1 + (b2 - b1) * f)
     }
 
-    /// Lightens (`f > 0`) or darkens (`f < 0`) the color by blending toward
-    /// white or black (in gamma-encoded sRGB) by the proportion `|f|` in
-    /// `[0.0, 1.0]`.
-    pub fn shade(&self, f: f32) -> Color {
-        let target = if f >= 0.0 { 1.0 } else { 0.0 };
-        let p = f.abs();
-        Color::new(
-            self.r + (target - self.r) * p,
-            self.g + (target - self.g) * p,
-            self.b + (target - self.b) * p,
-        )
+    /// Lightens (`amount > 0`) or darkens (`amount < 0`) the color by blending
+    /// toward white or black (in gamma-encoded sRGB) by the proportion
+    /// `|amount|` in `[0.0, 1.0]`.
+    pub fn shade(&self, amount: f32) -> Color {
+        let target = if amount >= 0.0 { 1.0 } else { 0.0 };
+        self.blend(&Color::new(target, target, target), amount.abs())
     }
 
-    /// Adjusts HSV *value* by `v` percentage points (result clamped to `[0, 100]`).
-    pub fn brighten(&self, v: f32) -> Color {
-        let (h, s, val) = self.hsv();
-        Color::from_hsv(h, s, (val + v).clamp(0.0, 100.0))
+    /// Adjusts HSV *value* by `delta` percentage points (result clamped to `[0, 100]`).
+    pub fn adjust_value(&self, delta: f32) -> Color {
+        let (h, s, v) = self.hsv();
+        Color::from_hsv(h, s, v + delta)
     }
 
-    /// Adjusts HSL *lightness* by `v` percentage points (result clamped to `[0, 100]`).
-    pub fn lighten(&self, v: f32) -> Color {
+    /// Adjusts HSV *saturation* by `delta` percentage points (result clamped to `[0, 100]`).
+    pub fn adjust_saturation(&self, delta: f32) -> Color {
+        let (h, s, v) = self.hsv();
+        Color::from_hsv(h, s + delta, v)
+    }
+
+    /// Adjusts HSL *lightness* by `delta` percentage points (result clamped to `[0, 100]`).
+    pub fn adjust_lightness(&self, delta: f32) -> Color {
         let (h, s, l) = self.hsl();
-        Color::from_hsl(h, s, (l + v).clamp(0.0, 100.0))
-    }
-
-    /// Adjusts HSV *saturation* by `v` percentage points (result clamped to `[0, 100]`).
-    pub fn saturate(&self, v: f32) -> Color {
-        let (h, s, val) = self.hsv();
-        Color::from_hsv(h, (s + v).clamp(0.0, 100.0), val)
+        Color::from_hsl(h, s, l + delta)
     }
 
     /// Rotates the hue by `degrees` (any value; wrapped to `[0°, 360°)`).
@@ -395,49 +394,297 @@ impl Color {
         Color::from_hsv(h + degrees, s, v)
     }
 
-    /// Rotates the hue by `v` degrees.
-    ///
-    /// The `rhs` argument is ignored and kept only for API compatibility: the
-    /// hue is always wrapped to `[0°, 360°)`. Previously any `rhs != 360.0`
-    /// produced a wrong color (and `0.0` produced NaN). Prefer
-    /// [`Color::rotate_hue`].
-    pub fn rotate(&self, v: f32, _rhs: f32) -> Color {
-        self.rotate_hue(v)
+    #[deprecated(note = "use `adjust_value`")]
+    pub fn brighten(&self, v: f32) -> Color {
+        self.adjust_value(v)
     }
 
-    /// WCAG 2.x contrast ratio between two colors, in `[1.0, 21.0]`.
-    pub fn wcag_contrast_ratio(&self, other: &Color) -> f32 {
-        let l1 = self.luminance();
-        let l2 = other.luminance();
+    #[deprecated(note = "use `adjust_saturation`")]
+    pub fn saturate(&self, v: f32) -> Color {
+        self.adjust_saturation(v)
+    }
 
-        let (lighter, darker) = if l1 > l2 { (l1, l2) } else { (l2, l1) };
+    #[deprecated(note = "use `adjust_lightness`")]
+    pub fn lighten(&self, v: f32) -> Color {
+        self.adjust_lightness(v)
+    }
+}
 
-        (lighter + 0.05) / (darker + 0.05)
+impl Color {
+    /// Channels as linear-light `f64`.
+    fn linear64(&self) -> (f64, f64, f64) {
+        (
+            srgb_to_linear(self.r as f64),
+            srgb_to_linear(self.g as f64),
+            srgb_to_linear(self.b as f64),
+        )
+    }
+
+    /// Creates a color from linear-light `f64`. Out-of-range and `NaN` values
+    /// are handled by the clamping in [`Color::new`].
+    fn from_linear64(r: f64, g: f64, b: f64) -> Self {
+        Self::new(
+            linear_to_srgb(r) as f32,
+            linear_to_srgb(g) as f32,
+            linear_to_srgb(b) as f32,
+        )
+    }
+
+    /// CIE L*a*b* (D65) in `f64`; avoids `f32` rounding.
+    fn lab64(&self) -> (f64, f64, f64) {
+        let (r, g, b) = self.linear64();
+
+        let x = (0.4124564 * r + 0.3575761 * g + 0.1804375 * b) / D65_WHITE_X;
+        let y = (0.2126729 * r + 0.7151522 * g + 0.0721750 * b) / D65_WHITE_Y;
+        let z = (0.0193339 * r + 0.1191920 * g + 0.9503041 * b) / D65_WHITE_Z;
+
+        let (fx, fy, fz) = (
+            lab_nonlinearity(x),
+            lab_nonlinearity(y),
+            lab_nonlinearity(z),
+        );
+        (116.0 * fy - 16.0, 500.0 * (fx - fy), 200.0 * (fy - fz))
+    }
+
+    /// CIE L*a*b* (D65) → color, clipping out-of-gamut channels.
+    fn from_lab64(l: f64, a: f64, b: f64) -> Self {
+        let (r, g, bl) = lab_to_linear(l, a, b);
+        Self::from_linear64(r, g, bl)
+    }
+
+    /// CIE L*a*b* (D65) → color, mapping out-of-gamut values into sRGB by
+    /// bisecting chroma at constant lightness and hue.
+    fn from_lab64_gamut_mapped(l: f64, a: f64, b: f64) -> Self {
+        if !(l.is_finite() && a.is_finite() && b.is_finite()) {
+            return Self::from_lab64(l, a, b);
+        }
+        if l <= 0.0 {
+            return Self::new(0.0, 0.0, 0.0);
+        }
+        if l >= 100.0 {
+            return Self::new(1.0, 1.0, 1.0);
+        }
+        if lab_in_gamut(l, a, b) {
+            return Self::from_lab64(l, a, b);
+        }
+
+        // Here 0 < L < 100 and the color is out of gamut, so chroma > 0
+        // (the neutral axis is always inside the gamut).
+        let chroma = a.hypot(b);
+        let (cos_h, sin_h) = (a / chroma, b / chroma);
+
+        // 32 halvings narrow the chroma range below 1e-7 (max chroma ≈ 230).
+        let (mut inside, mut outside) = (0.0_f64, chroma);
+        for _ in 0..32 {
+            let mid = 0.5 * (inside + outside);
+            if lab_in_gamut(l, mid * cos_h, mid * sin_h) {
+                inside = mid;
+            } else {
+                outside = mid;
+            }
+        }
+        Self::from_lab64(l, inside * cos_h, inside * sin_h)
+    }
+
+    /// Returns `(hue °, min channel, max channel)`. The hue is the HSV/HSL hue
+    /// (`0.0` for grays), wrapped to `[0°, 360°)`.
+    fn hue_and_extremes(&self) -> (f32, f32, f32) {
+        let max = self.r.max(self.g).max(self.b);
+        let min = self.r.min(self.g).min(self.b);
+        let delta = max - min;
+
+        let hue = if delta == 0.0 {
+            0.0
+        } else if max == self.r {
+            60.0 * (self.g - self.b) / delta
+        } else if max == self.g {
+            60.0 * ((self.b - self.r) / delta + 2.0)
+        } else {
+            60.0 * ((self.r - self.g) / delta + 4.0)
+        };
+
+        (wrap_degrees(hue), min, max)
     }
 }
 
 /// Clamps to `[0.0, 1.0]`, mapping `NaN` to `0.0`.
 #[inline(always)]
-fn sat01(v: f32) -> f32 {
+fn clamp_unit(v: f32) -> f32 {
     if v.is_nan() { 0.0 } else { v.clamp(0.0, 1.0) }
 }
 
+/// Converts a `[0.0, 1.0]` channel to the nearest 8-bit value.
 #[inline(always)]
-fn unit64(v: f64) -> f64 {
-    if v.is_nan() { 0.0 } else { v.clamp(0.0, 1.0) }
+fn unit_to_byte(v: f32) -> u8 {
+    (v * 255.0).round() as u8
 }
 
 /// Wraps an angle to `[0.0, 360.0)`. `rem_euclid` can return exactly `360.0`
 /// for tiny negative inputs due to rounding; that case is folded to `0.0`.
 #[inline(always)]
-fn wrap_degrees(h: f32) -> f32 {
-    let w = h.rem_euclid(360.0);
-    if w >= 360.0 { 0.0 } else { w }
+fn wrap_degrees(degrees: f32) -> f32 {
+    let wrapped = degrees.rem_euclid(360.0);
+    if wrapped >= 360.0 { 0.0 } else { wrapped }
 }
 
+/// Shortest distance between two angles in degrees, in `[0, 180]`.
 #[inline(always)]
-fn to_u8(v: f32) -> u8 {
-    (v * 255.0).round() as u8
+fn angular_distance(a: f32, b: f32) -> f32 {
+    let d = (a - b).abs();
+    d.min(360.0 - d)
+}
+
+fn srgb_to_linear(c: f64) -> f64 {
+    if c <= 0.04045 {
+        c / 12.92
+    } else {
+        ((c + 0.055) / 1.055).powf(2.4)
+    }
+}
+
+/// Inverse of [`srgb_to_linear`]. Not clamped: values below `0.0` or above
+/// `1.0` map outside `[0.0, 1.0]` and are clamped later by [`Color::new`].
+fn linear_to_srgb(c: f64) -> f64 {
+    if c <= 0.0031308 {
+        c * 12.92
+    } else {
+        1.055 * c.powf(1.0 / 2.4) - 0.055
+    }
+}
+
+// D65 reference white. These are the row sums of the forward sRGB→XYZ matrix
+// in `Color::lab64` (Lindbloom's D65 matrix), so RGB (1, 1, 1) maps to exactly
+// L*a*b* (100, 0, 0). The inverse matrix in `lab_to_linear` is the exact
+// inverse of that forward matrix; with the commonly printed 7-digit inverse,
+// neutral greys came back with channels differing by one 8-bit level.
+const D65_WHITE_X: f64 = 0.95047;
+const D65_WHITE_Y: f64 = 1.0000001;
+const D65_WHITE_Z: f64 = 1.08883;
+
+// Exact CIE constants: ε = (6/29)³, κ = (29/3)³.
+const LAB_EPSILON: f64 = 216.0 / 24389.0;
+const LAB_KAPPA: f64 = 24389.0 / 27.0;
+
+/// CIE L*a*b* companding function `f(t)` applied to a white-normalized XYZ
+/// component.
+fn lab_nonlinearity(t: f64) -> f64 {
+    if t > LAB_EPSILON {
+        t.cbrt()
+    } else {
+        (LAB_KAPPA * t + 16.0) / 116.0
+    }
+}
+
+/// Inverse of [`lab_nonlinearity`].
+fn lab_nonlinearity_inverse(t: f64) -> f64 {
+    let cubed = t * t * t;
+    if cubed > LAB_EPSILON {
+        cubed
+    } else {
+        (116.0 * t - 16.0) / LAB_KAPPA
+    }
+}
+
+/// L*a*b* → unclamped linear sRGB.
+fn lab_to_linear(l: f64, a: f64, b: f64) -> (f64, f64, f64) {
+    let fy = (l + 16.0) / 116.0;
+    let fx = a / 500.0 + fy;
+    let fz = fy - b / 200.0;
+
+    let x = D65_WHITE_X * lab_nonlinearity_inverse(fx);
+    let y = D65_WHITE_Y * lab_nonlinearity_inverse(fy);
+    let z = D65_WHITE_Z * lab_nonlinearity_inverse(fz);
+
+    (
+        3.2404548360214083 * x - 1.5371388501025751 * y - 0.49853154686848089 * z,
+        -0.96926638987565372 * x + 1.8760109288424913 * y + 0.041556082346673524 * z,
+        0.055643419604213658 * x - 0.20402585426769815 * y + 1.0572251624579287 * z,
+    )
+}
+
+/// Whether L*a*b* lies inside the sRGB gamut (with a small tolerance for
+/// floating-point error on the gamut boundary).
+fn lab_in_gamut(l: f64, a: f64, b: f64) -> bool {
+    const TOLERANCE: f64 = 1e-6;
+    let (r, g, bl) = lab_to_linear(l, a, b);
+    [r, g, bl]
+        .iter()
+        .all(|c| (-TOLERANCE..=1.0 + TOLERANCE).contains(c))
+}
+
+/// CIEDE2000 (kL = kC = kH = 1) between two CIE L*a*b* colors.
+///
+/// Reference: Sharma, Wu, Dalal (2005). Variable names follow the paper:
+/// a trailing `p` is the prime (′), `bar` is the mean of the pair.
+fn ciede2000((l1, a1, b1): (f64, f64, f64), (l2, a2, b2): (f64, f64, f64)) -> f64 {
+    use std::f64::consts::PI;
+    let pow25_7 = 25f64.powi(7);
+
+    // Chroma-dependent a* correction (G).
+    let c_bar7 = (0.5 * (a1.hypot(b1) + a2.hypot(b2))).powi(7);
+    let g = 0.5 * (1.0 - (c_bar7 / (c_bar7 + pow25_7)).sqrt());
+
+    let (a1p, a2p) = ((1.0 + g) * a1, (1.0 + g) * a2);
+    let (c1p, c2p) = (a1p.hypot(b1), a2p.hypot(b2));
+
+    let hue = |b: f64, ap: f64| {
+        if b == 0.0 && ap == 0.0 {
+            0.0
+        } else {
+            b.atan2(ap).to_degrees().rem_euclid(360.0)
+        }
+    };
+    let (h1p, h2p) = (hue(b1, a1p), hue(b2, a2p));
+
+    // Differences ΔL′, ΔC′, ΔH′.
+    let dl = l2 - l1;
+    let dc = c2p - c1p;
+    let achromatic = c1p * c2p == 0.0;
+
+    let dh_degrees = if achromatic {
+        0.0
+    } else {
+        let d = h2p - h1p;
+        if d > 180.0 {
+            d - 360.0
+        } else if d < -180.0 {
+            d + 360.0
+        } else {
+            d
+        }
+    };
+    let dh = 2.0 * (c1p * c2p).sqrt() * (dh_degrees.to_radians() / 2.0).sin();
+
+    // Means L̄′, C̄′, H̄′.
+    let l_bar = 0.5 * (l1 + l2);
+    let c_barp = 0.5 * (c1p + c2p);
+    let h_barp = if achromatic {
+        h1p + h2p
+    } else if (h1p - h2p).abs() <= 180.0 {
+        0.5 * (h1p + h2p)
+    } else if h1p + h2p < 360.0 {
+        0.5 * (h1p + h2p + 360.0)
+    } else {
+        0.5 * (h1p + h2p - 360.0)
+    };
+
+    // Weighting functions and rotation term.
+    let t = 1.0 - 0.17 * (h_barp - 30.0).to_radians().cos()
+        + 0.24 * (2.0 * h_barp).to_radians().cos()
+        + 0.32 * (3.0 * h_barp + 6.0).to_radians().cos()
+        - 0.20 * (4.0 * h_barp - 63.0).to_radians().cos();
+
+    let delta_theta = 30.0 * (-((h_barp - 275.0) / 25.0).powi(2)).exp();
+    let c_barp7 = c_barp.powi(7);
+    let rc = 2.0 * (c_barp7 / (c_barp7 + pow25_7)).sqrt();
+    let l50 = (l_bar - 50.0).powi(2);
+    let sl = 1.0 + 0.015 * l50 / (20.0 + l50).sqrt();
+    let sc = 1.0 + 0.045 * c_barp;
+    let sh = 1.0 + 0.015 * c_barp * t;
+    let rt = -(2.0 * delta_theta * PI / 180.0).sin() * rc;
+
+    let (tl, tc, th) = (dl / sl, dc / sc, dh / sh);
+    (tl * tl + tc * tc + th * th + rt * tc * th).max(0.0).sqrt()
 }
 
 /// A validated CSS hex color string (e.g. `#1a2b3c`).
@@ -795,75 +1042,6 @@ impl std::fmt::Display for CssColor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.0)
     }
-}
-
-// D65 reference white. These are the row sums of the forward sRGB→XYZ matrix
-// in `Color::lab` (Lindbloom's D65 matrix), so RGB (1, 1, 1) maps to exactly
-// L*a*b* (100, 0, 0). The inverse matrix in `lab_to_linear` is the exact
-// inverse of that forward matrix; with the commonly printed 7-digit inverse,
-// neutral greys came back with channels differing by one 8-bit level.
-const D65_XN: f64 = 0.95047;
-const D65_YN: f64 = 1.0000001;
-const D65_ZN: f64 = 1.08883;
-
-// Exact CIE constants: ε = (6/29)³, κ = (29/3)³.
-const LAB_EPS: f64 = 216.0 / 24389.0;
-const LAB_KAPPA: f64 = 24389.0 / 27.0;
-
-fn srgb_to_linear(c: f64) -> f64 {
-    if c <= 0.04045 {
-        c / 12.92
-    } else {
-        ((c + 0.055) / 1.055).powf(2.4)
-    }
-}
-
-fn linear_to_srgb(c: f64) -> f64 {
-    if c <= 0.0031308 {
-        c * 12.92
-    } else {
-        1.055 * c.powf(1.0 / 2.4) - 0.055
-    }
-}
-
-fn lab_f(t: f64) -> f64 {
-    if t > LAB_EPS {
-        t.cbrt()
-    } else {
-        (LAB_KAPPA * t + 16.0) / 116.0
-    }
-}
-
-fn lab_f_inv(t: f64) -> f64 {
-    let t3 = t * t * t;
-    if t3 > LAB_EPS {
-        t3
-    } else {
-        (116.0 * t - 16.0) / LAB_KAPPA
-    }
-}
-
-/// L*a*b* → unclamped linear sRGB.
-fn lab_to_linear(l: f64, a: f64, b: f64) -> (f64, f64, f64) {
-    let fy = (l + 16.0) / 116.0;
-    let fx = a / 500.0 + fy;
-    let fz = fy - b / 200.0;
-
-    let x = D65_XN * lab_f_inv(fx);
-    let y = D65_YN * lab_f_inv(fy);
-    let z = D65_ZN * lab_f_inv(fz);
-
-    (
-        3.2404548360214083 * x - 1.5371388501025751 * y - 0.49853154686848089 * z,
-        -0.96926638987565372 * x + 1.8760109288424913 * y + 0.041556082346673524 * z,
-        0.055643419604213658 * x - 0.20402585426769815 * y + 1.0572251624579287 * z,
-    )
-}
-
-fn lab_in_gamut(l: f64, a: f64, b: f64) -> bool {
-    const EPS: f64 = 1e-6;
-    let (r, g, bl) = lab_to_linear(l, a, b);
-    [r, g, bl].iter().all(|&c| (-EPS..=1.0 + EPS).contains(&c))
 }
 
 pub fn print_palette(colors: &[Color]) {
