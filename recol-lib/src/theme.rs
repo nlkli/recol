@@ -152,7 +152,7 @@ impl ColorScheme {
                 pink: {
                     // `white` is often unstable and may drift in lightness,
                     // so we anchor its L* back to red's L* to keep them consistent.
-                    let (l, a, b) = c[7].blend_lab(&c[13], 0.5).lab();
+                    let (l, a, b) = c[13].blend_lab(&c[7], 0.555).lab();
                     Color::from_lab((c[7].lab().0 - l).mul_add(0.8, l), a, b).css()
                 },
             },
