@@ -323,7 +323,7 @@ fn help() -> String {
       Derive a theme from an image/video
   {blue}-a{reset}, {blue}--adjust <SPEC|PATH>{reset} [env: RECOL_ADJUST]
       Apply color adjustments (see --adjust help)
-  {blue}-o{reset}, {blue}--output{reset} <DIR_PATH>
+  {blue}-o{reset}, {blue}--output <DIR_PATH>{reset}
       Generate themes into the directory
   {blue}-L{reset}, {blue}--list{reset}  List available themes
   {blue}-s{reset}, {blue}--show{reset}  Show a color palette
