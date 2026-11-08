@@ -32,9 +32,9 @@ local function applyRecolTheme()
         comment = "{comment}",
         diff = {{
             add = "{diff_add}",
-            delete = "{diff_delete}",
+            del = "{diff_delete}",
             change = "{diff_change}",
-            text = "{diff_text}",
+            txt = "{diff_text}",
         }}
     }}
     for group, opts in pairs({{
