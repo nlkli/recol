@@ -72,7 +72,7 @@ Add your own themes to `./colorschemes`, or exclude unwanted ones in `build.rs`.
 
 ### Usage Examples
 
-By default, recol applies the selected theme to all supported targets for which a configuration file can be found. To apply a theme to a specific target, use the --target flag, or use --output to generate themes in a specified directory without applying them.
+By default, recol applies the selected theme to all supported targets for which a configuration file can be found. To apply a theme to a specific target, use the `--target` flag, or use `--output` to generate themes in a specified directory without applying them.
 
 ```sh
 recol lOnDoNsOhOnIgHt67       # fuzzy match - applies closest theme by name
@@ -149,7 +149,7 @@ Each target is a small module under `src/targets/`:
 mod vscode;
 // ...
 pub enum Target { /* ..., Vscode */ }
-pub const ALL_TARGETS: [Target; 8] = [ /* ..., Target::Vscode */ ];
+pub const ALL_TARGETS: &[Target] = &[ /* ..., Target::Vscode */ ];
 // Display, FromStr, apply_theme_to, existing_default_config_path - add one arm each
 ```
 
@@ -162,7 +162,5 @@ pub const ALL_TARGETS: [Target; 8] = [ /* ..., Target::Vscode */ ];
 ![recol-demo-img-2](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-2.png)
 
 <sub>All demos and screenshots are from an older version. I'm too lazy to update them.</sub>
-
----
 
 [LICENSE](LICENSE)
