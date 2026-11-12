@@ -8,14 +8,17 @@ fn main() {
         build_colorschemes_bin(
             std::env::var("RECOL_GHOSSTY_THEMES_DIR").unwrap_or_else(|_| "./colorschemes".into()),
             &mut output,
+
             // Return `true` to exclude a theme.
             |theme| ["theme_to_exclude"].contains(&theme.name.as_str()),
+
             // normalize_bw
             true,
+
             // tmux_fix
-            Some(TmuxFix {
-                target_contrast: 2.3,
-            }),
+            Some(TmuxFix::InvertLightness),
+            // Some(TmuxFix::TargetContrast(2.3)),
+
             // normalize_anomalies
             Some(AnomalyNormalization {
                 z_threshold: 1.0,
@@ -29,10 +32,12 @@ fn main() {
 use recol_lib as lib;
 use std::{io::Write, path::Path};
 
+#[allow(dead_code)]
 // Makes `black` readable on `green` (tmux's default status bar).
-struct TmuxFix {
+enum TmuxFix {
+    InvertLightness,
     // Minimum WCAG contrast ratio between `green` and `black`.
-    target_contrast: f32,
+    TargetContrast(f32),
 }
 
 // Pulls the lightness of palette colors that are outliers on both
@@ -84,8 +89,8 @@ fn build_colorschemes_bin(
         if normalize_bw {
             normalize_black_white(&mut theme);
         }
-        if let Some(fix) = &tmux_fix {
-            apply_tmux_fix(&mut theme, fix.target_contrast);
+        if let Some(ref fix) = tmux_fix {
+            apply_tmux_fix(&mut theme, fix);
         }
         if let Some(cfg) = &normalize_anomalies {
             apply_anomaly_normalization(&mut theme, cfg);
@@ -187,23 +192,53 @@ fn normalize_black_white(theme: &mut lib::Theme) {
 // Shifts `black` (darker for dark colors, lighter for light ones) until its contrast
 // with `green` reaches `target_contrast`, up to MAX_STEPS. `bright.black` is shifted
 // by the same total amount.
-fn apply_tmux_fix(theme: &mut lib::Theme, target_contrast: f32) {
-    const MAX_STEPS: u32 = 99;
+fn apply_tmux_fix(theme: &mut lib::Theme, tmux_fix: &TmuxFix) {
+    match tmux_fix {
+        TmuxFix::InvertLightness => {
+            let black = theme.colors.base.black.color();
+            let invert_lightness = |c: lib::Color| {
+                let (h, s, l) = c.hsl();
+                lib::Color::from_hsl(h, s, 100.0 - l)
+            };
+            if theme.is_light {
+                if black.lab().0 < 40. {
+                    theme.colors.base.black = invert_lightness(black).css();
+                }
+            } else {
+                if black.lab().0 > 60. {
+                    theme.colors.base.black = invert_lightness(black).css();
+                }
+            }
+            let black = theme.colors.bright.black.color();
+            if theme.is_light {
+                if black.lab().0 < 40. {
+                    theme.colors.bright.black = invert_lightness(black).css();
+                }
+            } else {
+                if black.lab().0 > 60. {
+                    theme.colors.bright.black = invert_lightness(black).css();
+                }
+            }
+        }
+        TmuxFix::TargetContrast(target_contrast) => {
+            const MAX_STEPS: u32 = 99;
 
-    let green = theme.colors.base.green.color();
-    let mut black = theme.colors.base.black.color();
-    let step = if black.lab().0 < 50. { -1. } else { 1. };
+            let green = theme.colors.base.green.color();
+            let mut black = theme.colors.base.black.color();
+            let step = if black.lab().0 < 50. { -1. } else { 1. };
 
-    let mut steps = 0u32;
-    while green.wcag_contrast_ratio(&black) < target_contrast && steps < MAX_STEPS {
-        black = black.adjust_value(step);
-        steps += 1;
-    }
+            let mut steps = 0u32;
+            while green.wcag_contrast_ratio(&black) < *target_contrast && steps < MAX_STEPS {
+                black = black.adjust_value(step);
+                steps += 1;
+            }
 
-    if steps > 0 {
-        theme.colors.base.black = black.css();
-        let bright_black = theme.colors.bright.black.color();
-        theme.colors.bright.black = bright_black.adjust_value(step * steps as f32).css();
+            if steps > 0 {
+                theme.colors.base.black = black.css();
+                let bright_black = theme.colors.bright.black.color();
+                theme.colors.bright.black = bright_black.adjust_value(step * steps as f32).css();
+            }
+        }
     }
 }
 
