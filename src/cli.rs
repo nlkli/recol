@@ -244,11 +244,16 @@ impl Args {
             }
             std::process::exit(0);
         }
-        for p in arg.split(",") {
-            if let Ok(t) = p.parse::<Target>() {
-                if !self.targets.contains(&t) {
-                    self.targets.push(t);
-                }
+        let selected = match parse_target_list(&arg) {
+            Ok(targets) => targets,
+            Err(invalid) => {
+                eprintln!("Unknown target '{invalid}'. Run `recol -T list` for valid names.");
+                std::process::exit(2);
+            }
+        };
+        for target in selected {
+            if !self.targets.contains(&target) {
+                self.targets.push(target);
             }
         }
     }
@@ -298,6 +303,40 @@ const VERSION: &str = concat!(
     env!("CARGO_PKG_VERSION"),
     " [https://github.com/nlkli/recol]"
 );
+
+/// Parse target names strictly to avoid applying a theme to every detected
+/// application when the user accidentally enters an unsupported target.
+fn parse_target_list(input: &str) -> Result<Vec<Target>, &str> {
+    let mut targets = Vec::new();
+    for part in input.split(',') {
+        let name = part.trim();
+        let target = name.parse().map_err(|()| name)?;
+        if !targets.contains(&target) {
+            targets.push(target);
+        }
+    }
+    Ok(targets)
+}
+
+#[cfg(test)]
+mod target_list_tests {
+    use super::*;
+
+    #[test]
+    fn accepts_full_target_names_and_deduplicates() {
+        assert_eq!(
+            parse_target_list("terminator, nvim, terminator"),
+            Ok(vec![Target::Terminator, Target::Nvim])
+        );
+    }
+
+    #[test]
+    fn rejects_terminator_aliases_and_unknown_names() {
+        for name in ["t", "tm", "terminatr", "", "terminator,"] {
+            assert!(parse_target_list(name).is_err());
+        }
+    }
+}
 
 // NOTE: some flags (e.g. --font*, --nvim_config, --init-input,
 // --init-help, --quit-on-select, --palettegen) are intentionally

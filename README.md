@@ -11,7 +11,7 @@
 Designed for a consistent color experience across your development environment.
 
 - **888+ built-in color schemes** from [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes) - embedded directly into the binary, carefully curated, color-normalized, and optimized for consistent appearance across supported tools.
-- **7 built-in targets:** [Ghostty](https://ghostty.org), [Kitty](https://sw.kovidgoyal.net/kitty/), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org) and [Pi](https://github.com/earendil-works/pi)
+- **8 built-in targets:** [Ghostty](https://ghostty.org), [Kitty](https://sw.kovidgoyal.net/kitty/), [Terminator](https://github.com/gnome-terminator/terminator), [Alacritty](https://alacritty.org), [WezTerm](https://wezterm.org), [Neovim](https://neovim.io), [Vim](https://www.vim.org) and [Pi](https://github.com/earendil-works/pi)
 - **Interactive browser with live previews**
 - **Color adjustments with brightness, contrast, saturation, hue, and more**
 - **Image-to-theme generation from images and video frames**
@@ -22,6 +22,66 @@ Designed for a consistent color experience across your development environment.
 - **Ghostty** - auto-reloads via `SIGUSR2`; otherwise use `Ctrl + Shift + ,` (Linux) / `Cmd + Shift + ,` (macOS).
 - **Kitty 0.47.0+** - auto-reloads by default. Older versions: `Ctrl + Shift + F5` (`Ctrl + Cmd + ,` on macOS). See [docs](https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.auto_reload_config).
 - **Alacritty**, **WezTerm** - hot reload, no restart needed.
+- **Terminator** - updates existing ConfigObj profiles; attempts a live reload over the session D-Bus when available. Otherwise, restart Terminator to see the new colors.
+
+### Terminator integration
+
+This checkout includes a native `terminator` target, supporting Terminator 1.x
+(including Ubuntu 20.04) and 2.x. The target name is **`terminator` only**:
+there are no `t` or `tm` aliases. Unknown target names are rejected rather
+than silently falling back to every installed target.
+
+Recol discovers an existing configuration at
+`$XDG_CONFIG_HOME/terminator/config`, falling back to
+`~/.config/terminator/config`. If Terminator has not created this file yet,
+create it before choosing a theme:
+
+```sh
+mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/terminator"
+touch "${XDG_CONFIG_HOME:-$HOME/.config}/terminator/config"
+
+recol -T list                         # show recognized targets
+recol -i -T terminator,nvim           # interactive picker for both programs
+recol -i -T terminator,kitty,nvim     # apply the same theme to all three
+recol blazer -T terminator           # apply a named theme to Terminator
+recol blazer -T terminator -o ./out  # export ./out/terminator.conf
+```
+
+The target updates **every profile** below `[profiles]` (not just `[[default]]`).
+If there are no profiles, it creates `[[default]]`. It writes foreground and
+background colors, the 16 ANSI palette entries, and cursor colors. It removes
+a legacy `color_scheme` value when present, so it cannot override custom colors.
+It preserves layout definitions, keybindings, fonts, transparency, scrollback,
+other unrelated settings, and standalone comments. Existing color-setting
+lines are replaced, including any comments attached to those lines. Reapplying
+an unchanged theme does not rewrite the configuration or trigger a reload.
+
+The target writes both the legacy `cursor_color` key and the newer
+`cursor_color_default`, `cursor_bg_color`, and `cursor_fg_color` keys for
+compatibility with Terminator 1.x and 2.x. Terminator has no direct equivalent
+for Recol's two selection colors, so they are not exported.
+
+When applying to the active configuration, Recol asks running Terminator
+instances to reload using the `reload_configuration` D-Bus method. This is
+best-effort and requires `dbus-send`, a session bus, and Terminator's D-Bus
+service. If Terminator was started with D-Bus disabled, restart it manually.
+Exporting with `-o` only writes `terminator.conf`; it does not reload the app.
+
+**Build and install this modified checkout** (from the project root):
+
+```sh
+cargo test
+cargo install --path . --locked --force
+```
+
+A current Rust toolchain supporting Edition 2024 (Rust 1.85 or newer) is
+required. On Ubuntu 20.04, use an up-to-date Rust toolchain rather than the old
+Rust packages supplied by the distribution. The upstream GitHub installation
+commands below install upstream Recol, which may not contain this local patch.
+
+References: [Terminator configuration manual](https://gnome-terminator.readthedocs.io/en/latest/advancedusage.html),
+[Ubuntu 20.04 configuration reference](https://manpages.ubuntu.com/manpages/focal/man5/terminator_config.5.html),
+and [Terminator D-Bus implementation](https://github.com/gnome-terminator/terminator/blob/master/terminatorlib/ipc.py).
 
 ### Neovim integration
 
@@ -81,6 +141,8 @@ recol -rd --contains Gruvbox  # random dark theme with "Gruvbox" in name
 recol dracula --dark --show   # preview palette without applying
 recol --list -l --json        # list light themes as JSON
 recol terafox --target nvim   # apply theme for specific target
+recol -i -T terminator,nvim # interactive picker for both programs
+recol blazer -T terminator  # update Terminator profiles
 recol                         # print current theme name (add --show or --json for more)
 
 # change a theme color via JSON and apply the modified theme
@@ -136,7 +198,7 @@ This feature uses FFmpeg's built-in palettegen functionality and requires no add
 
 ![recol-demo-pi-agent-target](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-pi-agent-target.gif)
 
-`recol` ships with a limited set of built-in targets (Ghostty, Kitty, Alacritty, WezTerm, Neovim, Vim, Pi). You can extend it to apply themes to any application that lets you tweak its config file - window managers, browsers, file managers, text editors, and more.
+`recol` ships with a limited set of built-in targets (Ghostty, Kitty, Terminator, Alacritty, WezTerm, Neovim, Vim, Pi). You can extend it to apply themes to any application that lets you tweak its config file - window managers, browsers, file managers, text editors, and more.
 
 Each target is a small module under `src/targets/`:
 

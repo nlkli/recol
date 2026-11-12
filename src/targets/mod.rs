@@ -11,12 +11,14 @@ mod ghostty;
 mod kitty;
 mod nvim;
 mod pi;
+mod terminator;
 mod vim;
 mod wezterm;
 
 pub const ALL_TARGETS: &[Target] = &[
     Target::Ghostty,
     Target::Kitty,
+    Target::Terminator,
     Target::Alacritty,
     Target::Wezterm,
     Target::Nvim,
@@ -28,6 +30,7 @@ pub const ALL_TARGETS: &[Target] = &[
 pub enum Target {
     Ghostty,
     Kitty,
+    Terminator,
     Alacritty,
     Wezterm,
     Nvim,
@@ -47,6 +50,7 @@ impl fmt::Display for Target {
                 Target::None => "none",
                 Target::Ghostty => "ghostty",
                 Target::Kitty => "kitty",
+                Target::Terminator => "terminator",
                 Target::Alacritty => "alacritty",
                 Target::Wezterm => "wezterm",
                 Target::Nvim => "neovim",
@@ -64,6 +68,7 @@ impl std::str::FromStr for Target {
         match s.to_lowercase().as_str() {
             "g" | "gt" | "ghostty" => Ok(Self::Ghostty),
             "k" | "kt" | "kitty" => Ok(Self::Kitty),
+            "terminator" => Ok(Self::Terminator),
             "a" | "at" | "alacritty" => Ok(Self::Alacritty),
             "w" | "wt" | "wezterm" => Ok(Self::Wezterm),
             "n" | "nv" | "nvi" | "nvim" | "neovim" => Ok(Self::Nvim),
@@ -88,6 +93,14 @@ impl Target {
         Ok(match self {
             Target::Ghostty => ghostty::apply_theme_to(&config_path, theme)?,
             Target::Kitty => kitty::apply_theme_to(&config_path, theme)?,
+            Target::Terminator => {
+                let changed = terminator::apply_theme_to(&config_path, theme)?;
+                if changed
+                    && self.existing_default_config_path().as_deref() == Some(config_path.as_ref())
+                {
+                    terminator::reload_running();
+                }
+            }
             Target::Alacritty => alacritty::apply_theme_to(&config_path, theme)?,
             Target::Wezterm => wezterm::apply_theme_to(&config_path, theme)?,
             Target::Nvim => nvim::apply_theme_to(&config_path, theme)?,
@@ -123,6 +136,10 @@ impl Target {
         match self {
             Target::Kitty => {
                 let path = prefix.join("kitty/kitty.conf");
+                path.is_file().then_some(path)
+            }
+            Target::Terminator => {
+                let path = prefix.join("terminator/config");
                 path.is_file().then_some(path)
             }
             Target::Ghostty => {
@@ -345,6 +362,7 @@ pub fn generate_theme_into_dir(
         let target_path_name = match target {
             Target::Ghostty => "config.ghostty",
             Target::Kitty => "kitty.conf",
+            Target::Terminator => "terminator.conf",
             Target::Alacritty => "alacritty.toml",
             Target::Wezterm => "wezterm.lua",
             Target::Nvim => "init.lua",
@@ -363,4 +381,19 @@ pub fn generate_theme_into_dir(
         target.apply_theme_to(config_path, theme)?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod target_tests {
+    use super::*;
+
+    #[test]
+    fn terminator_is_registered_and_selectable() {
+        assert!(ALL_TARGETS.contains(&Target::Terminator));
+        assert_eq!("terminator".parse::<Target>(), Ok(Target::Terminator));
+        assert_eq!("TERMINATOR".parse::<Target>(), Ok(Target::Terminator));
+        assert!("t".parse::<Target>().is_err());
+        assert!("tm".parse::<Target>().is_err());
+        assert_eq!(Target::Terminator.to_string(), "terminator");
+    }
 }
