@@ -49,6 +49,8 @@ cargo build --release
 
 ### Homebrew
 
+[Formula](https://github.com/nlkli/homebrew-tap/blob/main/Formula/recol.rb)
+
 ```sh
 brew install nlkli/tap/recol
 ```
