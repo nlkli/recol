@@ -1,14 +1,19 @@
 -- Integrates the `recol` CLI with Neovim.
 -- Commands: :Recol [args] (-i/--interactive opens a floating terminal),
 --           :RecolOpen (shortcut for interactive mode).
--- Config is reloaded automatically after recol runs.
 if vim.fn.executable("recol") == 1 then
-    local function reload_config()
-        local ok, err = pcall(vim.cmd.source, vim.fn.stdpath("config") .. "/init.lua")
-        if not ok then
-            vim.notify("Recol: config reload failed: " .. tostring(err), vim.log.levels.ERROR)
-        end
-    end
+    -- NOTE: Starting with recol 0.3.3, Neovim automatically reloads the
+    -- colorscheme when its configuration changes, so manually re-sourcing
+    -- the config is no longer necessary. The `reload_config` function is
+    -- kept below (commented out) for reference / older versions.
+    --
+    -- local function reload_config()
+    --     local ok, err = pcall(vim.cmd.source, vim.fn.stdpath("config") .. "/init.lua")
+    --     if not ok then
+    --         vim.notify("Recol: config reload failed: " .. tostring(err), vim.log.levels.ERROR)
+    --     end
+    -- end
+
     local function launch_interactive_mode()
         local width = math.floor(vim.o.columns * 0.75)
         local height = math.floor(vim.o.lines * 0.75)
@@ -32,7 +37,8 @@ if vim.fn.executable("recol") == 1 then
                         vim.api.nvim_win_close(win, true)
                     end
                     if code == 0 then
-                        reload_config()
+                        return
+                        -- reload_config()
                     end
                 end)
             end,
@@ -55,7 +61,7 @@ if vim.fn.executable("recol") == 1 then
                 if res.code ~= 0 then
                     vim.notify("Recol: exit " .. res.code .. "\n" .. (res.stderr or ""), vim.log.levels.ERROR)
                 end
-                reload_config()
+                -- reload_config()
             end)
         end)
     end, { nargs = "*", desc = "Run recol (-i for interactive mode)" })
