@@ -1,6 +1,131 @@
 use crate::utils;
 use recol_lib as lib;
-use std::{io, path::Path};
+use std::io::{Read, Write};
+use std::{
+    collections::HashSet,
+    fs, io,
+    os::unix::{
+        fs::{FileTypeExt, MetadataExt},
+        net::UnixStream,
+    },
+    path::{Path, PathBuf},
+    time::Duration,
+};
+
+/// `<appname>.<pid>.<n>`; `nvim*` also matches NVIM_APPNAME variants.
+fn is_nvim_socket_name(name: &str) -> bool {
+    let mut it = name.split('.');
+    match (it.next(), it.next(), it.next(), it.next()) {
+        (Some(app), Some(pid), Some(n), None) => {
+            app.starts_with("nvim") && pid.parse::<u32>().is_ok() && n.parse::<u32>().is_ok()
+        }
+        _ => false,
+    }
+}
+
+fn candidate_roots() -> Vec<PathBuf> {
+    let mut roots = Vec::with_capacity(4);
+    if let Some(d) = std::env::var_os("XDG_RUNTIME_DIR") {
+        roots.push(PathBuf::from(d));
+    }
+    // SAFETY: getuid has no preconditions and cannot fail
+    let uid = unsafe { libc::getuid() };
+    roots.push(PathBuf::from(format!("/run/user/{uid}")));
+    roots.push(std::env::temp_dir()); // $TMPDIR on macOS
+    roots.push(PathBuf::from("/tmp"));
+    roots.retain(|p| p.is_dir());
+    roots
+}
+
+/// Root children: only `nvim*` dirs. Below that (`nvim.<user>/<random>`): any dir, max 2 levels.
+fn scan(
+    dir: &Path,
+    level: u8,
+    inside_nvim: bool,
+    seen: &mut HashSet<(u64, u64)>,
+    out: &mut Vec<PathBuf>,
+) {
+    let Ok(rd) = fs::read_dir(dir) else { return };
+    for e in rd.flatten() {
+        let Ok(ft) = e.file_type() else { continue };
+        let name = e.file_name();
+        let Some(name) = name.to_str() else { continue };
+
+        if ft.is_socket() {
+            if is_nvim_socket_name(name) {
+                // dedupe: /tmp vs /private/tmp symlinks, overlapping roots
+                if let Ok(m) = e.metadata() {
+                    if seen.insert((m.dev(), m.ino())) {
+                        out.push(e.path());
+                    }
+                }
+            }
+        } else if ft.is_dir() && level < 2 && (inside_nvim || name.starts_with("nvim")) {
+            scan(&e.path(), level + 1, true, seen, out);
+        }
+    }
+}
+
+pub fn find_nvim_sockets() -> Vec<PathBuf> {
+    let mut seen = HashSet::new();
+    let mut out = Vec::new();
+    for root in candidate_roots() {
+        scan(&root, 0, false, &mut seen, &mut out);
+    }
+    out
+}
+
+fn encode_str(buf: &mut Vec<u8>, s: &str) {
+    let n = s.len();
+    if n < 32 {
+        buf.push(0xa0 | n as u8);
+    } else if n < 256 {
+        buf.extend([0xd9, n as u8]);
+    } else if n < 65536 {
+        buf.push(0xda);
+        buf.extend((n as u16).to_be_bytes());
+    } else {
+        buf.push(0xdb);
+        buf.extend((n as u32).to_be_bytes());
+    }
+    buf.extend(s.as_bytes());
+}
+
+fn send(path: &Path, cmd: &str) -> Result<(), String> {
+    let mut s = UnixStream::connect(path).map_err(|e| e.to_string())?;
+    let t = Some(Duration::from_millis(300));
+    s.set_read_timeout(t).map_err(|e| e.to_string())?;
+    s.set_write_timeout(t).map_err(|e| e.to_string())?;
+
+    // [0 (request), msgid 1, "nvim_command", [cmd]]
+    let mut req = vec![0x94, 0x00, 0x01];
+    encode_str(&mut req, "nvim_command");
+    req.push(0x91);
+    encode_str(&mut req, cmd);
+    s.write_all(&req).map_err(|e| e.to_string())?;
+
+    // response: [1, 1, error, result]; error == nil (0xc0) means success
+    let mut buf = [0u8; 1024];
+    let n = s.read(&mut buf).map_err(|e| e.to_string())?;
+    match buf[..n] {
+        [0x94, 0x01, 0x01, 0xc0, ..] => Ok(()),
+        [0x94, 0x01, 0x01, ..] => Err(String::from_utf8_lossy(&buf[4..n]).into_owned()),
+        _ => Err("unexpected response".into()),
+    }
+}
+
+pub fn broadcast(sockets: Vec<PathBuf>, cmd: &str) {
+    std::thread::scope(|s| {
+        for path in &sockets {
+            s.spawn(move || {
+                let _ = send(path, cmd);
+                // if let Err(e) = send(path, cmd) {
+                //     eprintln!("{}: {e}", path.display());
+                // }
+            });
+        }
+    });
+}
 
 pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::ThemeEx) -> io::Result<()> {
     let c = theme
@@ -381,10 +506,16 @@ applyRecolTheme()"###,
     );
 
     utils::inject_content_between_markers(
-        path,
+        &path,
         content.as_bytes(),
         ("-- recol:start", "-- recol:end"),
     )?;
+
+    // reload config
+    broadcast(
+        find_nvim_sockets(),
+        &format!("source {}", path.as_ref().to_string_lossy()),
+    );
 
     Ok(())
 }
