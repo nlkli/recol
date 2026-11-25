@@ -38,6 +38,12 @@ curl -Ls https://raw.githubusercontent.com/nlkli/recol/main/recol.lua >> ~/.conf
 - `:Recol <args>` - runs `recol` with the given arguments, then reloads your config
 - `:Recol -i` / `:RecolOpen` - opens `recol` in a floating terminal window
 
+### Tmux
+
+```sh
+set -s theme terminal
+```
+
 ### Build From Source
 
 ```sh
@@ -125,9 +131,9 @@ In interactive mode you can change adjustments live and see the preview update i
 `recol` can derive a color scheme from any image/video frame. Pass a media file with `--media` and recol builds a theme automatically:
 
 ```sh
-recol --media ~/Pictures/Sunset.png            # generate and apply a theme from an image
-recol -m ~/Videos/X.gif --json                 # generate a theme and output it as JSON
-recol -m ~/Photo/Tree.png -a t.s=9,bb.b=-12    # generate and apply with color adjust
+recol --media ~/Pictures/Sunset.png          # generate and apply a theme from an image
+recol -m ~/Videos/X.gif --json               # generate a theme and output it as JSON
+recol -m ~/Photo/Tree.png -a t.s=9,bb.b=-12  # generate and apply with color adjust
 ```
 
 **Requirement:** [FFmpeg](https://ffmpeg.org) must be installed and available on `PATH`.
@@ -162,7 +168,5 @@ pub const ALL_TARGETS: &[Target] = &[ /* ..., Target::Vscode */ ];
 ![recol-demo-media-to-theme](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-media-to-theme.jpg)
 
 ![recol-demo-img-2](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-img-2.png)
-
-<sub>All demos and screenshots are from an older version. I'm too lazy to update them.</sub>
 
 [LICENSE](LICENSE)
