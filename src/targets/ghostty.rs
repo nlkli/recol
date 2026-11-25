@@ -115,7 +115,7 @@ fn reload_ghostty() {
     }
 }
 
-pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::ThemeEx) -> io::Result<()> {
+pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::ThemeEx, auto_reload: bool) -> io::Result<()> {
     let mut lines = read_config(&path)?;
 
     replace_or_add_palette(&mut lines, 0, theme.colors.base.black.to_string());
@@ -164,7 +164,9 @@ pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::ThemeEx) -> io::Resul
 
     write_config(path, &lines)?;
 
-    reload_ghostty();
+    if auto_reload {
+        reload_ghostty();
+    }
 
     Ok(())
 }

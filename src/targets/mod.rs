@@ -84,13 +84,14 @@ impl Target {
         &self,
         config_path: impl AsRef<Path>,
         theme: &lib::ThemeEx,
+        auto_reload: bool,
     ) -> crate::Result<()> {
         Ok(match self {
-            Target::Ghostty => ghostty::apply_theme_to(&config_path, theme)?,
+            Target::Ghostty => ghostty::apply_theme_to(&config_path, theme, auto_reload)?,
             Target::Kitty => kitty::apply_theme_to(&config_path, theme)?,
             Target::Alacritty => alacritty::apply_theme_to(&config_path, theme)?,
             Target::Wezterm => wezterm::apply_theme_to(&config_path, theme)?,
-            Target::Nvim => nvim::apply_theme_to(&config_path, theme)?,
+            Target::Nvim => nvim::apply_theme_to(&config_path, theme, auto_reload)?,
             Target::Vim => vim::apply_theme_to(&config_path, theme)?,
             Target::Pi => pi::apply_theme_to(&config_path, theme)?,
             Target::None => (),
@@ -295,7 +296,7 @@ pub fn apply_theme<'a>(
     let backups = with_backup(targets)?;
     let mut error = None;
     for (target, config_path, _) in backups.iter() {
-        if let Err(e) = target.apply_theme_to(config_path, theme) {
+        if let Err(e) = target.apply_theme_to(config_path, theme, true) {
             error.replace(e);
             break;
         }
@@ -360,7 +361,7 @@ pub fn generate_theme_into_dir(
             let _f = std::fs::File::create(&config_path)?;
             drop(_f);
         }
-        target.apply_theme_to(config_path, theme)?;
+        target.apply_theme_to(config_path, theme, false)?;
     }
     Ok(())
 }

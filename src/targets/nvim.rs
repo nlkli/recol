@@ -127,7 +127,11 @@ pub fn broadcast(sockets: Vec<PathBuf>, cmd: &str) {
     });
 }
 
-pub fn apply_theme_to(path: impl AsRef<Path>, theme: &lib::ThemeEx) -> io::Result<()> {
+pub fn apply_theme_to(
+    path: impl AsRef<Path>,
+    theme: &lib::ThemeEx,
+    auto_reload: bool,
+) -> io::Result<()> {
     let c = theme
         .advanced
         .clone()
@@ -512,10 +516,12 @@ applyRecolTheme()"###,
     )?;
 
     // reload config
-    broadcast(
-        find_nvim_sockets(),
-        &format!("source {}", path.as_ref().to_string_lossy()),
-    );
+    if auto_reload {
+        broadcast(
+            find_nvim_sockets(),
+            &format!("source {}", path.as_ref().to_string_lossy()),
+        );
+    }
 
     Ok(())
 }
