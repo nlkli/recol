@@ -5,7 +5,6 @@ edition = "2021"
 license = "MIT"
 description = "CLI utility for changing the color scheme"
 repository = "https://github.com/nlkli/recol"
-homepage = "https://github.com/nlkli/recol"
 keywords = ["cli", "terminal", "theme", "colorscheme", "neovim", "alacritty", "ghostty", "wezterm"]
 categories = ["command-line-utilities"]
 
