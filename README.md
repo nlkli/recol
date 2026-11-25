@@ -27,7 +27,7 @@ Designed for a consistent color experience across your development environment.
 
 ![recol-nvim-integration-gif](https://github.com/nlkli/assetsrepo/blob/main/recol.demo/recol-demo-nvim-integration.gif)
 
-Neovim does not automatically reload colorschemes when its configuration changes. The included integration handles this by re-sourcing your configuration after applying a theme. See [`recol.lua`](https://github.com/nlkli/recol/blob/main/recol.lua).
+**Starting with recol 0.3.3, Neovim now supports automatic reloading of colorschemes when its configuration changes.** Because of this, the integration no longer re-sources your configuration after recol finishes - it only adds the user commands. See [`recol.lua`](https://github.com/nlkli/recol/blob/main/recol.lua).
 
 **Install in `init.lua`:**
 
@@ -35,10 +35,12 @@ Neovim does not automatically reload colorschemes when its configuration changes
 curl -Ls https://raw.githubusercontent.com/nlkli/recol/main/recol.lua >> ~/.config/nvim/init.lua
 ```
 
-- `:Recol <args>` - runs `recol` with the given arguments, then reloads your config
+- `:Recol <args>` - runs `recol` with the given arguments
 - `:Recol -i` / `:RecolOpen` - opens `recol` in a floating terminal window
 
 ### Tmux
+
+If your tmux uses its own colors instead of your terminal's standard colors, add this to your `.tmux.conf`:
 
 ```sh
 set -s theme terminal
